@@ -1,2 +1,2 @@
 # Sprint0.5Fall25
-Neel Maddu
+Ved Priyadarshi, Kushi Kashyap, Neel Maddu
