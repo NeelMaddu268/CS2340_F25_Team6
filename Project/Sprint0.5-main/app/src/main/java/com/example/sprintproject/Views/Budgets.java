@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-public class Dashboard extends AppCompatActivity {
+public class Budgets extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
