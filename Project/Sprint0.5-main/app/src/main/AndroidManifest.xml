@@ -13,7 +13,16 @@
         android:theme="@style/Theme.SprintProject"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".Views.Dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".Views.ExpenseLog"
+            android:exported="false" />
+        <activity
+            android:name=".Views.Budgets"
+            android:exported="false" />
+        <activity
+            android:name=".Views.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
