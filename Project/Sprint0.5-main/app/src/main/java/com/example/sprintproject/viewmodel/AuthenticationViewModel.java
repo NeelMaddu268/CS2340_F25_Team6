@@ -32,8 +32,24 @@ public class AuthenticationViewModel extends ViewModel {
         return errorMessage;
     }
 
+    private boolean isEmailValid(String email) {
+        return email != null && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private boolean isPasswordValid(String password) {
+        return password != null && password.length() >= 6;
+    }
+
 
     public void login(String email, String password){
+        if (!isEmailValid(email)) {
+            errorMessage.setValue("Invalid email");
+            return;
+        }
+        if (!isPasswordValid(password)) {
+            errorMessage.setValue("Password must be at least 6 characters");
+            return;
+        }
         //logic for login
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
@@ -41,14 +57,24 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                 } else {
-                    userLiveData.setValue(null);
-                    errorMessage.setValue("Invalid email or password");
-                    Log.w("AuthenticationViewModel", "Failed to login", task.getException());
+                    Exception e = task.getException();
+                    if (e != null) {
+                        Log.w("AuthenticationViewModel", "Failed to login", e);
+                        errorMessage.setValue("Email or Password is incorrect");
+                    }
                 }
             });
     }
 
     public void register(String email, String password){
+        if (!isEmailValid(email)) {
+            errorMessage.setValue("Invalid email");
+            return;
+        }
+        if (!isPasswordValid(password)) {
+            errorMessage.setValue("Password must be at least 6 characters");
+            return;
+        }
         //logic for register
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
@@ -56,9 +82,11 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                 } else {
-                    userLiveData.setValue(null);
-                    errorMessage.setValue("Invalid email or password");
-                    Log.w("AuthenticationViewModel", "Failed to create an account", task.getException());
+                    Exception e = task.getException();
+                    if (e != null) {
+                        Log.w("AuthenticationViewModel", "Failed to create an account", task.getException());
+                        errorMessage.setValue("Registration failed");
+                    }
                 }
             });
     }

@@ -60,12 +60,13 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/error"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/error_message_goes_here"
-        android:textSize="15sp"
+        android:textSize="20sp"
         android:gravity="center"
         android:padding="8dp"
         android:textColor="@color/red"
-        android:visibility="invisible"
+        android:visibility="gone"
+        android:layout_marginTop="10dp"
+
         />
 
     <TextView
@@ -76,7 +77,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         android:textSize="15sp"
         android:gravity="center"
         android:padding="8dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="40dp"
         />
 
     <Button

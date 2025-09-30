@@ -41,14 +41,19 @@ public class RegisterActivity extends AppCompatActivity {
             email = emailInput.getText().toString();
             password = passwordInput.getText().toString();
             authenticationViewModel.register(email, password);
-            if (authenticationViewModel.getErrorMessage() != null) {
-                error.setVisibility(View.VISIBLE);
-                error.setText(authenticationViewModel.getErrorMessage().getValue());
-            }
         });
 
         loginButton.setOnClickListener(v ->
                 startActivity(new Intent(RegisterActivity.this, LoginActivity.class))
         );
+
+        authenticationViewModel.getErrorMessage().observe(this, errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                error.setText(errorMessage);
+                error.setVisibility(View.VISIBLE);
+            } else {
+                error.setVisibility(View.GONE);
+            }
+        });
     }
 }

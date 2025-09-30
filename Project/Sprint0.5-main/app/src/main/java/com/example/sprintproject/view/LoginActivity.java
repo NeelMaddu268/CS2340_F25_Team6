@@ -21,8 +21,6 @@ public class LoginActivity extends AppCompatActivity {
     private String password;
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,14 +41,19 @@ public class LoginActivity extends AppCompatActivity {
             email = emailInput.getText().toString();
             password = passwordInput.getText().toString();
             authenticationViewModel.login(email, password);
-            if (authenticationViewModel.getErrorMessage() != null) {
-                error.setVisibility(View.VISIBLE);
-                error.setText(authenticationViewModel.getErrorMessage().getValue());
-            }
         });
 
         createAccount.setOnClickListener(v ->
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class))
         );
+
+        authenticationViewModel.getErrorMessage().observe(this, errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                error.setText(errorMessage);
+                error.setVisibility(View.VISIBLE);
+            } else {
+                error.setVisibility(View.GONE);
+            }
+        });
     }
 }
