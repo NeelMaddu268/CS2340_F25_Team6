@@ -38,7 +38,7 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
     private boolean isPasswordInvalid(String password) {
-        return password != null && password.length() >= 6;
+        return password == null || password.length() < 6;
     }
 
 
@@ -47,7 +47,7 @@ public class AuthenticationViewModel extends ViewModel {
             errorMessage.setValue("Invalid email");
             return;
         }
-        if (!isPasswordInvalid(password)) {
+        if (isPasswordInvalid(password)) {
             errorMessage.setValue("Password must be at least 6 characters");
             return;
         }
