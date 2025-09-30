@@ -13,7 +13,7 @@
         android:theme="@style/Theme.SprintProject"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".view.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,6 +21,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".view.RegisterActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".view.MainActivity"
+            android:exported="true" />
+
+<!--        The above main activity should be replaced with the following:-->
+<!--        <activity-->
+<!--            android:name=".view.MainActivity"-->
+<!--            android:exported="true">-->
+
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--    -->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--        </activity>-->
+
+
     </application>
 
 </manifest>
