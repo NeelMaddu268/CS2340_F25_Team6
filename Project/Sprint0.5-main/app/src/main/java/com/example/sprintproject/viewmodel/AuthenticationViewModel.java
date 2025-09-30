@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 //import com.google.firebase.auth.AuthResult;
 //import com.google.firebase.database.FirebaseDatabase;
@@ -32,21 +33,21 @@ public class AuthenticationViewModel extends ViewModel {
         return errorMessage;
     }
 
-    private boolean isEmailValid(String email) {
-        return email != null && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    private boolean isEmailInvalid(String email) {
+        return email == null || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    private boolean isPasswordValid(String password) {
+    private boolean isPasswordInvalid(String password) {
         return password != null && password.length() >= 6;
     }
 
 
     public void login(String email, String password){
-        if (!isEmailValid(email)) {
+        if (isEmailInvalid(email)) {
             errorMessage.setValue("Invalid email");
             return;
         }
-        if (!isPasswordValid(password)) {
+        if (!isPasswordInvalid(password)) {
             errorMessage.setValue("Password must be at least 6 characters");
             return;
         }
@@ -67,11 +68,11 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
     public void register(String email, String password){
-        if (!isEmailValid(email)) {
+        if (isEmailInvalid(email)) {
             errorMessage.setValue("Invalid email");
             return;
         }
-        if (!isPasswordValid(password)) {
+        if (isPasswordInvalid(password)) {
             errorMessage.setValue("Password must be at least 6 characters");
             return;
         }
@@ -83,9 +84,11 @@ public class AuthenticationViewModel extends ViewModel {
                     errorMessage.setValue(null);
                 } else {
                     Exception e = task.getException();
-                    if (e != null) {
-                        Log.w("AuthenticationViewModel", "Failed to create an account", task.getException());
-                        errorMessage.setValue("Registration failed");
+                    Log.w("AuthenticationViewModel", "Failed to create an account", task.getException());
+                    errorMessage.setValue("Registration failed");
+
+                    if (e instanceof FirebaseAuthUserCollisionException) {
+                        errorMessage.setValue("Email already in use");
                     }
                 }
             });
