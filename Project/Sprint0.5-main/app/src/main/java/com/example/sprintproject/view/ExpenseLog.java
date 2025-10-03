@@ -1,5 +1,6 @@
 package com.example.sprintproject.view;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 
@@ -16,12 +17,20 @@ public class ExpenseLog extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_expense_log);
+        addExpense = findViewById(R.id.addExpense);
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_expense_log);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+        });
+
+        addExpense.setOnClickListener(v -> {
+            startActivity(new Intent(ExpenseLog.this, ExpenseCreation.class));
         });
     }
 }

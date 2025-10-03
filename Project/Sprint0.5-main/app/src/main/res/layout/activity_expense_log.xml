@@ -6,7 +6,10 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.ExpenseLog">
+    tools:context=".view.ExpenseLog"
+    android:orientation="vertical"
+    android:padding="16dp" >
+
     <TextView
         android:id="@+id/dashboardTitle"
         android:layout_width="match_parent"
@@ -18,4 +21,10 @@
         android:padding="12dp"
         android:layout_marginTop="24dp" />
 
+    <Button
+        android:id="@+id/addExpense"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Expense"
+        app:layout_constraintTop_toBottomOf="@id/dashboardTitle" />
 </LinearLayout>
