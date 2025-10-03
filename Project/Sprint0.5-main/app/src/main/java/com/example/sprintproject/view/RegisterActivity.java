@@ -35,8 +35,6 @@ public class RegisterActivity extends AppCompatActivity {
         Button createAccount = findViewById(R.id.btnCreateAccount);
         TextView error = findViewById(R.id.error);
 
-
-
         createAccount.setOnClickListener(v -> {
             email = emailInput.getText().toString();
             password = passwordInput.getText().toString();
