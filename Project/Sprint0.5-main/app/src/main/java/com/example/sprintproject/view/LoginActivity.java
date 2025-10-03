@@ -53,6 +53,7 @@ public class LoginActivity extends AppCompatActivity {
                 error.setVisibility(View.VISIBLE);
             } else {
                 error.setVisibility(View.GONE);
+                startActivity(new Intent(LoginActivity.this, Dashboard.class));
             }
         });
     }
