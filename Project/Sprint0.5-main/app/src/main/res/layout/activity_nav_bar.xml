@@ -15,42 +15,42 @@
 
         <Button
             android:id="@+id/btnDashboard"
-            android:layout_width="10dp"
+            android:layout_width="5dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="10dp"
+            android:textSize="7dp"
             android:text="Dashboard"/>
 
         <Button
             android:id="@+id/btnExpenseLog"
-            android:layout_width="2dp"
+            android:layout_width="5dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="10dp"
+            android:textSize="7dp"
             android:text="Expense Log"/>
 
         <Button
             android:id="@+id/btnBudget"
-            android:layout_width="2dp"
+            android:layout_width="5dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="10dp"
+            android:textSize="7dp"
             android:text="Budget"/>
 
         <Button
             android:id="@+id/btnSavingsCircle"
-            android:layout_width="2dp"
+            android:layout_width="5dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="10dp"
+            android:textSize="7dp"
             android:text="Savings Circle"/>
 
         <Button
             android:id="@+id/btnChatbot"
-            android:layout_width="10dp"
+            android:layout_width="5dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="10dp"
+            android:textSize="7dp"
             android:text="Chatbot"/>
     </LinearLayout>
 </RelativeLayout>

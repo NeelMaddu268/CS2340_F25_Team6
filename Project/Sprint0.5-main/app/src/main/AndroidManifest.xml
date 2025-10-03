@@ -22,10 +22,10 @@
             android:name=".view.Dashboard"
             android:exported="false" />
         <activity
-            android:name=".view.ExpenseLog"
+            android:name=".view.ExpenseLogFragment"
             android:exported="false" />
         <activity
-            android:name=".view.Budgets"
+            android:name=".view.BudgetsFragment"
             android:exported="false" />
         <activity
             android:name=".view.LoginActivity"
