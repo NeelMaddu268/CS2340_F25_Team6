@@ -1,10 +1,9 @@
 package com.example.sprintproject.view;
 
 import android.os.Bundle;
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-
 import com.example.sprintproject.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -15,38 +14,34 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize BottomNavigationView
-        BottomNavigationView navView = findViewById(R.id.bottom_nav_menu);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
 
-        // Set default fragment when app starts
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragment_container, new DashboardFragment())
-                .commit();
+        // Load the DashboardFragment by default
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new DashboardFragment())
+                    .commit();
+        }
 
         // Handle navigation item clicks
-        navView.setOnItemSelectedListener(item -> {
+        bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
 
-            switch (item.getItemId()) {
-                case R.id.Dashboard:
-                    selectedFragment = new DashboardFragment();
-                    break;
-                case R.id.Budgets:
-                    selectedFragment = new BudgetsFragment();
-                    break;
-                case R.id.ExpenseLogs:
-                    selectedFragment = new ExpenseLogFragment();
-                    break;
-                case R.id.SavingsCircles:
-                    selectedFragment = new SavingsCircleFragment();
-                    break;
-            }
+            int itemId = item.getItemId();
+            if (itemId == R.id.Budgets) {
+                selectedFragment = new BudgetsFragment();
+            } else if (itemId == R.id.Dashboard) {
+                selectedFragment = new DashboardFragment();
+            } else if (itemId == R.id.ExpenseLogs) {
+                selectedFragment = new ExpenseLogFragment();
+            } else if (itemId == R.id.SavingsCircles) {
+                selectedFragment = new SavingsCircleFragment();
+            } //else if (itemId == R.id.Chatbot) {
+                //selectedFragment = new ChatbotFragment();
+            //}
 
-            // Swap the fragment
             if (selectedFragment != null) {
-                getSupportFragmentManager()
-                        .beginTransaction()
+                getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, selectedFragment)
                         .commit();
             }
