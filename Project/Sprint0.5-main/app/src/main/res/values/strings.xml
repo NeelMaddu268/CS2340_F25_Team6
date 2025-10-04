@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">SprintProject</string>
+    <string name="app_name">SpendWise</string>
+    <string name="wallet_icon_desc">Wallet Icon</string>
+    <string name="start_button">Start</string>
+    <string name="quit_button">Quit</string>
     <string name="Password_Text">Password</string>
     <string name="Login_Text">Login</string>
     <string name="email_address">Email Address</string>

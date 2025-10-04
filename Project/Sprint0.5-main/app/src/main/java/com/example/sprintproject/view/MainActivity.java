@@ -1,9 +1,13 @@
 package com.example.sprintproject.view;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+
 import com.example.sprintproject.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -14,6 +18,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // -------------------------
+        // Bottom Navigation Setup
+        // -------------------------
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
 
         // Load the DashboardFragment by default
@@ -36,8 +43,8 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ExpenseLogFragment();
             } else if (itemId == R.id.SavingsCircles) {
                 selectedFragment = new SavingsCircleFragment();
-            } //else if (itemId == R.id.Chatbot) {
-                //selectedFragment = new ChatbotFragment();
+            } // else if (itemId == R.id.Chatbot) {
+            // selectedFragment = new ChatbotFragment();
             //}
 
             if (selectedFragment != null) {
@@ -47,6 +54,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             return true;
+        });
+
+        // -------------------------
+        // Start / Quit Buttons Setup
+        // -------------------------
+        Button btnStart = findViewById(R.id.btnStart);
+        Button btnQuit = findViewById(R.id.btnQuit);
+
+        btnStart.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+        });
+
+        btnQuit.setOnClickListener(v -> {
+            finishAffinity();
+            System.exit(0);
         });
     }
 }
