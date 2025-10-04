@@ -11,16 +11,25 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.sprintproject.R;
 
 public class SavingsCircle extends AppCompatActivity {
+    // Tag used for logging or debugging
     private final String TAG = "SavingsCircle";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Enables Android's edge-to-edge display mode
         EdgeToEdge.enable(this);
+
+        // Sets the layout for this activity using the corresponding XML file
         setContentView(R.layout.activity_savings_circle);
 
+        // Adjusts the view's padding so that the content does not overlap with system UI elements
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            // Get the size of the system bars
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // Apply padding to the view
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            // Return the insets
             return insets;
         });
     }
