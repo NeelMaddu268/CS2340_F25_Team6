@@ -19,7 +19,7 @@
             android:name=".view.ExpenseCreation"
             android:exported="false" />
         <activity
-            android:name=".view.Dashboard"
+            android:name=".view.DashboardFragment"
             android:exported="false" />
         <activity
             android:name=".view.ExpenseLogFragment"
@@ -43,7 +43,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.SavingsCircle"
+            android:name=".view.SavingsCircleFragment"
             android:exported="false" />
     </application>
 

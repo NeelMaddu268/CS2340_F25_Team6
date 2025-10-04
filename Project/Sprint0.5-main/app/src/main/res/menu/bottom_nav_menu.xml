@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/Budgets"
-        android:title="Budgets"
-        android:icon="@drawable/baseline_account_balance_wallet_24"/>
-    <item
         android:id="@+id/Dashboard"
         android:title="Dashboard"
         android:icon="@drawable/baseline_home_24"/>
     <item
+        android:id="@+id/Budgets"
+        android:title="Budgets"
+        android:icon="@drawable/baseline_account_balance_wallet_24"/>
+    <item
         android:id="@+id/ExpenseLogs"
-        android:title="ExpenseLogs"
+        android:title="Expense Logs"
         android:icon="@drawable/baseline_format_list_bulleted_24"/>
     <item
         android:id="@+id/SavingsCircles"
-        android:title="SavingsCircles"
+        android:title="Savings"
         android:icon="@drawable/baseline_attach_money_24"/>
     <item
         android:id="@+id/Chatbot"
