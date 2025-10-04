@@ -6,17 +6,20 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.ExpenseCreation">
+    tools:context=".view.ExpenseCreation"
+    android:background="#357DED">
 
     <TextView
         android:id="@+id/dashboardTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Expense Creation"
-        android:textSize="20sp"
+        android:textSize="30sp"
         android:textStyle="bold"
         android:gravity="center"
         android:padding="12dp"
-        android:layout_marginTop="24dp" />
+        android:layout_marginTop="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/white"/>
 
 </LinearLayout>

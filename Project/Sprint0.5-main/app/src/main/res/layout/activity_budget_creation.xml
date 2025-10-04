@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.BudgetCreation"
-    android:background="#2d57ba">
+    android:background="#357DED">
 
     <TextView
         android:id="@+id/dashboardTitle"
