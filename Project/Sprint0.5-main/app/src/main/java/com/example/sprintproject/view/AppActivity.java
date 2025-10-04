@@ -1,0 +1,42 @@
+package com.example.sprintproject.view;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import com.example.sprintproject.R;
+import com.example.sprintproject.databinding.ActivityAppBinding;
+
+public class AppActivity extends AppCompatActivity {
+
+    private ActivityAppBinding binding;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityAppBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // Default fragment
+        replaceFragment(new DashboardFragment());
+
+        binding.bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.Dashboard) {
+                replaceFragment(new DashboardFragment());
+            } else if (id == R.id.Budgets) {
+                replaceFragment(new BudgetsFragment());
+            } else if (id == R.id.ExpenseLogs) {
+                replaceFragment(new ExpenseLogFragment());
+            } else if (id == R.id.SavingsCircles) {
+                replaceFragment(new SavingsCircleFragment());
+            }
+            return true;
+        });
+    }
+
+    private void replaceFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
+    }
+}
