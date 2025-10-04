@@ -51,7 +51,11 @@ public class RegisterActivity extends AppCompatActivity {
                 error.setVisibility(View.VISIBLE);
             } else {
                 error.setVisibility(View.GONE);
-                startActivity(new Intent(RegisterActivity.this, Dashboard.class));
+                //startActivity(new Intent(RegisterActivity.this, AppActivity.class));
+                Intent intent = new Intent(RegisterActivity.this, AppActivity.class);
+                startActivity(intent);
+                finish();
+
             }
         });
     }

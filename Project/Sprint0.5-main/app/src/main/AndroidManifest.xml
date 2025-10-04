@@ -12,39 +12,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SprintProject"
         tools:targetApi="31">
-        <activity
-            android:name=".view.BudgetCreation"
-            android:exported="false" />
-        <activity
-            android:name=".view.ExpenseCreation"
-            android:exported="false" />
-        <activity
-            android:name=".view.DashboardFragment"
-            android:exported="false" />
-        <activity
-            android:name=".view.ExpenseLogFragment"
-            android:exported="false" />
-        <activity
-            android:name=".view.BudgetsFragment"
-            android:exported="false" />
-        <activity
-            android:name=".view.LoginActivity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".view.RegisterActivity"
-            android:exported="true" />
-        <activity
-            android:name=".view.MainActivity"
-            android:exported="true">
+
+        <activity android:name=".view.BudgetCreation" android:exported="false" />
+        <activity android:name=".view.ExpenseCreation" android:exported="false" />
+        <activity android:name=".view.LoginActivity" android:exported="true" />
+        <activity android:name=".view.RegisterActivity" android:exported="true" />
+        <activity android:name=".view.MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".view.SavingsCircleFragment"
-            android:exported="false" />
+        <activity android:name=".view.AppActivity" android:exported="true" />
+
     </application>
 
 </manifest>
