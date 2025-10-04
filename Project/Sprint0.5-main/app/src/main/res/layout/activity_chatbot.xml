@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<<<<<<< HEAD
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -25,3 +26,9 @@
         android:textColor="#FFFFFF" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+=======
+<!--<androidx.constraintlayout.widget.ConstraintLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app=""http:schemas.android.com/apk/res/android>-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+>>>>>>> f912066e2624c5cfd0f6a9c8696cd46bc1e8b9d4
