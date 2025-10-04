@@ -1,6 +1,5 @@
 package com.example.sprintproject.view;
 
-<<<<<<< HEAD
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -26,7 +25,3 @@ public class Chatbot extends AppCompatActivity {
         });
     }
 }
-=======
-public class Chatbot {
-}
->>>>>>> f912066e2624c5cfd0f6a9c8696cd46bc1e8b9d4
