@@ -25,11 +25,11 @@ public class AuthenticationViewModel extends ViewModel {
         errorMessage = new MutableLiveData<>();
     }
 
-    public LiveData<FirebaseUser> getUserLiveData(){
+    public LiveData<FirebaseUser> getUserLiveData() {
         return userLiveData;
     }
 
-    public LiveData<String> getErrorMessage(){
+    public LiveData<String> getErrorMessage() {
         return errorMessage;
     }
 
@@ -42,7 +42,7 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
 
-    public void login(String email, String password){
+    public void login(String email, String password) {
         if (isEmailInvalid(email)) {
             errorMessage.setValue("Invalid email");
             return;
@@ -67,7 +67,7 @@ public class AuthenticationViewModel extends ViewModel {
             });
     }
 
-    public void register(String email, String password){
+    public void register(String email, String password) {
         if (isEmailInvalid(email)) {
             errorMessage.setValue("Invalid email");
             return;
@@ -84,7 +84,8 @@ public class AuthenticationViewModel extends ViewModel {
                     errorMessage.setValue(null);
                 } else {
                     Exception e = task.getException();
-                    Log.w("AuthenticationViewModel", "Failed to create an account", task.getException());
+                    Log.w("AuthenticationViewModel",
+                            "Failed to create an account", task.getException());
                     errorMessage.setValue("Registration failed");
 
                     if (e instanceof FirebaseAuthUserCollisionException) {
@@ -95,8 +96,7 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
 
-
-    public void logout(){
+    public void logout() {
         mAuth.signOut();
         userLiveData.setValue(null);
     }

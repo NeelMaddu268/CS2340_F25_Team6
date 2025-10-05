@@ -24,17 +24,20 @@ public class ExpenseLogFragment extends Fragment {
     }
 
     @Override
+
     public View onCreateView(
             LayoutInflater inflater,
             ViewGroup container,
             Bundle savedInstanceState
     ) {
+        
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         addExpense = view.findViewById(R.id.addExpense);
 
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
+
                 view.findViewById(R.id.expenselog_layout),
                 (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
