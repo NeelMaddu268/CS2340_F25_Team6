@@ -15,6 +15,9 @@ public class BudgetCreation extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_budget_creation);
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_budget_creation);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
