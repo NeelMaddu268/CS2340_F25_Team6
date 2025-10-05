@@ -53,6 +53,11 @@ public class LoginActivity extends AppCompatActivity {
                 error.setVisibility(View.VISIBLE);
             } else {
                 error.setVisibility(View.GONE);
+                //startActivity(new Intent(LoginActivity.this, AppActivity.class));
+                Intent intent = new Intent(LoginActivity.this, AppActivity.class);
+                startActivity(intent);
+                finish();
+
             }
         });
     }
