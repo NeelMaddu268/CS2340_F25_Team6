@@ -25,9 +25,9 @@ public class AuthenticationViewModel extends ViewModel {
         errorMessage = new MutableLiveData<>();
     }
 
-//    public LiveData<FirebaseUser> getUserLiveData(){
-//        return userLiveData;
-//    }
+    public LiveData<FirebaseUser> getUserLiveData(){
+        return userLiveData;
+    }
 
     public LiveData<String> getErrorMessage(){
         return errorMessage;
@@ -96,7 +96,8 @@ public class AuthenticationViewModel extends ViewModel {
 
 
 
-//    public void logout(){
-//        //logic for logout
-//    }
+    public void logout(){
+        mAuth.signOut();
+        userLiveData.setValue(null);
+    }
 }

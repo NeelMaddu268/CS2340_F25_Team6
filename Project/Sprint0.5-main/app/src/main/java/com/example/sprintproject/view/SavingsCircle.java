@@ -21,7 +21,7 @@ public class SavingsCircle extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         // Sets the layout for this activity using the corresponding XML file
-        setContentView(R.layout.activity_savings_circle);
+        setContentView(R.layout.fragment_savingscircle);
 
         // Adjusts the view's padding so that the content does not overlap with system UI elements
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
