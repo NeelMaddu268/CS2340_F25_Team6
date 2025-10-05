@@ -24,19 +24,32 @@ public class ExpenseLogFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+
+    public View onCreateView(
+            LayoutInflater inflater,
+            ViewGroup container,
+            Bundle savedInstanceState
+    ) {
+        
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         addExpense = view.findViewById(R.id.addExpense);
 
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
-                view.findViewById(R.id.expenselog_layout), (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-                return insets;
-            });
+
+                view.findViewById(R.id.expenselog_layout),
+                (v, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(
+                            systemBars.left,
+                            systemBars.top,
+                            systemBars.right,
+                            systemBars.bottom
+                    );
+                    return insets;
+                }
+        );
 
         addExpense.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_expense_creation, null);

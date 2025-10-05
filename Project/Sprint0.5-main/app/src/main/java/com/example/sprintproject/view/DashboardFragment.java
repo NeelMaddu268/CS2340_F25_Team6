@@ -27,10 +27,13 @@ public class DashboardFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater,
-                container, savedInstanceState);
+
+    public View onCreateView(
+            LayoutInflater inflater,
+            ViewGroup container,
+            Bundle savedInstanceState
+    ) {
+        View view = super.onCreateView(inflater, container, savedInstanceState);
 
         authenticationViewModel = new AuthenticationViewModel();
 
