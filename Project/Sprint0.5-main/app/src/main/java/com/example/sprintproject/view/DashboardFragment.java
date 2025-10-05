@@ -16,12 +16,12 @@ public class DashboardFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout
+    public View onCreateView(
+            LayoutInflater inflater,
+            ViewGroup container,
+            Bundle savedInstanceState
+    ) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-
-        // TODO: Initialize UI elements if needed, e.g. buttons
-        // You won't use startActivity here. Navigation happens via MainActivity's nav bar.
 
         return view;
     }

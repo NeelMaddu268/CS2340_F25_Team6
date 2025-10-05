@@ -9,10 +9,10 @@ import androidx.fragment.app.Fragment;
 
 import com.example.sprintproject.R;
 
-public class SavingsCircleFragment extends Fragment {
+public class ChatbotFragment extends Fragment {
 
-    public SavingsCircleFragment() {
-        super(R.layout.fragment_savingscircle);
+    public ChatbotFragment() {
+        super(R.layout.fragment_chatbot); // Use your existing XML layout (rename if needed)
     }
 
     @Override
@@ -22,7 +22,7 @@ public class SavingsCircleFragment extends Fragment {
             Bundle savedInstanceState
     ) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        // Initialize UI elements here
+
         return view;
     }
 }
