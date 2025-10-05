@@ -1,7 +1,8 @@
 package com.example.sprintproject.view;
 
-import android.content.Intent;
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
@@ -23,14 +24,22 @@ public class Budgets extends AppCompatActivity {
         addBudget = findViewById(R.id.addBudget);
 
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_budgets);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
         addBudget.setOnClickListener(v -> {
-            startActivity(new Intent(Budgets.this, BudgetCreation.class));
+            View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
+
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setView(popupView)
+                    .create();
+
+            Button closeButton = popupView.findViewById(R.id.closeButton);
+            closeButton.setOnClickListener(view -> dialog.dismiss());
+
+            dialog.show();
         });
     }
 }
