@@ -1,6 +1,5 @@
 package com.example.sprintproject.view;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -28,19 +27,22 @@ public class DashboardFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        View view = super.onCreateView(inflater,
+                container, savedInstanceState);
 
         authenticationViewModel = new AuthenticationViewModel();
 
         logoutButton = view.findViewById(R.id.logout);
 
         EdgeToEdge.enable(requireActivity());
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.dashboard_layout), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                view.findViewById(R.id.dashboard_layout), (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
 
         logoutButton.setOnClickListener(v -> {
             authenticationViewModel.logout();
