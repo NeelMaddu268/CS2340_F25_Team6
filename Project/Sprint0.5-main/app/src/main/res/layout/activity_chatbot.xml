@@ -5,18 +5,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/savingscircle_layout"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#357DED"
-    tools:context=".view.SavingsCircleFragment">
+    tools:context=".view.Chatbot">
 
-    <!-- Text view for "Savings Circle" -->
+    <!-- Text view for "Chatbot" -->
     <TextView
-        android:id="@+id/text_savings_circle"
+        android:id="@+id/text_chatbot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Savings Circle"
+        android:text="Chatbot"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,4 +26,4 @@
         android:fontFamily="sans-serif-medium"
         android:textColor="#FFFFFF" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
