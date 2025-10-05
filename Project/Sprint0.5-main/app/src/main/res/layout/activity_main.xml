@@ -14,7 +14,7 @@
         android:layout_width="160dp"
         android:layout_height="160dp"
         android:src="@drawable/wallet"
-        android:tint="@android:color/white"
+        app:tint="@android:color/white"
         android:contentDescription="@string/wallet_icon_desc"
         app:layout_constraintBottom_toTopOf="@id/appName"
         app:layout_constraintStart_toStartOf="parent"
