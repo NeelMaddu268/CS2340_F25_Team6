@@ -11,8 +11,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.sprintproject.R;
 
 public class Chatbot extends AppCompatActivity {
-    // Tag used for logging or debugging
-    private final String TAG = "Chatbot";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

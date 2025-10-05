@@ -11,8 +11,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.sprintproject.R;
 
 public class SavingsCircle extends AppCompatActivity {
-    // Tag used for logging or debugging
-    private final String TAG = "SavingsCircle";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
