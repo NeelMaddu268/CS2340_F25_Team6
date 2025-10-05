@@ -95,7 +95,6 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
 
-
     public void logout(){
         mAuth.signOut();
         userLiveData.setValue(null);
