@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/savingscircle_layout"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.SavingsCircleFragment"
+    tools:context=".view.ExpenseCreation"
+    android:orientation="vertical"
     android:background="#357DED">
 
-
     <TextView
-        android:id="@+id/savings_circle_text"
+        android:id="@+id/expenseCreationTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Savings Circle"
+        android:text="Expense Creation"
         android:textSize="30sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -23,5 +22,14 @@
         android:layout_marginTop="24dp"
         android:fontFamily="sans-serif-medium"
         android:textColor="@color/white"/>
+    <Button
+        android:id="@+id/closeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        android:backgroundTint="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#357DED"
+        app:layout_constraintTop_toBottomOf="@id/expenseCreationTitle"/>
 
 </LinearLayout>

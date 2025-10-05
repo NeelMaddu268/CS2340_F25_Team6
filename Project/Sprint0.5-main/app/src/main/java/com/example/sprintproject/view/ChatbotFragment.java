@@ -9,10 +9,10 @@ import androidx.fragment.app.Fragment;
 
 import com.example.sprintproject.R;
 
-public class DashboardFragment extends Fragment {
+public class ChatbotFragment extends Fragment {
 
-    public DashboardFragment() {
-        super(R.layout.fragment_dashboard); // Use your existing XML layout (rename if needed)
+    public ChatbotFragment() {
+        super(R.layout.fragment_chatbot); // Use your existing XML layout (rename if needed)
     }
 
     @Override
