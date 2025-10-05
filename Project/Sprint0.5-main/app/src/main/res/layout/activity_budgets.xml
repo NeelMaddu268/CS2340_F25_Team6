@@ -12,7 +12,7 @@
     android:background="#357DED">
 
     <TextView
-        android:id="@+id/dashboardTitle"
+        android:id="@+id/budgetsTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -32,5 +32,5 @@
         android:backgroundTint="@color/white"
         android:fontFamily="sans-serif-medium"
         android:textColor="#357DED"
-        app:layout_constraintTop_toBottomOf="@id/dashboardTitle" />
+        app:layout_constraintTop_toBottomOf="@id/budgetsTitle" />
 </LinearLayout>
