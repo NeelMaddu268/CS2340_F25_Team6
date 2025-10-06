@@ -9,18 +9,30 @@
     android:padding="24dp"
     tools:context=".view.LoginActivity">
 
+        <ImageView
+            android:id="@+id/appLogo2"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="@string/wallet_icon_desc"
+            android:src="@drawable/wallet"
+            app:layout_constraintBottom_toTopOf="@id/appName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:tint="#357DED" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:fontFamily="sans-serif-medium"
             android:gravity="center"
             android:padding="12dp"
             android:text="@string/login"
+            android:textColor="#357DED"
             android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="#0000FF"
-            android:fontFamily="sans-serif-medium" />
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/email"
@@ -59,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="17dp"
-            android:text="@string/Login_Text"
+            android:text="Log In"
             android:textSize="20sp"
             android:layout_marginHorizontal="20dp"
             android:backgroundTint="#357DED"
