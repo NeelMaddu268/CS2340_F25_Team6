@@ -10,7 +10,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.sprintproject.R;
 
-public class BudgetCreation extends AppCompatActivity {
+public class    BudgetCreation extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
