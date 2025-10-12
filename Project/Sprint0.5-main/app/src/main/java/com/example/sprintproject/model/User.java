@@ -3,10 +3,12 @@ package com.example.sprintproject.model;
 public class User {
     private final String email;
     private final String name;
+    private final String password;
 
-    public User(String email, String name) {
+    public User(String email, String name, String password) {
         this.email = email;
         this.name = name;
+        this.password = password;
     }
 
     public String getEmail() {
@@ -15,5 +17,9 @@ public class User {
 
     public String getName() {
         return name;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }
