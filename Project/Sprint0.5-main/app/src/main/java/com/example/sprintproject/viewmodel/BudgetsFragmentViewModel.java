@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class ExpenseCreationViewModel extends ViewModel {
+public class BudgetsFragmentViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
 
-    public ExpenseCreationViewModel() {
+    public BudgetsFragmentViewModel() {
         // Just sets a sample value (not used for logic)
         text.setValue("Hello from ViewModel (placeholder)");
     }

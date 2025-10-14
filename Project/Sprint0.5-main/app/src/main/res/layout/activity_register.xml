@@ -51,10 +51,8 @@
             android:layout_marginTop="17dp"
             android:text="@string/create_account"
             android:textSize="20sp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginStart="20dp"
-            android:backgroundTint="#357DED"
-            />
+            android:layout_marginHorizontal="20dp"
+            android:backgroundTint="#357DED" />
 
         <TextView
             android:id="@+id/error"
@@ -82,9 +80,7 @@
             android:layout_height="wrap_content"
             android:text="@string/Login_Text"
             android:textSize="20sp"
-            android:layout_marginBottom="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginStart="20dp"
+            android:layout_marginHorizontal="20dp"
             android:backgroundTint="#357DED" />
 
 </LinearLayout>

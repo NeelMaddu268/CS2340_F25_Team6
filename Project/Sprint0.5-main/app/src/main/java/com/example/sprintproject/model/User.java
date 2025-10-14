@@ -1,19 +1,25 @@
 package com.example.sprintproject.model;
 
 public class User {
-    private final String id;
     private final String email;
+    private final String name;
+    private final String password;
 
-    public User(String id, String email) {
-        this.id = id;
+    public User(String email, String name, String password) {
         this.email = email;
-    }
-
-    public String getId() {
-        return id;
+        this.name = name;
+        this.password = password;
     }
 
     public String getEmail() {
         return email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }
