@@ -7,10 +7,16 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 //import com.google.firebase.auth.AuthResult;
 //import com.google.firebase.database.FirebaseDatabase;
 //import com.google.firebase.database.DatabaseReference;
 import android.util.Log;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class AuthenticationViewModel extends ViewModel {
@@ -55,8 +61,12 @@ public class AuthenticationViewModel extends ViewModel {
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
+                    FirebaseUser firebaseUser = task.getResult().getUser();
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
+                    createUserInFirestore(firebaseUser);
+                    ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
+                    expenseCreationViewModel.createSampleExpenses();
                 } else {
                     Exception e = task.getException();
                     if (e != null) {
@@ -80,8 +90,12 @@ public class AuthenticationViewModel extends ViewModel {
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
+                    FirebaseUser firebaseUser = task.getResult().getUser();
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
+                    createUserInFirestore(firebaseUser);
+                    ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
+                    expenseCreationViewModel.createSampleExpenses();
                 } else {
                     Exception e = task.getException();
                     Log.w("AuthenticationViewModel",
@@ -95,9 +109,26 @@ public class AuthenticationViewModel extends ViewModel {
             });
     }
 
-
     public void logout() {
         mAuth.signOut();
         userLiveData.setValue(null);
+    }
+
+    public void createUserInFirestore(FirebaseUser firebaseUser) {
+        FirebaseFirestore databaseReference = FirebaseFirestore.getInstance();
+        String uid = firebaseUser.getUid();
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("email", firebaseUser.getEmail());
+
+        databaseReference.collection("users").document(uid)
+                .set(userData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "User document created for" + uid);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w("Firestore", "Error creating user document", e);
+                });
+
     }
 }
