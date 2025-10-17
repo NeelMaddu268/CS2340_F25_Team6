@@ -31,11 +31,12 @@ public class BudgetsFragment extends Fragment {
         addBudget = view.findViewById(R.id.addBudget);
 
         EdgeToEdge.enable(requireActivity());
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.budgets_layout), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                view.findViewById(R.id.budgets_layout), (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
 
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);

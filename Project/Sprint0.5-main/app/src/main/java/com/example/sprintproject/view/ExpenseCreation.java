@@ -1,7 +1,6 @@
 package com.example.sprintproject.view;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -17,7 +16,10 @@ import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 public class ExpenseCreation extends AppCompatActivity {
 
     private ExpenseCreationViewModel expenseCreationViewModel;
-    private EditText expenseName, expenseAmount, expenseDate, expenseCategory;
+    private EditText expenseName;
+    private EditText expenseAmount;
+    private EditText expenseDate;
+    private EditText expenseCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +41,6 @@ public class ExpenseCreation extends AppCompatActivity {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
-        });
-
-        createBtn.setOnClickListener(v -> {
-            String name = expenseName.getText().toString();
-            String date = expenseDate.getText().toString();
-            String amount = expenseAmount.getText().toString();
-            String category = expenseCategory.getText().toString();
-
-            if(!name.isEmpty() && !date.isEmpty() && amount.isEmpty() && !category.isEmpty()) {
-                expenseCreationViewModel.createExpense(name, date, amount, category);
-            }
         });
     }
 }
