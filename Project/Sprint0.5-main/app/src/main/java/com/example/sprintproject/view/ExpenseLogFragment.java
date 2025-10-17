@@ -19,14 +19,11 @@ import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 
 public class ExpenseLogFragment extends Fragment {
 
-    private Button addExpense;
-
     public ExpenseLogFragment() {
         super(R.layout.fragment_expenselog);
     }
 
     @Override
-
     public View onCreateView(
             LayoutInflater inflater,
             ViewGroup container,

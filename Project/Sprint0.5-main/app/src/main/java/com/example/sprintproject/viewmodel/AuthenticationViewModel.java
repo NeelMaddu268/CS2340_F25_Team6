@@ -89,7 +89,10 @@ public class AuthenticationViewModel extends ViewModel {
                     createUserInFirestore(firebaseUser);
                     ExpenseCreationViewModel expenseCreationViewModel =
                             new ExpenseCreationViewModel();
+                    BudgetCreationViewModel budgetCreationViewModel =
+                            new BudgetCreationViewModel();
                     expenseCreationViewModel.createSampleExpenses();
+                    budgetCreationViewModel.createSampleBudgets();
                 } else {
                     Exception e = task.getException();
                     Log.w("AuthenticationViewModel",
