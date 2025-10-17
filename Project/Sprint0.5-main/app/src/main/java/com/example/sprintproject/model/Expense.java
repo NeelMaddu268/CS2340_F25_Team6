@@ -6,9 +6,9 @@ public class Expense {
     private final String name;
     private final double amount;
     private final String category;
-    private final Date startDate;
+    private final String startDate;
 
-    public Expense(String name, double amount, String category, Date startDate) {
+    public Expense(String name, double amount, String category, String startDate) {
         this.name = name;
         this.amount = amount;
         this.category = category;
@@ -27,7 +27,7 @@ public class Expense {
         return category;
     }
 
-    public Date getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 }

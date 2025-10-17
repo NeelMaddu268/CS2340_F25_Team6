@@ -65,6 +65,8 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                     createUserInFirestore(firebaseUser);
+                    ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
+                    expenseCreationViewModel.createSampleExpenses();
                 } else {
                     Exception e = task.getException();
                     if (e != null) {
@@ -92,6 +94,8 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                     createUserInFirestore(firebaseUser);
+                    ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
+                    expenseCreationViewModel.createSampleExpenses();
                 } else {
                     Exception e = task.getException();
                     Log.w("AuthenticationViewModel",
