@@ -17,8 +17,7 @@ import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 public class ExpenseCreation extends AppCompatActivity {
 
     private ExpenseCreationViewModel expenseCreationViewModel;
-    private EditText expenseName, expenseAmount, expenseDate;
-    private Button createBtn;
+    private EditText expenseName, expenseAmount, expenseDate, expenseCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,11 +27,11 @@ public class ExpenseCreation extends AppCompatActivity {
 
         expenseName = findViewById(R.id.ExpenseName);
         expenseAmount = findViewById(R.id.ExpenseAmount);
-        //expenseCategory = findViewById(R.id.ExpenseCategory);
+        expenseCategory = findViewById(R.id.ExpenseCategory);
         expenseDate = findViewById(R.id.ExpenseDate);
-        //expenseOther = findViewById(R.id.expenseOther);
-        //expenseNotes = findViewById(R.id.expenseNotes);
-        createBtn = findViewById(R.id.createExpenseButton);
+        Button createBtn = findViewById(R.id.createExpenseButton);
+
+        expenseCreationViewModel = new ExpenseCreationViewModel();
 
 
         EdgeToEdge.enable(this);
@@ -42,16 +41,14 @@ public class ExpenseCreation extends AppCompatActivity {
             return insets;
         });
 
-        Button createExpense = findViewById(R.id.createExpenseButton);
-        createBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                String name = expenseName.getText().toString();
-                String date = expenseDate.getText().toString();
-                String amount = expenseAmount.getText().toString();
+        createBtn.setOnClickListener(v -> {
+            String name = expenseName.getText().toString();
+            String date = expenseDate.getText().toString();
+            String amount = expenseAmount.getText().toString();
+            String category = expenseCategory.getText().toString();
 
-//                if(name.isEmpty() || date.isEmpty() || amount.isEmpty()) {
-//                    expenseCreationViewModel.createExpense(name, date, amount);
-//                }
+            if(!name.isEmpty() && !date.isEmpty() && amount.isEmpty() && !category.isEmpty()) {
+                expenseCreationViewModel.createExpense(name, date, amount, category);
             }
         });
     }
