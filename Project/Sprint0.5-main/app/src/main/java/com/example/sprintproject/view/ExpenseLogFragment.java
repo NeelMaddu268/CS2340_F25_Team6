@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -52,6 +53,8 @@ public class ExpenseLogFragment extends Fragment {
         );
 
         addExpense.setOnClickListener(v -> {
+//            Intent intent = new Intent(requireActivity(), ExpenseCreation.class);
+//            startActivity(intent);
             View popupView = getLayoutInflater().inflate(R.layout.popup_expense_creation, null);
 
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())

@@ -22,14 +22,73 @@
         android:layout_marginTop="24dp"
         android:fontFamily="sans-serif-medium"
         android:textColor="@color/white"/>
+
+    <Button
+        android:id="@+id/createExpenseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Expense"
+        android:backgroundTint="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#357DED"
+        android:layout_marginTop="17dp"
+        android:layout_marginHorizontal="20dp"
+        app:layout_constraintTop_toBottomOf="@id/expenseCreationTitle"/>
+
     <Button
         android:id="@+id/closeButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Close"
+        android:text="Cancel"
         android:backgroundTint="@color/white"
         android:fontFamily="sans-serif-medium"
         android:textColor="#357DED"
-        app:layout_constraintTop_toBottomOf="@id/expenseCreationTitle"/>
+        android:layout_marginTop="17dp"
+        android:layout_marginBottom="37dp"
+        android:layout_marginHorizontal="20dp"
+        app:layout_constraintTop_toBottomOf="@id/createExpenseButton"/>
+
+    <LinearLayout
+        android:id="@+id/creation_form"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_margin="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Expense Creation"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:paddingBottom="16dp" />
+
+        <EditText
+            android:id="@+id/ExpenseName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Expense Name"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/ExpenseAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Amount"
+            android:inputType="numberDecimal"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/ExpenseDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Date"
+            android:inputType="date"
+            android:padding="10dp"
+            android:layout_marginBottom="12dp" />
+        </LinearLayout>
 
 </LinearLayout>

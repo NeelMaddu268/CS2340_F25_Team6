@@ -109,16 +109,28 @@
         android:layout_marginRight="24dp"/>
 
     <Button
+        android:id="@+id/createBudgetButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="17dp"
+        android:text="Create Budget"
+        android:backgroundTint="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#357DED"
+        app:layout_constraintTop_toBottomOf="@id/startDateEntry" />
+
+    <Button
         android:id="@+id/closeButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp"
+        android:text="Cancel"
         android:backgroundTint="@color/white"
         android:fontFamily="sans-serif-medium"
-        android:text="Close"
         android:textColor="#357DED"
-        android:layout_marginTop="200dp"
-        app:layout_constraintTop_toBottomOf="@id/startDateEntry" />
+        android:layout_marginTop="17dp"
+        android:layout_marginBottom="37dp"
+        android:layout_marginHorizontal="20dp"
+        app:layout_constraintTop_toBottomOf="@id/createBudgetButton"/>
 
 </LinearLayout>
