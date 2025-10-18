@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,11 +14,22 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
+import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
+
+import java.util.ArrayList;
+
 
 public class BudgetsFragment extends Fragment {
+
+    private BudgetsFragmentViewModel budgetsFragmentViewModel;
+    private RecyclerView recyclerView;
+    private BudgetAdapter adapter;
 
     public BudgetsFragment() {
         super(R.layout.fragment_budgets);
@@ -46,6 +58,29 @@ public class BudgetsFragment extends Fragment {
                     return insets;
                 }
         );
+
+        recyclerView = view.findViewById(R.id.budgetsRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        adapter = new BudgetAdapter(requireContext(), new ArrayList<>(), budget -> {
+            Intent intent =  new Intent(requireContext(), BudgetDetailsActivity.class);
+            intent.putExtra("budgetName", budget.getName());
+            intent.putExtra("budgetAmount", budget.getAmount());
+            intent.putExtra("budgetCategory", budget.getCategory());
+            intent.putExtra("budgetFrequency", budget.getFrequency());
+            intent.putExtra("budgetStartDate", budget.getStartDate());
+            startActivity(intent);
+        });
+        recyclerView.setAdapter(adapter);
+
+
+        budgetsFragmentViewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
+        budgetsFragmentViewModel.getBudgets().observe(getViewLifecycleOwner(), budgets -> {
+            adapter.updateData(budgets);
+        });
+
+        budgetsFragmentViewModel.loadBudgets();
+
 
         Button addBudget = view.findViewById(R.id.addBudget);
 

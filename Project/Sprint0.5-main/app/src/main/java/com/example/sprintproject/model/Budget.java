@@ -1,11 +1,15 @@
 package com.example.sprintproject.model;
 
 public class Budget {
-    private final String name;
-    private final double amount;
-    private final String category;
-    private final String frequency;
-    private final String startDate;
+    private String name;
+    private double amount;
+    private String category;
+    private String frequency;
+    private String startDate;
+
+    public Budget() {
+
+    }
 
     public Budget(String name, double amount, String category, String frequency, String startDate) {
         this.name = name;
