@@ -8,7 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Map;
 
 public class FirestoreManager {
-    private static FirestoreManager instance;
+    private static volatile FirestoreManager instance;
     private final FirebaseFirestore db;
 
     private FirestoreManager() {
@@ -17,7 +17,11 @@ public class FirestoreManager {
 
     public static synchronized FirestoreManager getInstance() {
         if (instance == null) {
-            instance = new FirestoreManager();
+            synchronized (FirestoreManager.class) {
+                if (instance == null) {
+                    instance = new FirestoreManager();
+                }
+            }
         }
         return instance;
     }
