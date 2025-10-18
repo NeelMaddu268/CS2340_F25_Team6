@@ -34,7 +34,6 @@ import java.util.ArrayList;
 public class BudgetsFragment extends Fragment {
 
     private Button addBudget;
-
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
     private RecyclerView recyclerView;
     private BudgetAdapter adapter;
@@ -91,9 +90,6 @@ public class BudgetsFragment extends Fragment {
 
         budgetsFragmentViewModel.loadBudgets();
 
-
-        Button addBudget = view.findViewById(R.id.addBudget);
-
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
 
@@ -122,8 +118,8 @@ public class BudgetsFragment extends Fragment {
                 String date = budgetDateEntry.getText().toString();
                 String amount = budgetAmountEntry.getText().toString();
                 String category = budgetCategoryEntry.getText().toString();
-                String frequency = budgetFrequencyEntry.toString();
-
+                String frequency = budgetFrequencyEntry.getSelectedItem().toString();
+                boolean isValid = true;
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                 Date currentDate = new Date();
                 Date startDate;
@@ -132,11 +128,16 @@ public class BudgetsFragment extends Fragment {
                     if (intAmount <= 0) {
                         budgetAmountEntry.setError("Amount must be greater than 0");
                     } else {
-                        budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
                         dialog.dismiss();
+                        budgetNameEntry.setText("");
+                        budgetDateEntry.setText("");
+                        budgetAmountEntry.setText("");
+                        budgetCategoryEntry.setText("");
+                        budgetFrequencyEntry.setSelection(0);
                     }
                 } catch (NumberFormatException e) {
                     budgetAmountEntry.setError("Amount must be a number");
+                    isValid = false;
                 }
 
                 try {
@@ -144,19 +145,20 @@ public class BudgetsFragment extends Fragment {
                     if (startDate.compareTo(currentDate) < 0) {
                         budgetDateEntry.setError("Start date must be in the future");
                     } else {
-                        budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
                         dialog.dismiss();
+                        budgetNameEntry.setText("");
+                        budgetDateEntry.setText("");
+                        budgetAmountEntry.setText("");
+                        budgetCategoryEntry.setText("");
+                        budgetFrequencyEntry.setSelection(0);
                     }
                 } catch (ParseException e) {
                     budgetDateEntry.setError("Start date must be in correct format.");
+                    isValid = false;
                 }
-                budgetNameEntry.setText("");
-                budgetDateEntry.setText("");
-                budgetAmountEntry.setText("");
-                budgetCategoryEntry.setText("");
-                budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
-                budgetFrequencyEntry.setSelection(0);
-                dialog.dismiss();
+                if (isValid) {
+                    budgetCreationViewModel.createBudget(name, amount, category, frequency, date, null);
+                }
             });
 
             dialog.show();
