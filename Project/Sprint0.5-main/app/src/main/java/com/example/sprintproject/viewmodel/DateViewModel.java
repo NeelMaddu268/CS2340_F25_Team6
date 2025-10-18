@@ -11,11 +11,17 @@ import java.util.Calendar;
 public class DateViewModel extends ViewModel {
     private final MutableLiveData<AppDate> currentDate = new MutableLiveData<>(today());
 
-    public LiveData<AppDate> getCurrentDate() { return currentDate; }
+    public LiveData<AppDate> getCurrentDate() {
+        return currentDate;
+    }
 
-    public void setDate(AppDate date) { currentDate.setValue(date); }
+    public void setDate(AppDate date) {
+        currentDate.setValue(date);
+    }
 
-    public void resetToToday() { currentDate.setValue(today()); }
+    public void resetToToday() {
+        currentDate.setValue(today());
+    }
 
     private AppDate today() {
         Calendar c = Calendar.getInstance();
