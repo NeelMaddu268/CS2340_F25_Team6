@@ -64,6 +64,7 @@ public class BudgetsFragment extends Fragment {
 
         adapter = new BudgetAdapter(requireContext(), new ArrayList<>(), budget -> {
             Intent intent =  new Intent(requireContext(), BudgetDetailsActivity.class);
+            intent.putExtra("budgetId", budget.getId()); // shares details of an existing budget
             intent.putExtra("budgetName", budget.getName());
             intent.putExtra("budgetAmount", budget.getAmount());
             intent.putExtra("budgetCategory", budget.getCategory());
