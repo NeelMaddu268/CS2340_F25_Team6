@@ -1,15 +1,13 @@
 package com.example.sprintproject.model;
 
-import java.util.Date;
-
 public class Budget {
     private final String name;
     private final double amount;
     private final String category;
     private final String frequency;
-    private final Date startDate;
+    private final String startDate;
 
-    public Budget(String name, double amount, String category, String frequency, Date startDate) {
+    public Budget(String name, double amount, String category, String frequency, String startDate) {
         this.name = name;
         this.amount = amount;
         this.category = category;
@@ -33,7 +31,7 @@ public class Budget {
         return frequency;
     }
 
-    public Date getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 }

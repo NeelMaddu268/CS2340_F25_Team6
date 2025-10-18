@@ -15,13 +15,13 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.sprintproject.R;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
+import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 
 public class BudgetsFragment extends Fragment {
 
@@ -32,18 +32,32 @@ public class BudgetsFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(
+            LayoutInflater inflater,
+            ViewGroup container,
+            Bundle savedInstanceState
+    ) {
+
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         addBudget = view.findViewById(R.id.addBudget);
 
         EdgeToEdge.enable(requireActivity());
-        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.budgets_layout), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                view.findViewById(R.id.budgets_layout),
+                (v, insets) -> {
+                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(
+                            systemBars.left,
+                            systemBars.top,
+                            systemBars.right,
+                            systemBars.bottom
+                    );
+                    return insets;
+                }
+        );
+
+        Button addBudget = view.findViewById(R.id.addBudget);
 
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
@@ -52,37 +66,50 @@ public class BudgetsFragment extends Fragment {
                     .setView(popupView)
                     .create();
 
-            EditText name = popupView.findViewById(R.id.nameInput);
-            EditText amountInput = popupView.findViewById(R.id.amountInput);
-            EditText frequency = popupView.findViewById(R.id.frequencyInput);
-            EditText startDateInput = popupView.findViewById(R.id.startDateInput);
-
-            Button createButton = popupView.findViewById(R.id.createButton);
-            createButton.setOnClickListener(
-                    view1 -> {
-                        String amountText = amountInput.getText().toString();
-                        int amount = Integer.parseInt(amountText);
-                        String startDateText = startDateInput.getText().toString();
-                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                        Date currentDate = new Date();
-                        Date startDate;
-                        try {
-                            startDate = format.parse(startDateText);
-                            if (amount <= 0) {
-                                amountInput.setError("Start date must be in the future");
-
-                            } else if (startDate.compareTo(currentDate) < 0) {
-                                startDateInput.setError("Start date must be in the future");
-                            }
-                        } catch (ParseException e) {
-                            startDateInput.setError("Start date must be in correct format.");
-                        }
-                        dialog.dismiss();
-                    }
-            );
-
+            EditText budgetNameEntry = popupView.findViewById(R.id.BudgetNameEntry);
+            EditText budgetAmountEntry = popupView.findViewById(R.id.BudgetAmountEntry);
+            EditText budgetFrequencyEntry = popupView.findViewById(R.id.BudgetFrequencyEntry);
+            EditText budgetDateEntry = popupView.findViewById(R.id.BudgetDateEntry);
+            EditText budgetCategoryEntry = popupView.findViewById(R.id.BudgetCategoryEntry);
+            Button createBudgetButton = popupView.findViewById(R.id.createBudgetButton);
             Button cancelButton = popupView.findViewById(R.id.cancelButton);
+            BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
+
             cancelButton.setOnClickListener(view1 -> dialog.dismiss());
+
+            createBudgetButton.setOnClickListener(view1 -> {
+                String name = budgetNameEntry.getText().toString();
+                String date = budgetDateEntry.getText().toString();
+                String amount = budgetAmountEntry.getText().toString();
+                String category = budgetCategoryEntry.getText().toString();
+                String frequency = budgetFrequencyEntry.getText().toString();
+
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date currentDate = new Date();
+                Date startDate;
+                int intAmount = Integer.parseInt(amount);
+
+                try {
+                    startDate = format.parse(date);
+                    if (intAmount <= 0) {
+                        budgetAmountEntry.setError("Start date must be in the future");
+
+                    } else if (startDate.compareTo(currentDate) < 0) {
+                        budgetDateEntry.setError("Start date must be in the future");
+                    }
+                } catch (ParseException e) {
+                    budgetDateEntry.setError("Start date must be in correct format.");
+                }
+                budgetNameEntry.setText("");
+                budgetDateEntry.setText("");
+                budgetAmountEntry.setText("");
+                budgetCategoryEntry.setText("");
+                budgetFrequencyEntry.setText("");
+
+                budgetCreationViewModel.createBudget(name, date, amount, category, frequency);
+
+                dialog.dismiss();
+            });
 
             dialog.show();
         });
