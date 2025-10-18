@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import java.text.ParseException;
@@ -22,10 +26,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
+import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
+
+import java.util.ArrayList;
+
 
 public class BudgetsFragment extends Fragment {
 
     private Button addBudget;
+
+    private BudgetsFragmentViewModel budgetsFragmentViewModel;
+    private RecyclerView recyclerView;
+    private BudgetAdapter adapter;
 
     public BudgetsFragment() {
         super(R.layout.fragment_budgets);
@@ -56,6 +68,29 @@ public class BudgetsFragment extends Fragment {
                     return insets;
                 }
         );
+
+        recyclerView = view.findViewById(R.id.budgetsRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        adapter = new BudgetAdapter(requireContext(), new ArrayList<>(), budget -> {
+            Intent intent =  new Intent(requireContext(), BudgetDetailsActivity.class);
+            intent.putExtra("budgetName", budget.getName());
+            intent.putExtra("budgetAmount", budget.getAmount());
+            intent.putExtra("budgetCategory", budget.getCategory());
+            intent.putExtra("budgetFrequency", budget.getFrequency());
+            intent.putExtra("budgetStartDate", budget.getStartDate());
+            startActivity(intent);
+        });
+        recyclerView.setAdapter(adapter);
+
+
+        budgetsFragmentViewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
+        budgetsFragmentViewModel.getBudgets().observe(getViewLifecycleOwner(), budgets -> {
+            adapter.updateData(budgets);
+        });
+
+        budgetsFragmentViewModel.loadBudgets();
+
 
         Button addBudget = view.findViewById(R.id.addBudget);
 
@@ -97,7 +132,7 @@ public class BudgetsFragment extends Fragment {
                     if (intAmount <= 0) {
                         budgetAmountEntry.setError("Amount must be greater than 0");
                     } else {
-                        budgetCreationViewModel.createBudget(name, date, amount, category, frequency);
+                        budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
                         dialog.dismiss();
                     }
                 } catch (NumberFormatException e) {
@@ -109,7 +144,7 @@ public class BudgetsFragment extends Fragment {
                     if (startDate.compareTo(currentDate) < 0) {
                         budgetDateEntry.setError("Start date must be in the future");
                     } else {
-                        budgetCreationViewModel.createBudget(name, date, amount, category, frequency);
+                        budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
                         dialog.dismiss();
                     }
                 } catch (ParseException e) {
@@ -119,7 +154,9 @@ public class BudgetsFragment extends Fragment {
                 budgetDateEntry.setText("");
                 budgetAmountEntry.setText("");
                 budgetCategoryEntry.setText("");
+                budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
                 budgetFrequencyEntry.setSelection(0);
+                dialog.dismiss();
             });
 
             dialog.show();
