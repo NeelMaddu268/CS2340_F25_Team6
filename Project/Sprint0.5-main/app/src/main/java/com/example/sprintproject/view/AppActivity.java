@@ -37,7 +37,7 @@ public class AppActivity extends AppCompatActivity {
             } else if (id == R.id.Budgets) {
                 replaceFragment(new BudgetsFragment());
             } else if (id == R.id.ExpenseLogs) {
-                replaceFragment(new ExpenseLogFragment());
+                replaceFragment(new ExpensesFragment());
             } else if (id == R.id.SavingsCircles) {
                 replaceFragment(new SavingsCircleFragment());
             } else if (id == R.id.Chatbot) {

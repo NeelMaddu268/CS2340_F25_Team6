@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,14 +14,24 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
+import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
 
-public class ExpenseLogFragment extends Fragment {
+import java.util.ArrayList;
 
-    public ExpenseLogFragment() {
-        super(R.layout.fragment_expenselog);
+public class ExpensesFragment extends Fragment {
+
+    private ExpensesFragmentViewModel expensesFragmentViewModel;
+    private RecyclerView recyclerView;
+    private ExpenseAdapter adapter;
+
+    public ExpensesFragment() {
+        super(R.layout.fragment_expenses);
     }
 
     @Override
@@ -46,6 +57,28 @@ public class ExpenseLogFragment extends Fragment {
                     return insets;
                 }
         );
+
+        recyclerView = view.findViewById(R.id.expensesRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        adapter = new ExpenseAdapter(requireContext(), new ArrayList<>(), expense -> {
+            Intent intent =  new Intent(requireContext(), ExpenseDetailsActivity.class);
+            intent.putExtra("expenseName", expense.getName());
+            intent.putExtra("expenseAmount", expense.getAmount());
+            intent.putExtra("expenseCategory", expense.getCategory());
+            intent.putExtra("expenseDate", expense.getDate());
+            startActivity(intent);
+        });
+        recyclerView.setAdapter(adapter);
+
+
+        expensesFragmentViewModel =
+                new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
+        expensesFragmentViewModel.getExpenses().observe(getViewLifecycleOwner(), expenses -> {
+            adapter.updateData(expenses);
+        });
+
+        expensesFragmentViewModel.loadExpenses();
 
         Button addExpense = view.findViewById(R.id.addExpense);
 
