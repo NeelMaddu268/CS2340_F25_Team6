@@ -7,36 +7,43 @@
     android:orientation="vertical"
     android:padding="12dp"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:background="#357DED">
 
     <TextView
         android:id="@+id/textBudgetName"
         android:text="Budget Name"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/textBudgetAmount"
         android:text="Budget Amount"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"/>
 
     <TextView
         android:id="@+id/textBudgetCategory"
         android:text="Budget Category"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"/>
 
     <TextView
         android:id="@+id/textBudgetFrequency"
         android:text="Budget Frequency"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"/>
 
     <TextView
         android:id="@+id/textBudgetDate"
         android:text="Budget Date"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"/>
 
 </LinearLayout>
