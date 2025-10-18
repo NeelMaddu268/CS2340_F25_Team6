@@ -17,18 +17,18 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         String expenseName = getIntent().getStringExtra("expenseName");
         double expenseAmount = getIntent().getDoubleExtra("expenseAmount", 0.0);
         String expenseCategory = getIntent().getStringExtra("expenseCategory");
-        String expenseStartDate = getIntent().getStringExtra("expenseStartDate");
+        String expenseDate = getIntent().getStringExtra("expenseDate");
 
         // Update the UI with the budget details
         TextView expenseNameTextView = findViewById(R.id.expenseNameTextView);
         TextView expenseAmountTextView = findViewById(R.id.expenseAmountTextView);
         TextView expenseCategoryTextView = findViewById(R.id.expenseCategoryTextView);
-        TextView expenseStartDateTextView = findViewById(R.id.expenseStartDateTextView);
+        TextView expenseDateTextView = findViewById(R.id.expenseDateTextView);
 
         expenseNameTextView.setText(expenseName);
         expenseAmountTextView.setText(String.valueOf(expenseAmount));
         expenseCategoryTextView.setText(expenseCategory);
-        expenseStartDateTextView.setText(expenseStartDate);
+        expenseDateTextView.setText(expenseDate);
 
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(view -> finish());

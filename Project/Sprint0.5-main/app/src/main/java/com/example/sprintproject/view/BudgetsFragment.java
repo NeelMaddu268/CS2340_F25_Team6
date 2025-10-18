@@ -115,7 +115,7 @@ public class BudgetsFragment extends Fragment {
                 budgetCategoryEntry.setText("");
                 budgetFrequencyEntry.setText("");
 
-                budgetCreationViewModel.createBudget(name, date, amount, category, frequency);
+                budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
 
                 dialog.dismiss();
             });

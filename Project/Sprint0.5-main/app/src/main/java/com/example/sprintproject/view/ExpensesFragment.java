@@ -66,13 +66,14 @@ public class ExpensesFragment extends Fragment {
             intent.putExtra("expenseName", expense.getName());
             intent.putExtra("expenseAmount", expense.getAmount());
             intent.putExtra("expenseCategory", expense.getCategory());
-            intent.putExtra("expenseStartDate", expense.getDate());
+            intent.putExtra("expenseDate", expense.getDate());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
 
 
-        expensesFragmentViewModel = new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
+        expensesFragmentViewModel =
+                new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
         expensesFragmentViewModel.getExpenses().observe(getViewLifecycleOwner(), expenses -> {
             adapter.updateData(expenses);
         });

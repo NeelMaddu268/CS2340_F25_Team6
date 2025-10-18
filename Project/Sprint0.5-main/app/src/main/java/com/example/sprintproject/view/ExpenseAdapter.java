@@ -9,7 +9,6 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 
 import java.util.List;
@@ -20,7 +19,8 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     private final OnExpenseClickListener onExpenseClickListener;
 
     public ExpenseAdapter(
-            Context context, List<Expense> expenses, OnExpenseClickListener onExpenseClickListener) {
+            Context context, List<Expense> expenses,
+            OnExpenseClickListener onExpenseClickListener) {
         this.context = context;
         this.expenses = expenses;
         this.onExpenseClickListener = onExpenseClickListener;
@@ -59,7 +59,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         private TextView nameText;
         private TextView amountText;
         private TextView categoryText;
-        private TextView frequencyText;
         private TextView startDateText;
 
         public ExpenseViewHolder(View itemView) {
@@ -67,7 +66,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             nameText = itemView.findViewById(R.id.textExpenseName);
             amountText = itemView.findViewById(R.id.textExpenseAmount);
             categoryText = itemView.findViewById(R.id.textExpenseCategory);
-            frequencyText = itemView.findViewById(R.id.textExpenseFrequency);
             startDateText = itemView.findViewById(R.id.textExpenseDate);
         }
     }
