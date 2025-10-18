@@ -1,12 +1,10 @@
 package com.example.sprintproject.model;
 
-import java.util.Date;
-
 public class Expense {
-    private final String name;
-    private final double amount;
-    private final String category;
-    private final String startDate;
+    private String name;
+    private double amount;
+    private String category;
+    private String startDate;
 
     public Expense(String name, double amount, String category, String startDate) {
         this.name = name;
@@ -29,5 +27,21 @@ public class Expense {
 
     public String getStartDate() {
         return startDate;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
     }
 }

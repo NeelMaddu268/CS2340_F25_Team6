@@ -7,12 +7,7 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
-//import com.google.firebase.auth.AuthResult;
-//import com.google.firebase.database.FirebaseDatabase;
-//import com.google.firebase.database.DatabaseReference;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -65,8 +60,6 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                     createUserInFirestore(firebaseUser);
-                    ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
-                    expenseCreationViewModel.createSampleExpenses();
                 } else {
                     Exception e = task.getException();
                     if (e != null) {
@@ -94,8 +87,12 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                     createUserInFirestore(firebaseUser);
-                    ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
+                    ExpenseCreationViewModel expenseCreationViewModel =
+                            new ExpenseCreationViewModel();
+                    BudgetCreationViewModel budgetCreationViewModel =
+                            new BudgetCreationViewModel();
                     expenseCreationViewModel.createSampleExpenses();
+                    budgetCreationViewModel.createSampleBudgets();
                 } else {
                     Exception e = task.getException();
                     Log.w("AuthenticationViewModel",
