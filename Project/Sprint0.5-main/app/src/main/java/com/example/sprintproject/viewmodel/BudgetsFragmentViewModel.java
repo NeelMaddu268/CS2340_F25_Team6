@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Budget;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -24,22 +25,18 @@ public class BudgetsFragmentViewModel extends ViewModel {
     }
 
     public void loadBudgets() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String uid = auth.getCurrentUser().getUid();
-
-        db.collection("users")
-                .document(uid)
-                .collection("budgets")
-                .orderBy("startDate", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    if (error == null && value != null)  {
-                        List<Budget> budgets = new ArrayList<>();
-                        for (DocumentSnapshot doc : value.getDocuments()) {
-                            Budget budget = doc.toObject(Budget.class);
-                            budgets.add(budget);
-                        }
-                        budgetsLiveData.setValue(budgets);
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirestoreManager.getInstance().budgetsReference(uid)
+            .orderBy("startDate", Query.Direction.DESCENDING)
+            .addSnapshotListener((value, error) -> {
+                if (error == null && value != null)  {
+                    List<Budget> budgets = new ArrayList<>();
+                    for (DocumentSnapshot doc : value.getDocuments()) {
+                        Budget budget = doc.toObject(Budget.class);
+                        budgets.add(budget);
                     }
-                });
+                    budgetsLiveData.setValue(budgets);
+                }
+            });
     }
 }

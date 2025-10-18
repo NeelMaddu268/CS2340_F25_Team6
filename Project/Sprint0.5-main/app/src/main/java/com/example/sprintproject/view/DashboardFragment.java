@@ -46,7 +46,9 @@ public class DashboardFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
 
         authenticationViewModel = new AuthenticationViewModel();
 
@@ -56,7 +58,9 @@ public class DashboardFragment extends Fragment {
         logoutButton = view.findViewById(R.id.logout);
 
 
-        if (headerText != null) headerText.setText("Dashboard");
+        if (headerText != null) {
+            headerText.setText("Dashboard");
+        }
 
 
         EdgeToEdge.enable(requireActivity());
