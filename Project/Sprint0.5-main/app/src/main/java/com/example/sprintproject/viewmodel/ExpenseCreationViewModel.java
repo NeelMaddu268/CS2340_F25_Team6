@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.sprintproject.FirestoreManager;
+import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -39,6 +40,7 @@ public class ExpenseCreationViewModel extends ViewModel {
 
     public void loadCategories() {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         FirestoreManager.getInstance().categoriesReference(uid)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
@@ -69,6 +71,7 @@ public class ExpenseCreationViewModel extends ViewModel {
         }
 
         Expense expense = new Expense(name, amount, category, date);
+        double finalAmount = amount;
         FirestoreManager.getInstance().expensesReference(uid).add(expense)
                 .addOnSuccessListener(documentReference -> {
                     String expenseId = documentReference.getId();
@@ -95,11 +98,43 @@ public class ExpenseCreationViewModel extends ViewModel {
                                 }
                             });
                     System.out.println("Expense added");
+
+                    FirestoreManager.getInstance().budgetsReference(uid)
+                            .whereEqualTo("category", category)
+                            .get()
+                            .addOnSuccessListener(budgetQuery -> {
+                                if (!budgetQuery.isEmpty()) {
+                                    DocumentSnapshot budgetDocument =
+                                            budgetQuery.getDocuments().get(0);
+                                    Budget budget = budgetDocument.toObject(Budget.class);
+                                    if (budget != null) {
+                                        double newSpent = budget.getSpentToDate() + finalAmount;
+                                        double newRemaining = budget.getAmount() - newSpent;
+
+                                        FirestoreManager.getInstance().budgetsReference(uid)
+                                                .document(budgetDocument.getId())
+                                                .update(
+                                                        "spentToDate", newSpent,
+                                                        "moneyRemaining", newRemaining
+                                                )
+                                                .addOnSuccessListener(aVoid -> System.out.println(
+                                                        "Budget updated with new expense"))
+
+                                                .addOnFailureListener(e -> System.out.println(
+                                                        "Failed to update budget totals"));
+                                    }
+                                } else {
+                                    System.out.println(
+                                            "No matching budget found for this category");
+                                }
+                            });
+                    System.out.println("Expense added");
                 })
                 .addOnFailureListener(e -> {
-                    System.err.println("Expense failed to add");
+                    System.out.println("Expense failed to add");
                 });
     }
+
     public void createSampleExpenses() {
         createExpense("Tin Drum", "2023-05-01", "10.00", "Eating");
         createExpense("Panda Express", "2023-05-02", "30.00", "Eating");

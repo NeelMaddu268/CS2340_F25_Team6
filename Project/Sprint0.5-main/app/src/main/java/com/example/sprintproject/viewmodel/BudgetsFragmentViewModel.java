@@ -29,21 +29,21 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
         FirestoreManager.getInstance().budgetsReference(uid)
                 .orderBy("startDate", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    if (error == null && value != null)  {
-                        List<Budget> budgets = new ArrayList<>();
-                        for (DocumentSnapshot doc : value.getDocuments()) {
-                            Budget budget = doc.toObject(Budget.class);
-                            if (budget != null) {
-                                budget.setId(doc.getId()); // set the documented id here
-                                if (budget.getMoneyRemaining() == 0 && budget.getSpentToDate() > 0) {
-                                    budget.setMoneyRemaining(budget.getAmount() - budget.getSpentToDate());
-                                }
-                                budgets.add(budget);
-                            }
-                        }
-                        budgetsLiveData.setValue(budgets);
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (error != null || querySnapshot == null) {
+                        budgetsLiveData.setValue(new ArrayList<>());
+                        return;
                     }
+
+                    List<Budget> budgets = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        Budget budget = doc.toObject(Budget.class);
+                        if (budget != null) {
+                            budget.setId(doc.getId()); // set the documented id here
+                            budgets.add(budget);
+                        }
+                    }
+                    budgetsLiveData.setValue(budgets);
                 });
     }
              

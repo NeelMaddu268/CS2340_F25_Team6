@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.BudgetData;
+import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -81,40 +82,65 @@ public class BudgetCreationViewModel extends ViewModel {
 
     private void addBudgetToFirestore(
             String uid, BudgetData budgetData, Runnable onComplete) {
-        Budget budget = new Budget(
-                budgetData.getName(),
-                budgetData.getAmount(),
-                budgetData.getCategory(),
-                budgetData.getFrequency(),
-                budgetData.getStartDate());
 
-        FirestoreManager.getInstance().budgetsReference(uid).add(budget)
-                .addOnSuccessListener(documentReference -> {
-                    String budgetId = documentReference.getId();
 
-                    if (budgetData.getCategoryId() != null) {
-                        //Category already existed, edge case
-                        FirestoreManager.getInstance().categoriesReference(uid)
-                                .document(budgetData.getCategoryId())
-                                .update("budgets", Collections.singletonList(budgetId))
-                                .addOnCompleteListener(task -> {
-                                    if (onComplete != null) {
-                                        onComplete.run();
-                                    }
-                                });
-                    } else {
-                        //Category doesn't exist
-                        Map<String, Object> newCategory = new HashMap<>();
-                        newCategory.put("name", budgetData.getCategory());
-                        newCategory.put("budgets", Arrays.asList(budgetId));
-                        newCategory.put("expenses", Arrays.asList());
-                        FirestoreManager.getInstance().categoriesReference(uid)
-                                .add(newCategory)
-                                .addOnCompleteListener(task -> {
-                                    if (onComplete != null) {
-                                        onComplete.run();
-                                    }
-                                });
+        FirestoreManager.getInstance().expensesReference(uid)
+                .whereEqualTo("category", budgetData.getCategory())
+                .get()
+                .addOnSuccessListener(expenseQuery -> {
+                    double spentToDate = 0.0;
+                    for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
+                        Expense expense = doc.toObject(Expense.class);
+                        if (expense != null) {
+                            spentToDate += expense.getAmount();
+                        }
+                    }
+
+                    Budget budget = new Budget(
+                            budgetData.getName(),
+                            budgetData.getAmount(),
+                            budgetData.getCategory(),
+                            budgetData.getFrequency(),
+                            budgetData.getStartDate());
+
+                    budget.setSpentToDate(spentToDate);
+                    budget.setMoneyRemaining(budgetData.getAmount() - spentToDate);
+
+
+                    FirestoreManager.getInstance().budgetsReference(uid).add(budget)
+                            .addOnSuccessListener(documentReference -> {
+                                String budgetId = documentReference.getId();
+
+                                if (budgetData.getCategoryId() != null) {
+                                    //Category already existed, edge case
+                                    FirestoreManager.getInstance().categoriesReference(uid)
+                                            .document(budgetData.getCategoryId())
+                                            .update("budgets", Collections.singletonList(budgetId))
+                                            .addOnCompleteListener(task -> {
+                                                if (onComplete != null) {
+                                                    onComplete.run();
+                                                }
+                                            });
+                                } else {
+                                    //Category doesn't exist
+                                    Map<String, Object> newCategory = new HashMap<>();
+                                    newCategory.put("name", budgetData.getCategory());
+                                    newCategory.put("budgets", Arrays.asList(budgetId));
+                                    newCategory.put("expenses", Arrays.asList());
+                                    FirestoreManager.getInstance().categoriesReference(uid)
+                                            .add(newCategory)
+                                            .addOnCompleteListener(task -> {
+                                                if (onComplete != null) {
+                                                    onComplete.run();
+                                                }
+                                            });
+                                }
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    System.err.println("Budget failed to add");
+                    if (onComplete != null) {
+                        onComplete.run();
                     }
                 });
     }

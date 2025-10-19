@@ -3,7 +3,6 @@ package com.example.sprintproject.view;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +13,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -26,15 +24,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 
-import java.util.ArrayList;
 
 
 public class BudgetsFragment extends Fragment {
@@ -50,34 +45,21 @@ public class BudgetsFragment extends Fragment {
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater,
-            ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-
         addBudget = view.findViewById(R.id.addBudget);
-
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
-                view.findViewById(R.id.budgets_layout),
-                (v, insets) -> {
+                view.findViewById(R.id.budgets_layout), (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
+                    v.setPadding(systemBars.left, systemBars.top, systemBars.right,
+                            systemBars.bottom);
                     return insets;
                 }
         );
-
         recyclerView = view.findViewById(R.id.budgetsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        adapter = new BudgetAdapter(requireContext(), new ArrayList<>(), budget -> {
+        adapter = new BudgetAdapter(budget -> {
             Intent intent =  new Intent(requireContext(), BudgetDetailsActivity.class);
             intent.putExtra("budgetId", budget.getId()); // shares details of an existing budget
             intent.putExtra("budgetName", budget.getName());
@@ -88,22 +70,17 @@ public class BudgetsFragment extends Fragment {
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
-
-
         budgetsFragmentViewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
         budgetsFragmentViewModel.getBudgets().observe(getViewLifecycleOwner(), budgets -> {
-            adapter.updateData(budgets);
+            adapter.submitList(budgets);
         });
 
         budgetsFragmentViewModel.loadBudgets();
 
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
-
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
-                    .setView(popupView)
-                    .create();
-
+                    .setView(popupView).create();
             EditText budgetNameEntry = popupView.findViewById(R.id.BudgetNameEntry);
             EditText budgetAmountEntry = popupView.findViewById(R.id.BudgetAmountEntry);
             Spinner budgetFrequencyEntry = popupView.findViewById(R.id.BudgetFrequencyEntry);
@@ -112,39 +89,39 @@ public class BudgetsFragment extends Fragment {
             Button createBudgetButton = popupView.findViewById(R.id.createBudgetButton);
             Button cancelButton = popupView.findViewById(R.id.cancelButton);
             BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
-
             String[] frequencies = {"Select a Frequency", "Weekly", "Monthly"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     popupView.getContext(), android.R.layout.simple_spinner_item, frequencies);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-            budgetFrequencyEntry.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if (position != 0) {
-                        budgetDateEntry.setEnabled(true);
-                        budgetDateEntry.setFocusable(false);
-                        budgetDateEntry.setClickable(true);
-                    } else {
+            budgetFrequencyEntry.setOnItemSelectedListener(
+                    new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent, View view, int position, long id) {
+                        if (position != 0) {
+                            budgetDateEntry.setEnabled(true);
+                            budgetDateEntry.setFocusable(false);
+                            budgetDateEntry.setClickable(true);
+                        } else {
+                            budgetDateEntry.setEnabled(false);
+                            budgetDateEntry.setFocusable(false);
+                            budgetDateEntry.setClickable(false);
+                            budgetDateEntry.setText("");
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
                         budgetDateEntry.setEnabled(false);
                         budgetDateEntry.setFocusable(false);
                         budgetDateEntry.setClickable(false);
-                        budgetDateEntry.setText("");
                     }
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                    budgetDateEntry.setEnabled(false);
-                    budgetDateEntry.setFocusable(false);
-                    budgetDateEntry.setClickable(false);
-                }
-            });
+                });
 
             budgetFrequencyEntry.setAdapter(adapter);
             budgetDateEntry.setOnClickListener(m -> {
                 String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
-
                 final Calendar today = Calendar.getInstance();
                 int year = today.get(Calendar.YEAR);
                 int month = today.get(Calendar.MONTH);
@@ -160,19 +137,16 @@ public class BudgetsFragment extends Fragment {
                                     selectedDate.add(Calendar.MONTH, 1);
                                 }
                             }
-
                             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
                             String formattedDate = sdf.format(selectedDate.getTime());
                             budgetDateEntry.setText(formattedDate);
                         }, year, month, day
                 );
-
                 datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
                 datePickerDialog.show();
             });
 
             cancelButton.setOnClickListener(view1 -> dialog.dismiss());
-
             createBudgetButton.setOnClickListener(view1 -> {
                 String name = budgetNameEntry.getText().toString();
                 String date = budgetDateEntry.getText().toString();
@@ -207,7 +181,8 @@ public class BudgetsFragment extends Fragment {
                     isValid = false;
                 }
                 if (isValid) {
-                    budgetCreationViewModel.createBudget(name, date, amount, category, frequency,null);
+                    budgetCreationViewModel.createBudget(
+                            name, date, amount, category, frequency, null);
                     dialog.dismiss();
                     budgetNameEntry.setText("");
                     budgetDateEntry.setText("");
@@ -216,10 +191,8 @@ public class BudgetsFragment extends Fragment {
                     budgetFrequencyEntry.setSelection(0);
                 }
             });
-
             dialog.show();
         });
-
         return view;
     }
 }
