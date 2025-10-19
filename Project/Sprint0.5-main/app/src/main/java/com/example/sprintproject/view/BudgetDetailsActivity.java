@@ -15,6 +15,9 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 
+import android.text.Editable;
+import android.text.TextWatcher;
+
 public class BudgetDetailsActivity extends AppCompatActivity {
 
     private TextView budgetSurplusText;
@@ -65,6 +68,56 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         budgetInputRemaining = findViewById(R.id.budgetInputRemaining);
         budgetComputeButton = findViewById(R.id.budgetComputeButton);
         budgetSaveButton = findViewById(R.id.budgetSaveButton);
+
+        TextWatcher liveUpdates = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                String totalString = budgetInputTotal.getText().toString();
+                String spentString = budgetInputSpent.getText().toString();
+                String remainingString = budgetInputRemaining.getText().toString();
+
+                int filledInputs = 0;
+                if (!totalString.isEmpty()) {
+                    filledInputs++;
+                }
+                if (!spentString.isEmpty()) {
+                    filledInputs++;
+                }
+                if (!remainingString.isEmpty()) {
+                    filledInputs++;
+                }
+                if (filledInputs >= 2) {
+                    double total = totalString.isEmpty() ? 0.0 : Double.parseDouble(totalString);
+                    double spent = spentString.isEmpty() ? 0.0 : Double.parseDouble(spentString);
+                    double remaining = remainingString.isEmpty() ? 0.0 : Double.parseDouble(remainingString);
+
+                    if (totalString.isEmpty()) {
+                        total = spent + remaining;
+                        budgetInputTotal.setHint("Total: $" + String.valueOf(total));
+                    } else if (spentString.isEmpty()) {
+                        spent = total - remaining;
+                        budgetInputSpent.setHint("Spent to Date: $" + String.valueOf(spent));
+                    } else if (remainingString.isEmpty()) {
+                        remaining = total - spent;
+                        budgetInputRemaining.setHint("Remaining: $" + String.valueOf(remaining));
+                    }
+
+                    updateProgressBar(total, spent);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        };
+
+        budgetInputTotal.addTextChangedListener(liveUpdates);
+        budgetInputRemaining.addTextChangedListener(liveUpdates);
+        budgetInputSpent.addTextChangedListener(liveUpdates);
 
         viewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
 
