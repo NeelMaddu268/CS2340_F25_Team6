@@ -108,7 +108,8 @@ public class BudgetsFragment extends Fragment {
             BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
 
             String[] frequencies = {"Select a Frequency", "Weekly", "Monthly"};
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(popupView.getContext(), android.R.layout.simple_spinner_item, frequencies);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                    popupView.getContext(), android.R.layout.simple_spinner_item, frequencies);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             budgetFrequencyEntry.setAdapter(adapter);
 
@@ -158,7 +159,8 @@ public class BudgetsFragment extends Fragment {
                     isValid = false;
                 }
                 if (isValid) {
-                    budgetCreationViewModel.createBudget(name, amount, category, frequency, date, null);
+                    budgetCreationViewModel.createBudget(
+                            name, amount, category, frequency, date, null);
                 }
             });
 
