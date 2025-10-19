@@ -66,9 +66,13 @@ public class ExpenseCreationViewModel extends ViewModel {
         double amount;
         try {
             amount = Double.parseDouble(amountString);
+            if (amount <= 0) {
+                text.setValue("Amount must be greater than 0");
+                return; //temporarily set the amount to 0 if amount is invalid
+            }
         } catch (NumberFormatException e) {
             text.setValue("Invalid amount");
-            amount = 0.0; //temporarily set the amount to 0 if amount is invalid
+            return; //temporarily set the amount to 0 if amount is invalid
         }
 
         Expense expense = new Expense(name, amount, category, date, notes);
