@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context=".view.ExpensesFragment"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:padding="12dp"
     android:background="#357DED">
 
     <TextView
@@ -19,7 +19,6 @@
         android:textSize="30sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:padding="12dp"
         android:layout_marginTop="24dp"
         android:fontFamily="sans-serif-medium"
         android:textColor="@color/white"/>
@@ -29,8 +28,106 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingVertical="8dp"
-        android:clipToPadding="false"/>
+        android:clipToPadding="false"
+        android:paddingVertical="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/textExpenseName"
+            android:text="Expense Name"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginLeft="20dp"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/textExpenseAmount"
+            android:text="Amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:textColor="@color/white"
+            android:inputType="numberDecimal"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_gravity="end"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/categoryText"
+            android:text="Category: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:id="@+id/textExpenseCategory"
+            android:text="Expense Category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/dateText"
+            android:text="Start Date: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:id="@+id/textExpenseDate"
+            android:text="Expense Date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/notesText"
+            android:text="Notes: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:id="@+id/textExpenseNotes"
+            android:text="Expense Notes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/addExpense"
@@ -38,15 +135,10 @@
         android:layout_height="wrap_content"
         android:text="Add Expense"
         android:layout_marginHorizontal="24sp"
+        android:layout_marginTop="450dp"
         android:backgroundTint="@color/white"
         android:fontFamily="sans-serif-medium"
         android:textColor="#357DED"
         app:layout_constraintTop_toBottomOf="@id/expenseLogTitle" />
-
-<!--    <Button-->
-<!--        android:id="@+id/createExpenseButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="CreateExpense"-->
 
 </LinearLayout>
