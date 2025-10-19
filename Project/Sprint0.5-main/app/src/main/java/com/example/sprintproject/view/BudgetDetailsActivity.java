@@ -16,9 +16,6 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.BudgetDetailsViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 
-import android.text.Editable;
-import android.text.TextWatcher;
-
 public class BudgetDetailsActivity extends AppCompatActivity {
 
     private TextView budgetSurplusText;
@@ -73,75 +70,6 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         budgetComputeButton = findViewById(R.id.budgetComputeButton);
         budgetSaveButton = findViewById(R.id.budgetSaveButton);
 
-        final boolean[] isUpdating = {false};
-
-        TextWatcher liveCalculator = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                if (isUpdating[0]) {
-                    return;
-                }
-
-                String totalString = budgetInputTotal.getText().toString();
-                String spentString = budgetInputSpent.getText().toString();
-                String remainingString = budgetInputRemaining.getText().toString();
-
-                double total = totalString.isEmpty() ? 0.0 : parseCarefully(totalString);
-                double spent = spentString.isEmpty() ? 0.0 : parseCarefully(spentString);
-                double remaining = remainingString.isEmpty() ? 0.0 : parseCarefully(remainingString);
-
-                int filledInputs = 0;
-                if (!totalString.isEmpty()) {
-                    filledInputs++;
-                }
-                if (!spentString.isEmpty()) {
-                    filledInputs++;
-                }
-                if (!remainingString.isEmpty()) {
-                    filledInputs++;
-                }
-
-                if (filledInputs < 2) {
-                    return;
-                }
-
-                isUpdating[0] = true;
-
-                if (totalString.isEmpty()) {
-                    total = spent + remaining;
-                    budgetInputTotal.setText(String.format("%.2f", total));
-                } else if (spentString.isEmpty()) {
-                    spent = total - remaining;
-                    budgetInputSpent.setText(String.format("%.2f", spent));
-                } else if (remainingString.isEmpty()) {
-                    remaining = total - spent;
-                    budgetInputRemaining.setText(String.format("%.2f", remaining));
-                }
-
-                double surplus = total - spent;
-                if (surplus >= 0) {
-                    budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
-                } else {
-                    budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(surplus)));
-                }
-
-                isUpdating[0] = false;
-            }
-
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        };
-
-        budgetInputTotal.addTextChangedListener(liveCalculator);
-        budgetInputRemaining.addTextChangedListener(liveCalculator);
-        budgetInputSpent.addTextChangedListener(liveCalculator);
-
         viewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
 
         String budgetID = getIntent().getStringExtra("budgetId");
@@ -160,6 +88,14 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                         }
                         if (remaining != null) {
                             budgetInputRemaining.setText(String.valueOf(remaining));
+                        }
+                        if (total != null && spent != null) {
+                            double surplus = total - spent;
+                            if (surplus >= 0) {
+                                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
+                            } else {
+                                budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(surplus)));
+                            }
                         }
                     });
                 }
@@ -258,11 +194,7 @@ public class BudgetDetailsActivity extends AppCompatActivity {
 
     // this is how to update the UI
     private void updateBudgetUI(Budget budget) {
-        budgetInputTotal.setText(String.valueOf(budget.getAmount()));
-        budgetInputSpent.setText(String.valueOf(budget.getSpentToDate()));
-        budgetInputRemaining.setText(String.valueOf(budget.getMoneyRemaining()));
         budgetSurplusText.setText("");
-
         updateProgressBar(budget.getAmount(), budget.getSpentToDate());
     }
 
