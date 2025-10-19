@@ -12,10 +12,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ExpenseCreationViewModel extends ViewModel {
@@ -75,8 +78,12 @@ public class ExpenseCreationViewModel extends ViewModel {
             return; //temporarily set the amount to 0 if amount is invalid
         }
 
+        long timestamp = parseDateToMillis(date);
         Expense expense = new Expense(name, amount, category, date, notes);
+        expense.setTimestamp(timestamp);
+
         double finalAmount = amount;
+
         FirestoreManager.getInstance().expensesReference(uid).add(expense)
                 .addOnSuccessListener(documentReference -> {
                     String expenseId = documentReference.getId();
@@ -113,20 +120,34 @@ public class ExpenseCreationViewModel extends ViewModel {
                                             budgetQuery.getDocuments().get(0);
                                     Budget budget = budgetDocument.toObject(Budget.class);
                                     if (budget != null) {
-                                        double newSpent = budget.getSpentToDate() + finalAmount;
-                                        double newRemaining = budget.getAmount() - newSpent;
+                                        long budgetStart = budget.getStartDateTimestamp();
 
-                                        FirestoreManager.getInstance().budgetsReference(uid)
-                                                .document(budgetDocument.getId())
-                                                .update(
-                                                        "spentToDate", newSpent,
-                                                        "moneyRemaining", newRemaining
-                                                )
-                                                .addOnSuccessListener(aVoid -> System.out.println(
-                                                        "Budget updated with new expense"))
+                                        FirestoreManager.getInstance().expensesReference(uid)
+                                                .whereEqualTo("category", category)
+                                                .get()
+                                                .addOnSuccessListener(expenseQuery -> {
+                                                    double spentToDate = 0;
+                                                    for (DocumentSnapshot expenseDoc: expenseQuery.getDocuments()) {
+                                                        Expense expense2 = expenseDoc.toObject(Expense.class);
+                                                        if (expense2 != null && expense2.getTimestamp() >= budgetStart) {
+                                                            spentToDate += expense2.getAmount();
+                                                        }
+                                                    }
 
-                                                .addOnFailureListener(e -> System.out.println(
-                                                        "Failed to update budget totals"));
+                                                    double moneyRemaining = budget.getAmount() - spentToDate;
+
+                                                    FirestoreManager.getInstance().budgetsReference(uid)
+                                                            .document(budgetDocument.getId())
+                                                            .update(
+                                                                    "spentToDate", spentToDate,
+                                                                    "moneyRemaining", moneyRemaining
+                                                            )
+                                                            .addOnSuccessListener(aVoid -> System.out.println(
+                                                                    "Budget updated with new expense"))
+
+                                                            .addOnFailureListener(e -> System.out.println(
+                                                                    "Failed to update budget totals"));
+                                                });
                                     }
                                 } else {
                                     System.out.println(
@@ -141,16 +162,57 @@ public class ExpenseCreationViewModel extends ViewModel {
     }
 
     public void createSampleExpenses() {
-        createExpense("Tin Drum", "Oct 01, 2025", "10.00", "Eating", null);
-        createExpense("Panda Express", "Oct 02, 2025", "30.00", "Eating", "Was Hungry");
 
-        createExpense("Hawaii", "Oct 03, 2025", "500.00", "Travel", null);
-        createExpense("Spain", "Oct 04, 2025", "300.00", "Travel", "Spring Break");
+//        {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
+//        {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
+//        {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
+//
+        createExpense("Tin Drum", "Oct 15, 2025", "20.00", "Eating", null);
+        createExpense("Panda Express", "Oct 20, 2025", "30.00", "Eating", "Was Hungry");
 
-        createExpense("Xbox", "Oct 05, 2025", "500.00", "Gaming", null);
-        createExpense("PS5", "Oct 06, 2025", "800.00", "Gaming", "Xbox Broke");
+        createExpense("Hawaii", "Oct 18, 2025", "100.00", "Travel", null);
+        createExpense("Spain", "Oct 19, 2025", "500.00", "Travel", "Spring Break");
+
+        createExpense("Xbox", "Oct 21, 2025", "200.00", "Gaming", null);
+        createExpense("PS5", "Oct 22, 2025", "800.00", "Gaming", "Xbox Broke");
 
         createExpense("Loan", "Oct 07, 2025", "1000.00", "Other", null);
 
+    }
+
+    public void createSampleDate(Runnable onComplete) {
+        createExpense("Tin Drum", "Oct 19, 2025", "20.00", "Eating", null);
+        createExpense("Panda Express", "Oct 20, 2025", "30.00", "Eating", "Was Hungry");
+
+        createExpense("Hawaii", "Oct 20, 2025", "100.00", "Travel", null);
+        createExpense("Spain", "Oct 21, 2025", "500.00", "Travel", "Spring Break");
+
+        createExpense("Xbox", "Oct 21, 2025", "200.00", "Gaming", null);
+        createExpense("PS5", "Oct 22, 2025", "800.00", "Gaming", "Xbox Broke");
+
+        createExpense("Loan", "Oct 07, 2025", "1000.00", "Other", null);
+
+        BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
+
+        budgetCreationViewModel.createSampleBudgets(() -> {
+            System.out.println("sample budgets made after expenses");
+            if (onComplete != null) {
+                onComplete.run();
+            }
+        });
+
+    }
+
+    private long parseDateToMillis(String dateString) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        try {
+            Date date = sdf.parse(dateString);
+            if (date != null) {
+                return date.getTime();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return System.currentTimeMillis();
     }
 }

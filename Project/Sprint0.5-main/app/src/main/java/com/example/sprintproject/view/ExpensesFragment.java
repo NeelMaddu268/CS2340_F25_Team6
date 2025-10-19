@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
+import com.example.sprintproject.viewmodel.DateViewModel;              // <-- ADD
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Locale;
 public class ExpensesFragment extends Fragment {
 
     private ExpensesFragmentViewModel expensesFragmentViewModel;
+    private DateViewModel dateVM;                                    // <-- ADD
     private RecyclerView recyclerView;
     private ExpenseAdapter adapter;
 
@@ -46,7 +48,8 @@ public class ExpensesFragment extends Fragment {
     public View onCreateView(
             LayoutInflater inflater,
             ViewGroup container,
-            Bundle savedInstanceState) {
+            Bundle savedInstanceState
+    ) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         EdgeToEdge.enable(requireActivity());
@@ -54,12 +57,7 @@ public class ExpensesFragment extends Fragment {
                 view.findViewById(R.id.expenselog_layout),
                 (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
+                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                     return insets;
                 });
 
@@ -77,18 +75,33 @@ public class ExpensesFragment extends Fragment {
         });
         recyclerView.setAdapter(adapter);
 
+        // Scope to activity so Dashboard/Budgets/Expenses share the same selected date
+        expensesFragmentViewModel = new ViewModelProvider(requireActivity())
+                .get(ExpensesFragmentViewModel.class);
+        dateVM = new ViewModelProvider(requireActivity())
+                .get(DateViewModel.class);
 
-        expensesFragmentViewModel =
-                new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
-        expensesFragmentViewModel.getExpenses()
-                .observe(getViewLifecycleOwner(), expenses -> {
-                    adapter.submitList(expenses);
-                });
+        // Always submit a NEW list to force DiffUtil refresh between empty/non-empty
+        expensesFragmentViewModel.getExpenses().observe(
+                getViewLifecycleOwner(),
+                list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
+        );
 
-        expensesFragmentViewModel.loadExpenses();
+        // React to date changes: show expenses with date <= selected (day-aware)
+        dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
+            if (selected != null) {
+                expensesFragmentViewModel.loadExpensesFor(selected);
+            }
+        });
+
+        // Seed immediately using saved/today date (in case observer hasn't fired yet)
+        if (dateVM.getCurrentDate().getValue() != null) {
+            expensesFragmentViewModel.loadExpensesFor(dateVM.getCurrentDate().getValue());
+        } else {
+            expensesFragmentViewModel.loadExpenses(); // rare fallback
+        }
 
         Button addExpense = view.findViewById(R.id.addExpense);
-
         addExpense.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_expense_creation, null);
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
@@ -140,7 +153,7 @@ public class ExpensesFragment extends Fragment {
                     }
                     if (category.equals("Choose a category")) {
                         Toast.makeText(requireContext(), "Please select a valid category",
-                                        Toast.LENGTH_SHORT).show();
+                                Toast.LENGTH_SHORT).show();
                         isValid = false;
                     }
                     if (date.equals("")) {
@@ -167,23 +180,22 @@ public class ExpensesFragment extends Fragment {
                 int year = today.get(Calendar.YEAR);
                 int month = today.get(Calendar.MONTH);
                 int day = today.get(Calendar.DAY_OF_MONTH);
-                DatePickerDialog datePickerDialog = new DatePickerDialog(
+                DatePickerDialog picker = new DatePickerDialog(
                         requireContext(),
-                        (view1, selectedYear, selectedMonth, selectedDay) -> {
-                            Calendar selectedDate = Calendar.getInstance();
-                            selectedDate.set(selectedYear, selectedMonth, selectedDay);
+                        (view1, y, mZero, dd) -> {
+                            Calendar sel = Calendar.getInstance();
+                            sel.set(y, mZero, dd);
                             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-                            String formattedDate = sdf.format(selectedDate.getTime());
-                            expenseDate.setText(formattedDate);
-                        }, year, month, day);
-                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-                datePickerDialog.show();
+                            expenseDate.setText(sdf.format(sel.getTime()));
+                        },
+                        year, month, day
+                );
+                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
+                picker.show();
             });
 
             dialog.show();
         });
-
-
 
         return view;
     }

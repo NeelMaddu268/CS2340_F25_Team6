@@ -1,11 +1,17 @@
 package com.example.sprintproject.model;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class Expense {
     private String name;
     private double amount;
     private String category;
     private String date;
     private String notes;
+
+    private long timestamp;
 
     public Expense() {
 
@@ -17,6 +23,7 @@ public class Expense {
         this.category = category;
         this.date = date;
         this.notes = notes;
+        this.timestamp = parseDateToMillis(date);
     }
 
     public Expense(String name, double amount, String category, String date) {
@@ -25,6 +32,20 @@ public class Expense {
         this.category = category;
         this.date = date;
         this.notes = null;
+        this.timestamp = parseDateToMillis(date);
+    }
+
+    private long parseDateToMillis(String dateString) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        try {
+            Date date = sdf.parse(dateString);
+            if (date != null) {
+                return date.getTime();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return System.currentTimeMillis();
     }
 
     public String getName() {
@@ -65,5 +86,13 @@ public class Expense {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }
