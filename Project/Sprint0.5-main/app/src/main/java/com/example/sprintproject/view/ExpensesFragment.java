@@ -46,9 +46,7 @@ public class ExpensesFragment extends Fragment {
     public View onCreateView(
             LayoutInflater inflater,
             ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-        
+            Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         EdgeToEdge.enable(requireActivity());
@@ -63,14 +61,13 @@ public class ExpensesFragment extends Fragment {
                             systemBars.bottom
                     );
                     return insets;
-                }
-        );
+                });
 
         recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         adapter = new ExpenseAdapter(expense -> {
-            Intent intent =  new Intent(requireContext(), ExpenseDetailsActivity.class);
+            Intent intent = new Intent(requireContext(), ExpenseDetailsActivity.class);
             intent.putExtra("expenseName", expense.getName());
             intent.putExtra("expenseAmount", expense.getAmount());
             intent.putExtra("expenseCategory", expense.getCategory());
@@ -83,9 +80,10 @@ public class ExpensesFragment extends Fragment {
 
         expensesFragmentViewModel =
                 new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
-        expensesFragmentViewModel.getExpenses().observe(getViewLifecycleOwner(), expenses -> {
-            adapter.submitList(expenses);
-        });
+        expensesFragmentViewModel.getExpenses()
+                .observe(getViewLifecycleOwner(), expenses -> {
+                    adapter.submitList(expenses);
+                });
 
         expensesFragmentViewModel.loadExpenses();
 
@@ -96,7 +94,6 @@ public class ExpensesFragment extends Fragment {
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
                     .setView(popupView)
                     .create();
-
             EditText expenseName = popupView.findViewById(R.id.ExpenseName);
             EditText expenseAmount = popupView.findViewById(R.id.ExpenseAmount);
             EditText expenseDate = popupView.findViewById(R.id.ExpenseDate);
@@ -108,8 +105,9 @@ public class ExpensesFragment extends Fragment {
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
-            expenseCreationViewModel.getCategories()
-                    .observe(getViewLifecycleOwner(), categories -> {
+            expenseCreationViewModel.getCategories().observe(
+                    getViewLifecycleOwner(),
+                    categories -> {
                         List<String> allCategories = new ArrayList<>();
                         allCategories.add("Choose a category");
                         allCategories.addAll(categories);
@@ -129,22 +127,39 @@ public class ExpensesFragment extends Fragment {
                 String amount = expenseAmount.getText().toString();
                 String category = categorySpinner.getSelectedItem().toString();
                 String notes = expenseNotes.getText().toString();
-
-                if (category.equals("Choose a category")) {
-                    Toast.makeText(requireContext(),
-                            "Please select a valid category", Toast.LENGTH_SHORT).show();
-                    return;
+                boolean isValid = true;
+                try {
+                    int intAmount = Integer.parseInt(amount);
+                    if (intAmount <= 0) {
+                        expenseAmount.setError("Amount must be greater than 0");
+                        isValid = false;
+                    }
+                    if (name.equals("")) {
+                        expenseName.setError("Please enter a name");
+                        isValid = false;
+                    }
+                    if (category.equals("Choose a category")) {
+                        Toast.makeText(requireContext(), "Please select a valid category",
+                                        Toast.LENGTH_SHORT).show();
+                        isValid = false;
+                    }
+                    if (date.equals("")) {
+                        expenseDate.setError("Please select a date");
+                        isValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    expenseAmount.setError("Amount must be a number");
+                    isValid = false;
                 }
-
-                expenseName.setText("");
-                expenseDate.setText("");
-                expenseAmount.setText("");
-                categorySpinner.setSelection(0);
-                expenseNotes.setText("");
-
-                expenseCreationViewModel.createExpense(name, date, amount, category, notes);
-
-                dialog.dismiss();
+                if (isValid) {
+                    expenseCreationViewModel.createExpense(name, date, amount, category, notes);
+                    dialog.dismiss();
+                    expenseName.setText("");
+                    expenseDate.setText("");
+                    expenseAmount.setText("");
+                    categorySpinner.setSelection(0);
+                    expenseNotes.setText("");
+                }
             });
 
             expenseDate.setOnClickListener(v1 -> {
@@ -157,12 +172,10 @@ public class ExpensesFragment extends Fragment {
                         (view1, selectedYear, selectedMonth, selectedDay) -> {
                             Calendar selectedDate = Calendar.getInstance();
                             selectedDate.set(selectedYear, selectedMonth, selectedDay);
-
                             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
                             String formattedDate = sdf.format(selectedDate.getTime());
                             expenseDate.setText(formattedDate);
-                        }, year, month, day
-                );
+                        }, year, month, day);
                 datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
                 datePickerDialog.show();
             });
