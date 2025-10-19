@@ -12,10 +12,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class BudgetCreationViewModel extends ViewModel {
@@ -29,7 +32,7 @@ public class BudgetCreationViewModel extends ViewModel {
 
     public void createBudget(
             String name, String date, String amountString, String category,
-            String frequency, Runnable onComplete) {
+            String frequency, long timestamp, Runnable onComplete) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
         String uid = auth.getCurrentUser().getUid();
@@ -65,11 +68,11 @@ public class BudgetCreationViewModel extends ViewModel {
 
                         //Category exists but has no budgets in it, edge case
                         budgetData = new BudgetData(name, finalAmount,
-                                category, frequency, date, categoryDocument.getId());
+                                category, frequency, date, categoryDocument.getId(), timestamp);
                     } else {
                         //category doesn't exist yet, make it
                         budgetData = new BudgetData(name, finalAmount,
-                                category, frequency, date, null);
+                                category, frequency, date, null, timestamp);
                     }
                     addBudgetToFirestore(uid, budgetData, onComplete);
                 })
@@ -89,11 +92,28 @@ public class BudgetCreationViewModel extends ViewModel {
                 .whereEqualTo("category", budgetData.getCategory())
                 .get()
                 .addOnSuccessListener(expenseQuery -> {
+                    long budgetStartTimestamp = budgetData.getStartDateTimestamp();
                     double spentToDate = 0.0;
                     for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
                         Expense expense = doc.toObject(Expense.class);
                         if (expense != null) {
-                            spentToDate += expense.getAmount();
+                            long expenseTimestamp = expense.getTimestamp();
+
+                            long budgetEndTimestamp = budgetStartTimestamp;
+                            if (budgetData.getFrequency().equalsIgnoreCase("Weekly")) {
+                                budgetEndTimestamp += 7 * 24 * 60 * 60 * 1000L;
+                            } else if (budgetData.getFrequency().equalsIgnoreCase("Monthly")) {
+                                Calendar c = Calendar.getInstance();
+                                c.setTimeInMillis(budgetStartTimestamp);
+                                c.add(Calendar.MONTH, 1);
+                                budgetEndTimestamp = c.getTimeInMillis();
+                            }
+
+                            if (expenseTimestamp >= budgetStartTimestamp
+                                    && expenseTimestamp < budgetEndTimestamp) {
+                                spentToDate += expense.getAmount();
+                            }
+
                         }
                     }
 
@@ -103,6 +123,8 @@ public class BudgetCreationViewModel extends ViewModel {
                             budgetData.getCategory(),
                             budgetData.getFrequency(),
                             budgetData.getStartDate());
+
+                    budget.setStartDateTimestamp(budgetData.getStartDateTimestamp());
 
                     budget.setSpentToDate(spentToDate);
                     budget.setMoneyRemaining(budgetData.getAmount() - spentToDate);
@@ -150,21 +172,23 @@ public class BudgetCreationViewModel extends ViewModel {
     public void createSampleBudgets(Runnable onComplete) {
         Calendar calendar = Calendar.getInstance();
         String[][] sampleBudgets = {
-                {"Eating Budget", "Oct 19, 2025", "100.00", "Eating", "Weekly"},
-                {"Travel Budget", "Oct 01, 2025", "1000.00", "Travel", "Monthly"},
-                {"Gaming Budget", "Oct 25, 2025", "1500.00", "Gaming", "Weekly"}
+                {"Eating Budget", "Oct 20, 2025", "100.00", "Eating", "Weekly"},
+                {"Travel Budget", "Oct 21, 2025", "1000.00", "Travel", "Monthly"},
+                {"Gaming Budget", "Oct 22, 2025", "1500.00", "Gaming", "Weekly"}
         };
 
         final int[] completedCount = {0};
         final int totalBudgets = sampleBudgets.length;
 
         for (String[] budgetData : sampleBudgets) {
+            long timestamp = parseDateToMillis(budgetData[1]);
             createBudget(
                     budgetData[0], // name
                     budgetData[1], // date
                     budgetData[2], // amount
                     budgetData[3], // category
                     budgetData[4], // frequency
+                    timestamp,
                     () -> {
                         completedCount[0]++;
                         if (completedCount[0] == totalBudgets && onComplete != null) {
@@ -173,5 +197,18 @@ public class BudgetCreationViewModel extends ViewModel {
                     }
             );
         }
+    }
+
+    private long parseDateToMillis(String dateString) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        try {
+            Date date = sdf.parse(dateString);
+            if (date != null) {
+                return date.getTime();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return System.currentTimeMillis();
     }
 }

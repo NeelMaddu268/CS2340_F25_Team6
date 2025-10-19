@@ -6,6 +6,9 @@ public class Budget {
     private String category;
     private String frequency;
     private String startDate;
+    private long startDateTimestamp;
+    private boolean isCompleted;
+    private boolean wasOverBudget;
 
     private String id; // stores the firebase document id
     private double spentToDate; // money spent up to today
@@ -21,6 +24,8 @@ public class Budget {
         this.category = category;
         this.frequency = frequency;
         this.startDate = startDate;
+        this.isCompleted = false;
+        this.wasOverBudget = false;
     }
 
     public String getName() {
@@ -75,5 +80,29 @@ public class Budget {
         } else {
             return Math.min(100.0, (spentToDate / amount) * 100.0);
         }
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
+    }
+
+    public boolean wasOverBudget() {
+        return wasOverBudget;
+    }
+
+    public void setWasOverBudget(boolean wasOverBudget) {
+        this.wasOverBudget = wasOverBudget;
+    }
+
+    public long getStartDateTimestamp() {
+        return startDateTimestamp;
+    }
+
+    public void setStartDateTimestamp(long startDateTimestamp) {
+        this.startDateTimestamp = startDateTimestamp;
     }
 }
