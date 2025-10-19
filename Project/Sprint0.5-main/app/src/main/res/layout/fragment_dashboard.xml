@@ -55,17 +55,18 @@
         android:textStyle="bold"
         android:textSize="22sp"
         android:textColor="@android:color/black"
-        android:layout_marginBottom="12dp"
-        android:gravity="center" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginVertical="12dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/remainingBudgetsRecycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="16dp"
         android:clipToPadding="false"
-        android:overScrollMode="never" />
+        android:overScrollMode="never"
+        android:paddingBottom="8dp" />
+
 
 </LinearLayout>
