@@ -8,14 +8,17 @@ public class BudgetData {
     private String startDate;
     private String categoryId;
 
-    public BudgetData(String name, double amount, String category,
-                      String frequency, String startDate, String categoryId) {
+    private long startDateTimeStamp;
+
+    public BudgetData(String name, double amount, String category, String frequency,
+                      String startDate, String categoryId, long startDateTimeStamp) {
         this.name = name;
         this.amount = amount;
         this.category = category;
         this.frequency = frequency;
         this.startDate = startDate;
         this.categoryId = categoryId;
+        this.startDateTimeStamp = startDateTimeStamp;
     }
 
     // Getters for the fields
@@ -41,5 +44,9 @@ public class BudgetData {
 
     public String getCategoryId() {
         return categoryId;
+    }
+
+    public long getStartDateTimestamp() {
+        return startDateTimeStamp;
     }
 }

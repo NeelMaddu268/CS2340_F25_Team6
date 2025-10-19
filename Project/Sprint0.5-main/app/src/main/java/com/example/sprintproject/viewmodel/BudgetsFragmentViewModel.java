@@ -97,6 +97,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
                         return;
                     }
                     List<Budget> filtered = new ArrayList<>();
+                    Calendar current = Calendar.getInstance();
+                    current.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
+
                     for (DocumentSnapshot doc : qs.getDocuments()) {
                         Budget b = toBudgetWithId(doc);
                         if (b == null) continue;
@@ -104,8 +107,28 @@ public class BudgetsFragmentViewModel extends ViewModel {
                         Object raw = doc.get("startDate");   // Timestamp/Date/Long/String
                         String fallback = b.getStartDate();  // model’s string if present
                         YMD start = extractYMD(raw, fallback);
+
                         if (start != null && startedOnOrBefore(start, appDate)) {
-                            filtered.add(b);
+
+                            boolean expired = isBudgetExpired(b, current.getTime());
+
+                            if (expired) {
+                                boolean over = b.isOverBudget();
+
+                                if (!b.isHasPreviousCycle()) {
+                                    b.setHasPreviousCycle(true);
+                                } else {
+                                    b.setPreviousCycleOverBudget(over);
+                                }
+
+                                b.setIsOverBudget(over);
+                                b.setCompleted(true);
+                                b.setPreviousCycleEndTimestamp(System.currentTimeMillis());
+
+                                updateBudget(b);
+                            } else {
+                                filtered.add(b);
+                            }
                         }
                     }
                     budgetsLiveData.postValue(filtered);
@@ -285,6 +308,32 @@ public class BudgetsFragmentViewModel extends ViewModel {
     protected void onCleared() {
         super.onCleared();
         detachActiveListener();
+    }
+
+    private boolean isBudgetExpired(Budget budget, Date currentDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        try {
+            Date startDate = sdf.parse(budget.getStartDate());
+            if (startDate == null) {
+                return false;
+            }
+
+            Calendar start = Calendar.getInstance();
+            start.setTime(startDate);
+            Calendar end = Calendar.getInstance();
+
+            if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
+                end.setTime(start.getTime());
+                end.add(Calendar.DAY_OF_YEAR, 7);
+            } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
+                end.setTime(start.getTime());
+                end.add(Calendar.MONTH, 1);
+            }
+            return currentDate.after(end.getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
 
