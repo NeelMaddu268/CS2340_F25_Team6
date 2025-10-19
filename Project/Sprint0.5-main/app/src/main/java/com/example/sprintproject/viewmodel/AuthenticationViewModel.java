@@ -87,10 +87,10 @@ public class AuthenticationViewModel extends ViewModel {
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
                     createUserInFirestore(firebaseUser);
-                    ExpenseCreationViewModel expenseCreationViewModel =
-                            new ExpenseCreationViewModel();
                     BudgetCreationViewModel budgetCreationViewModel =
                             new BudgetCreationViewModel();
+                    ExpenseCreationViewModel expenseCreationViewModel =
+                            new ExpenseCreationViewModel();
                     //need to wait for budgets to be made for expenses to be made
                     //add some async/sync logic
                     //budget view model will call expense view model to make expenses

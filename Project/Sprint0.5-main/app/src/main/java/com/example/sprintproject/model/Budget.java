@@ -6,6 +6,13 @@ public class Budget {
     private String category;
     private String frequency;
     private String startDate;
+    private long startDateTimestamp;
+    private boolean isCompleted;
+
+    private boolean isOverBudget;
+    private boolean hasPreviousCycle;
+    private boolean previousCycleOverBudget;
+    private long previousCycleEndTimestamp;
 
     private String id; // stores the firebase document id
     private double spentToDate; // money spent up to today
@@ -21,6 +28,35 @@ public class Budget {
         this.category = category;
         this.frequency = frequency;
         this.startDate = startDate;
+        this.isCompleted = false;
+        this.isOverBudget = false;
+        this.hasPreviousCycle = false;
+        this.previousCycleOverBudget = false;
+        this.previousCycleEndTimestamp = 0L;
+    }
+
+    public boolean isHasPreviousCycle() {
+        return hasPreviousCycle;
+    }
+
+    public void setHasPreviousCycle(boolean hasPreviousCycle) {
+        this.hasPreviousCycle = hasPreviousCycle;
+    }
+
+    public boolean isPreviousCycleOverBudget() {
+        return previousCycleOverBudget;
+    }
+
+    public void setPreviousCycleOverBudget(boolean previousCycleOverBudget) {
+        this.previousCycleOverBudget = previousCycleOverBudget;
+    }
+
+    public long getPreviousCycleEndTimestamp() {
+        return previousCycleEndTimestamp;
+    }
+
+    public void setPreviousCycleEndTimestamp(long previousCycleEndTimestamp) {
+        this.previousCycleEndTimestamp = previousCycleEndTimestamp;
     }
 
     public String getName() {
@@ -75,5 +111,29 @@ public class Budget {
         } else {
             return Math.min(100.0, (spentToDate / amount) * 100.0);
         }
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
+    }
+
+    public boolean isOverBudget() {
+        return isOverBudget;
+    }
+
+    public void setIsOverBudget(boolean isOverBudget) {
+        this.isOverBudget = isOverBudget;
+    }
+
+    public long getStartDateTimestamp() {
+        return startDateTimestamp;
+    }
+
+    public void setStartDateTimestamp(long startDateTimestamp) {
+        this.startDateTimestamp = startDateTimestamp;
     }
 }

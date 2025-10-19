@@ -197,7 +197,13 @@ public class BudgetsFragment extends Fragment {
                 }
 
                 if (isValid) {
-                    budgetCreationViewModel.createBudget(name, date, amount, category, frequency, null);
+                    long timestamp = System.currentTimeMillis();
+                    budgetCreationViewModel.createBudget(name, date, amount, category, frequency, timestamp, () -> {
+                        AppDate appDate = dateVM.getCurrentDate().getValue();
+                        if (appDate != null) {
+                            budgetsFragmentViewModel.loadBudgetsFor(appDate);
+                        }
+                    });
                     dialog.dismiss();
                     budgetNameEntry.setText("");
                     budgetDateEntry.setText("");
@@ -235,8 +241,4 @@ public class BudgetsFragment extends Fragment {
         int day = c.get(java.util.Calendar.DAY_OF_MONTH);
         return d.getYear() == y && d.getMonth() == m && d.getDay() == day;
     }
-
 }
-
-
-
