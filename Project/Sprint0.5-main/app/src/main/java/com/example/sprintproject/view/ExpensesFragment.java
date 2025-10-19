@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -23,6 +26,7 @@ import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ExpensesFragment extends Fragment {
 
@@ -90,24 +94,45 @@ public class ExpensesFragment extends Fragment {
 
             EditText expenseName = popupView.findViewById(R.id.ExpenseName);
             EditText expenseAmount = popupView.findViewById(R.id.ExpenseAmount);
-            EditText expenseCategory = popupView.findViewById(R.id.ExpenseCategory);
             EditText expenseDate = popupView.findViewById(R.id.ExpenseDate);
             Button createBtn = popupView.findViewById(R.id.createExpenseButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
+            Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
             ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
+
+            expenseCreationViewModel.getCategories()
+                    .observe(getViewLifecycleOwner(), categories -> {
+                        List<String> allCategories = new ArrayList<>();
+                        allCategories.add("Choose a category");
+                        allCategories.addAll(categories);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                requireContext(),
+                                android.R.layout.simple_spinner_dropdown_item,
+                                allCategories
+                        );
+                        categorySpinner.setAdapter(adapter);
+                    });
+
+            expenseCreationViewModel.loadCategories();
 
             createBtn.setOnClickListener(view1 -> {
                 String name = expenseName.getText().toString();
                 String date = expenseDate.getText().toString();
                 String amount = expenseAmount.getText().toString();
-                String category = expenseCategory.getText().toString();
+                String category = categorySpinner.getSelectedItem().toString();
+
+                if (category.equals("Choose a category")) {
+                    Toast.makeText(requireContext(),
+                            "Please select a valid category", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 expenseName.setText("");
                 expenseDate.setText("");
                 expenseAmount.setText("");
-                expenseCategory.setText("");
+                categorySpinner.setSelection(0);
 
                 expenseCreationViewModel.createExpense(name, date, amount, category);
 

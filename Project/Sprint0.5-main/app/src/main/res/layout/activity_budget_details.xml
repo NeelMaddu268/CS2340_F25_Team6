@@ -57,6 +57,68 @@
             android:text="Back"
             android:layout_marginBottom="16dp"/>
 
+        <ProgressBar
+            android:id="@+id/budgetProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <TextView
+            android:id="@+id/budgetPositiveText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Surplus: "
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp" />
+
+        <!--calculator section -->
+        <EditText
+            android:id="@+id/budgetInputTotal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingVertical="12dp"
+            android:inputType="numberDecimal"
+            android:hint="Enter Total Budget"
+            android:autofillHints="budgetTotal"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/budgetInputSpent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingVertical="12dp"
+            android:inputType="numberDecimal"
+            android:hint="Enter Spent to Date"
+            android:autofillHints="budgetSpent"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/budgetInputRemaining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingVertical="12dp"
+            android:inputType="numberDecimal"
+            android:hint="Enter Remaining"
+            android:autofillHints="budgetRemaining"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/budgetComputeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Compute Budget"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/budgetSaveButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Budget"/>
+
     </LinearLayout>
 
 </ScrollView>

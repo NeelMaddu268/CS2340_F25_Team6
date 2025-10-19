@@ -79,6 +79,7 @@ public class BudgetsFragment extends Fragment {
 
         adapter = new BudgetAdapter(requireContext(), new ArrayList<>(), budget -> {
             Intent intent =  new Intent(requireContext(), BudgetDetailsActivity.class);
+            intent.putExtra("budgetId", budget.getId()); // shares details of an existing budget
             intent.putExtra("budgetName", budget.getName());
             intent.putExtra("budgetAmount", budget.getAmount());
             intent.putExtra("budgetCategory", budget.getCategory());
@@ -113,7 +114,8 @@ public class BudgetsFragment extends Fragment {
             BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
 
             String[] frequencies = {"Select a Frequency", "Weekly", "Monthly"};
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(popupView.getContext(), android.R.layout.simple_spinner_item, frequencies);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                    popupView.getContext(), android.R.layout.simple_spinner_item, frequencies);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
             budgetFrequencyEntry.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
