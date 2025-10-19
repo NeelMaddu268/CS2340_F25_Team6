@@ -13,6 +13,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -147,10 +148,11 @@ public class BudgetCreationViewModel extends ViewModel {
 
 
     public void createSampleBudgets(Runnable onComplete) {
+        Calendar calendar = Calendar.getInstance();
         String[][] sampleBudgets = {
-                {"Eating Budget", "2023-05-01", "100.00", "Eating", "Weekly"},
-                {"Travel Budget", "2023-05-02", "1000.00", "Travel", "Monthly"},
-                {"Gaming Budget", "2023-05-03", "1500.00", "Gaming", "Weekly"}
+                {"Eating Budget", "Oct 19, 2025", "100.00", "Eating", "Weekly"},
+                {"Travel Budget", "Oct 01, 2025", "1000.00", "Travel", "Monthly"},
+                {"Gaming Budget", "Oct 25, 2025", "1500.00", "Gaming", "Weekly"}
         };
 
         final int[] completedCount = {0};
