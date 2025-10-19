@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -42,16 +43,11 @@ public class ExpenseCreationViewModel extends ViewModel {
         }
 
         Expense expense = new Expense(name, amount, category, date);
-        db.collection("users")
-                .document(uid)
-                .collection("expenses")
-                .add(expense)
+        FirestoreManager.getInstance().expensesReference(uid).add(expense)
                 .addOnSuccessListener(documentReference -> {
                     String expenseId = documentReference.getId();
 
-                    db.collection("users")
-                            .document(uid)
-                            .collection("categories")
+                    FirestoreManager.getInstance().categoriesReference(uid)
                             .whereEqualTo("name", category)
                             .get()
                             .addOnSuccessListener(querySnapshot -> {
@@ -59,20 +55,17 @@ public class ExpenseCreationViewModel extends ViewModel {
                                     //category exists
                                     DocumentSnapshot categoryDocument =
                                             querySnapshot.getDocuments().get(0);
-                                    db.collection("users").document(uid)
-                                        .collection("categories")
-                                        .document(categoryDocument.getId())
-                                        .update("expenses", FieldValue.arrayUnion(expenseId));
+                                    FirestoreManager.getInstance().categoriesReference(uid)
+                                            .document(categoryDocument.getId())
+                                            .update("expenses", FieldValue.arrayUnion(expenseId));
                                 } else {
                                     //category doesn't exist yet, make it
                                     Map<String, Object> newCategory = new HashMap<>();
                                     newCategory.put("name", category);
                                     newCategory.put("budgets", Arrays.asList());
                                     newCategory.put("expenses", Arrays.asList(expenseId));
-
-                                    db.collection("users").document(uid)
-                                            .collection("categories")
-                                            .add(newCategory);
+                                    FirestoreManager.getInstance()
+                                            .categoriesReference(uid).add(newCategory);
                                 }
                             });
                     System.out.println("Expense added");

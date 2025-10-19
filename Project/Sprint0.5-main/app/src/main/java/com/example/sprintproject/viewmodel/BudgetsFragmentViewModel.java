@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Budget;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -24,12 +25,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
     }
 
     public void loadBudgets() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String uid = auth.getCurrentUser().getUid();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        db.collection("users")
-                .document(uid)
-                .collection("budgets")
+        FirestoreManager.getInstance().budgetsReference(uid)
                 .orderBy("startDate", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error == null && value != null)  {
@@ -48,6 +46,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     }
                 });
     }
+             
     public LiveData<Budget> getBudgetById(String budgetId) {
         MutableLiveData<Budget> live = new MutableLiveData<>();
         String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();

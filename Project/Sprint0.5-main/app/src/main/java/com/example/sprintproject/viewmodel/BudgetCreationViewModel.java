@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.BudgetData;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,13 +41,11 @@ public class BudgetCreationViewModel extends ViewModel {
         }
         double finalAmount = amount;
 
-        //Looking for the category, if it exists
-        db.collection("users")
-                .document(uid)
-                .collection("categories")
+        FirestoreManager.getInstance().categoriesReference(uid)
                 .whereEqualTo("name", category)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
+                    BudgetData budgetData;
                     if (!querySnapshot.isEmpty()) {
                         //category exists
                         DocumentSnapshot categoryDocument = querySnapshot.getDocuments().get(0);
@@ -63,15 +62,14 @@ public class BudgetCreationViewModel extends ViewModel {
                         }
 
                         //Category exists but has no budgets in it, edge case
-                        BudgetData budgetData = new BudgetData(name, finalAmount,
+                        budgetData = new BudgetData(name, finalAmount,
                                 category, frequency, date, categoryDocument.getId());
-                        addBudgetToFirestore(uid, budgetData, onComplete);
                     } else {
                         //category doesn't exist yet, make it
-                        BudgetData budgetData = new BudgetData(name, finalAmount,
+                        budgetData = new BudgetData(name, finalAmount,
                                 category, frequency, date, null);
-                        addBudgetToFirestore(uid, budgetData, onComplete);
                     }
+                    addBudgetToFirestore(uid, budgetData, onComplete);
                 })
                 .addOnFailureListener(e -> {
                     System.err.println("Budget failed to add");
@@ -90,16 +88,13 @@ public class BudgetCreationViewModel extends ViewModel {
                 budgetData.getFrequency(),
                 budgetData.getStartDate());
 
-        db.collection("users").document(uid)
-                .collection("budgets")
-                .add(budget)
+        FirestoreManager.getInstance().budgetsReference(uid).add(budget)
                 .addOnSuccessListener(documentReference -> {
                     String budgetId = documentReference.getId();
 
                     if (budgetData.getCategoryId() != null) {
                         //Category already existed, edge case
-                        db.collection("users").document(uid)
-                                .collection("categories")
+                        FirestoreManager.getInstance().categoriesReference(uid)
                                 .document(budgetData.getCategoryId())
                                 .update("budgets", Collections.singletonList(budgetId))
                                 .addOnCompleteListener(task -> {
@@ -113,8 +108,7 @@ public class BudgetCreationViewModel extends ViewModel {
                         newCategory.put("name", budgetData.getCategory());
                         newCategory.put("budgets", Arrays.asList(budgetId));
                         newCategory.put("expenses", Arrays.asList());
-                        db.collection("users").document(uid)
-                                .collection("categories")
+                        FirestoreManager.getInstance().categoriesReference(uid)
                                 .add(newCategory)
                                 .addOnCompleteListener(task -> {
                                     if (onComplete != null) {
