@@ -1,15 +1,20 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -23,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sprintproject.R;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
@@ -111,7 +117,59 @@ public class BudgetsFragment extends Fragment {
             ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     popupView.getContext(), android.R.layout.simple_spinner_item, frequencies);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            budgetFrequencyEntry.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (position != 0) {
+                        budgetDateEntry.setEnabled(true);
+                        budgetDateEntry.setFocusable(false);
+                        budgetDateEntry.setClickable(true);
+                    } else {
+                        budgetDateEntry.setEnabled(false);
+                        budgetDateEntry.setFocusable(false);
+                        budgetDateEntry.setClickable(false);
+                        budgetDateEntry.setText("");
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    budgetDateEntry.setEnabled(false);
+                    budgetDateEntry.setFocusable(false);
+                    budgetDateEntry.setClickable(false);
+                }
+            });
+
             budgetFrequencyEntry.setAdapter(adapter);
+            budgetDateEntry.setOnClickListener(m -> {
+                String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
+
+                final Calendar today = Calendar.getInstance();
+                int year = today.get(Calendar.YEAR);
+                int month = today.get(Calendar.MONTH);
+                int day = today.get(Calendar.DAY_OF_MONTH);
+                DatePickerDialog datePickerDialog = new DatePickerDialog(
+                        requireContext(),
+                        (view1, selectedYear, selectedMonth, selectedDay) -> {
+                            Calendar selectedDate = Calendar.getInstance();
+                            selectedDate.set(selectedYear, selectedMonth, selectedDay);
+                            if (selectedFrequency.equals("Monthly")) {
+                                selectedDate.set(Calendar.DAY_OF_MONTH, 1);
+                                if (selectedDate.before(today)) {
+                                    selectedDate.add(Calendar.MONTH, 1);
+                                }
+                            }
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                            String formattedDate = sdf.format(selectedDate.getTime());
+                            budgetDateEntry.setText(formattedDate);
+                        }, year, month, day
+                );
+
+                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+                datePickerDialog.show();
+            });
 
             cancelButton.setOnClickListener(view1 -> dialog.dismiss());
 
@@ -122,45 +180,40 @@ public class BudgetsFragment extends Fragment {
                 String category = budgetCategoryEntry.getText().toString();
                 String frequency = budgetFrequencyEntry.getSelectedItem().toString();
                 boolean isValid = true;
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                Date currentDate = new Date();
-                Date startDate;
                 try {
                     int intAmount = Integer.parseInt(amount);
                     if (intAmount <= 0) {
                         budgetAmountEntry.setError("Amount must be greater than 0");
-                    } else {
-                        dialog.dismiss();
-                        budgetNameEntry.setText("");
-                        budgetDateEntry.setText("");
-                        budgetAmountEntry.setText("");
-                        budgetCategoryEntry.setText("");
-                        budgetFrequencyEntry.setSelection(0);
+                        isValid = false;
+                    }
+                    if (budgetFrequencyEntry.getSelectedItemPosition() == 0) {
+                        TextView errorText = (TextView) budgetFrequencyEntry.getSelectedView();
+                        errorText.setError("");
+                    }
+                    if (name.equals("")) {
+                        budgetNameEntry.setError("Please enter a name");
+                        isValid = false;
+                    }
+                    if (category.equals("")) {
+                        budgetCategoryEntry.setError("Please enter a category");
+                        isValid = false;
+                    }
+                    if (date.equals("")) {
+                        budgetDateEntry.setError("Please select a date");
+                        isValid = false;
                     }
                 } catch (NumberFormatException e) {
                     budgetAmountEntry.setError("Amount must be a number");
                     isValid = false;
                 }
-
-                try {
-                    startDate = format.parse(date);
-                    if (startDate.compareTo(currentDate) < 0) {
-                        budgetDateEntry.setError("Start date must be in the future");
-                    } else {
-                        dialog.dismiss();
-                        budgetNameEntry.setText("");
-                        budgetDateEntry.setText("");
-                        budgetAmountEntry.setText("");
-                        budgetCategoryEntry.setText("");
-                        budgetFrequencyEntry.setSelection(0);
-                    }
-                } catch (ParseException e) {
-                    budgetDateEntry.setError("Start date must be in correct format.");
-                    isValid = false;
-                }
                 if (isValid) {
-                    budgetCreationViewModel.createBudget(
-                            name, amount, category, frequency, date, null);
+                    budgetCreationViewModel.createBudget(name, date, amount, category, frequency,null);
+                    dialog.dismiss();
+                    budgetNameEntry.setText("");
+                    budgetDateEntry.setText("");
+                    budgetAmountEntry.setText("");
+                    budgetCategoryEntry.setText("");
+                    budgetFrequencyEntry.setSelection(0);
                 }
             });
 
