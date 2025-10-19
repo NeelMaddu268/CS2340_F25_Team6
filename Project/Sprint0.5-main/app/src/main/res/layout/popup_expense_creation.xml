@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#357DED"
-    android:orientation="vertical"
-    tools:context=".view.ExpenseCreation">
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/expenseCreationTitle"
@@ -81,18 +80,26 @@
         android:text="Category"
         android:textColor="@color/white"/>
 
-    <EditText
-        android:id="@+id/ExpenseCategory"
+<!--    <EditText-->
+<!--        android:id="@+id/ExpenseCategory"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="12dp"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:text="ExpenseCategory"-->
+<!--        android:padding="10dp"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        android:layout_marginRight="24dp"-->
+<!--        android:layout_marginLeft="24dp"-->
+<!--        android:background="@color/white"/>-->
+
+    <Spinner
+        android:id="@+id/expenseCategorySpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:textColor="@color/white"
-        android:text="ExpenseCategory"
+        android:spinnerMode="dropdown"
         android:padding="10dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginRight="24dp"
-        android:layout_marginLeft="24dp"
-        android:background="@color/white"/>
+        android:layout_marginBottom="12dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -144,7 +151,7 @@
         android:id="@+id/createExpenseButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop="50dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
         android:backgroundTint="@color/white"
