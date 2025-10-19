@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -25,8 +26,11 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class ExpensesFragment extends Fragment {
 
@@ -141,6 +145,26 @@ public class ExpensesFragment extends Fragment {
                 expenseCreationViewModel.createExpense(name, date, amount, category, notes);
 
                 dialog.dismiss();
+            });
+
+            expenseDate.setOnClickListener(v1 -> {
+                final Calendar today = Calendar.getInstance();
+                int year = today.get(Calendar.YEAR);
+                int month = today.get(Calendar.MONTH);
+                int day = today.get(Calendar.DAY_OF_MONTH);
+                DatePickerDialog datePickerDialog = new DatePickerDialog(
+                        requireContext(),
+                        (view1, selectedYear, selectedMonth, selectedDay) -> {
+                            Calendar selectedDate = Calendar.getInstance();
+                            selectedDate.set(selectedYear, selectedMonth, selectedDay);
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                            String formattedDate = sdf.format(selectedDate.getTime());
+                            expenseDate.setText(formattedDate);
+                        }, year, month, day
+                );
+                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+                datePickerDialog.show();
             });
 
             dialog.show();
