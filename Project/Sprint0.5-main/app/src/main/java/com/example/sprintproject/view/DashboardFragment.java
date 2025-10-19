@@ -46,9 +46,7 @@ public class DashboardFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) {
-            return null;
-        }
+        if (view == null) return null;
 
         authenticationViewModel = new AuthenticationViewModel();
 
@@ -57,11 +55,9 @@ public class DashboardFragment extends Fragment {
         headerText   = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
 
-
         if (headerText != null) {
             headerText.setText("Dashboard");
         }
-
 
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
@@ -72,36 +68,59 @@ public class DashboardFragment extends Fragment {
                     return insets;
                 });
 
-
+        // Shared across the Activity so all fragments see the same date
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
 
+        // Open the picker seeded from the LAST CHOSEN date (fallback = today)
+        if (btnCalendar != null) {
+            btnCalendar.setOnClickListener(v -> openDatePicker());
+        }
 
-        btnCalendar.setOnClickListener(v -> {
-            Calendar c = Calendar.getInstance(); // today's date
-            int year   = c.get(Calendar.YEAR);
-            int month0 = c.get(Calendar.MONTH);           // 0-based
-            int day    = c.get(Calendar.DAY_OF_MONTH);
-
-            DatePickerDialog dlg = new DatePickerDialog(
-                    requireContext(),
-                    (picker, y, mZero, dd) -> {
-
-                        dateVM.setDate(new AppDate(y, mZero + 1, dd));
-
-                    },
-                    year, month0, day
-            );
-            dlg.show();
-        });
-
-
-        logoutButton.setOnClickListener(v -> {
-            authenticationViewModel.logout();
-            startActivity(new Intent(getActivity(), MainActivity.class));
-            requireActivity().finish();
-        });
+        // Logout
+        if (logoutButton != null) {
+            logoutButton.setOnClickListener(v -> {
+                authenticationViewModel.logout();
+                startActivity(new Intent(getActivity(), MainActivity.class));
+                requireActivity().finish();
+            });
+        }
 
         return view;
     }
+
+    /**
+     * Opens the DatePickerDialog seeded from DateViewModel's current date.
+     * If none is set yet, falls back to today's date.
+     */
+    private void openDatePicker() {
+        // Seed from the last saved date (fallback = today)
+        AppDate stored = dateVM.getCurrentDate().getValue();
+
+        final Calendar seed = Calendar.getInstance();
+        if (stored != null) {
+            seed.set(Calendar.YEAR, stored.getYear());
+            seed.set(Calendar.MONTH, stored.getMonth() - 1);      // DatePicker uses 0..11
+            // If AppDate tracks day, use it; otherwise seed keeps today's day
+            try {
+                seed.set(Calendar.DAY_OF_MONTH, stored.getDay());
+            } catch (Exception ignored) { /* AppDate may not have day; safe to ignore */ }
+        }
+
+        int year   = seed.get(Calendar.YEAR);
+        int month0 = seed.get(Calendar.MONTH);
+        int day    = seed.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog dlg = new DatePickerDialog(
+                requireContext(),
+                (picker, y, mZero, dd) -> {
+                    // Pass both the AppDate and the day
+                    dateVM.setDate(new AppDate(y, mZero + 1, dd), dd);
+                },
+                year, month0, day
+        );
+        dlg.show();
+    }
 }
+
+
 
