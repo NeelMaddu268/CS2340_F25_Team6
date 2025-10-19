@@ -57,7 +57,8 @@ public class ExpenseCreationViewModel extends ViewModel {
                 });
     }
 
-    public void createExpense(String name, String date, String amountString, String category) {
+    public void createExpense(String name, String date,
+                              String amountString, String category, String notes) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
         String uid = auth.getCurrentUser().getUid();
@@ -70,7 +71,7 @@ public class ExpenseCreationViewModel extends ViewModel {
             amount = 0.0; //temporarily set the amount to 0 if amount is invalid
         }
 
-        Expense expense = new Expense(name, amount, category, date);
+        Expense expense = new Expense(name, amount, category, date, notes);
         double finalAmount = amount;
         FirestoreManager.getInstance().expensesReference(uid).add(expense)
                 .addOnSuccessListener(documentReference -> {
@@ -136,16 +137,16 @@ public class ExpenseCreationViewModel extends ViewModel {
     }
 
     public void createSampleExpenses() {
-        createExpense("Tin Drum", "Oct 01, 2025", "10.00", "Eating");
-        createExpense("Panda Express", "Oct 02, 2025", "30.00", "Eating");
+        createExpense("Tin Drum", "Oct 01, 2025", "10.00", "Eating", null);
+        createExpense("Panda Express", "Oct 02, 2025", "30.00", "Eating", "Was Hungry");
 
-        createExpense("Hawaii", "Oct 03, 2025", "500.00", "Travel");
-        createExpense("Spain", "Oct 04, 2025", "300.00", "Travel");
+        createExpense("Hawaii", "Oct 03, 2025", "500.00", "Travel", null);
+        createExpense("Spain", "Oct 04, 2025", "300.00", "Travel", "Spring Break");
 
-        createExpense("Xbox", "Oct 05, 2025", "500.00", "Gaming");
-        createExpense("PS5", "Oct 06, 2025", "800.00", "Gaming");
+        createExpense("Xbox", "Oct 05, 2025", "500.00", "Gaming", null);
+        createExpense("PS5", "Oct 06, 2025", "800.00", "Gaming", "Xbox Broke");
 
-        createExpense("Loan", "Oct 07, 2025", "1000.00", "Other");
+        createExpense("Loan", "Oct 07, 2025", "1000.00", "Other", null);
 
     }
 }

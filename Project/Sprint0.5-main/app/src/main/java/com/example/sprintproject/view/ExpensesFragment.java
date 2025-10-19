@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -25,8 +26,11 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class ExpensesFragment extends Fragment {
 
@@ -71,6 +75,7 @@ public class ExpensesFragment extends Fragment {
             intent.putExtra("expenseAmount", expense.getAmount());
             intent.putExtra("expenseCategory", expense.getCategory());
             intent.putExtra("expenseDate", expense.getDate());
+            intent.putExtra("expenseNotes", expense.getNotes());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
@@ -95,6 +100,7 @@ public class ExpensesFragment extends Fragment {
             EditText expenseName = popupView.findViewById(R.id.ExpenseName);
             EditText expenseAmount = popupView.findViewById(R.id.ExpenseAmount);
             EditText expenseDate = popupView.findViewById(R.id.ExpenseDate);
+            EditText expenseNotes = popupView.findViewById(R.id.ExpenseNotes);
             Button createBtn = popupView.findViewById(R.id.createExpenseButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
@@ -122,6 +128,7 @@ public class ExpensesFragment extends Fragment {
                 String date = expenseDate.getText().toString();
                 String amount = expenseAmount.getText().toString();
                 String category = categorySpinner.getSelectedItem().toString();
+                String notes = expenseNotes.getText().toString();
 
                 if (category.equals("Choose a category")) {
                     Toast.makeText(requireContext(),
@@ -133,10 +140,31 @@ public class ExpensesFragment extends Fragment {
                 expenseDate.setText("");
                 expenseAmount.setText("");
                 categorySpinner.setSelection(0);
+                expenseNotes.setText("");
 
-                expenseCreationViewModel.createExpense(name, date, amount, category);
+                expenseCreationViewModel.createExpense(name, date, amount, category, notes);
 
                 dialog.dismiss();
+            });
+
+            expenseDate.setOnClickListener(v1 -> {
+                final Calendar today = Calendar.getInstance();
+                int year = today.get(Calendar.YEAR);
+                int month = today.get(Calendar.MONTH);
+                int day = today.get(Calendar.DAY_OF_MONTH);
+                DatePickerDialog datePickerDialog = new DatePickerDialog(
+                        requireContext(),
+                        (view1, selectedYear, selectedMonth, selectedDay) -> {
+                            Calendar selectedDate = Calendar.getInstance();
+                            selectedDate.set(selectedYear, selectedMonth, selectedDay);
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                            String formattedDate = sdf.format(selectedDate.getTime());
+                            expenseDate.setText(formattedDate);
+                        }, year, month, day
+                );
+                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+                datePickerDialog.show();
             });
 
             dialog.show();
