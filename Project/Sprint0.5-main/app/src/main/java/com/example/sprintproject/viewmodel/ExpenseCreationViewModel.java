@@ -11,14 +11,18 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ExpenseCreationViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final MutableLiveData<List<String>> categoriesLiveData =
+            new MutableLiveData<>(new ArrayList<>());
 
     public ExpenseCreationViewModel() {
         // Just sets a sample value (not used for logic)
@@ -27,6 +31,28 @@ public class ExpenseCreationViewModel extends ViewModel {
 
     public LiveData<String> getText() {
         return text;
+    }
+
+    public LiveData<List<String>> getCategories() {
+        return categoriesLiveData;
+    }
+
+    public void loadCategories() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirestoreManager.getInstance().categoriesReference(uid)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<String> categoryNames = new ArrayList<>();
+                    for (DocumentSnapshot doc: querySnapshot) {
+                        if (doc.getString("name") != null) {
+                            categoryNames.add(doc.getString("name"));
+                        }
+                    }
+                    categoriesLiveData.setValue(categoryNames);
+                })
+                .addOnFailureListener(e -> {
+                    categoriesLiveData.setValue(new ArrayList<>());
+                });
     }
 
     public void createExpense(String name, String date, String amountString, String category) {
@@ -83,6 +109,8 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         createExpense("Xbox", "2023-05-05", "500.00", "Gaming");
         createExpense("PS5", "2023-05-06", "800.00", "Gaming");
+
+        createExpense("Loan", "2023-05-07", "1000.00", "Other");
 
     }
 }
