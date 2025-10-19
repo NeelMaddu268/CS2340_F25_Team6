@@ -25,6 +25,14 @@
         android:fontFamily="sans-serif-medium"
         android:textColor="@color/white"/>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/budgetsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingVertical="8dp"
+        android:clipToPadding="false"/>
+
     <Button
         android:id="@+id/addBudget"
         android:layout_width="match_parent"

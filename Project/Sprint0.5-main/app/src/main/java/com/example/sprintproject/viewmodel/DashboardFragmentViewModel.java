@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+
 public class DashboardFragmentViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
@@ -21,3 +22,4 @@ public class DashboardFragmentViewModel extends ViewModel {
         // This method does nothing
     }
 }
+
