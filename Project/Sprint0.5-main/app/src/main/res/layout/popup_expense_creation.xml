@@ -37,8 +37,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:textColor="@color/white"
-        android:text="Name"
         android:padding="10dp"
         android:layout_marginTop="12dp"
         android:layout_marginRight="24dp"
@@ -63,7 +61,6 @@
         android:layout_marginTop="12dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
-        android:textColor="@color/white"
         android:inputType="numberDecimal"
         android:padding="10dp"
         android:textSize="20dp"
@@ -79,19 +76,6 @@
         android:textSize="20dp"
         android:text="Category"
         android:textColor="@color/white"/>
-
-<!--    <EditText-->
-<!--        android:id="@+id/ExpenseCategory"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="12dp"-->
-<!--        android:textColor="@color/white"-->
-<!--        android:text="ExpenseCategory"-->
-<!--        android:padding="10dp"-->
-<!--        android:layout_marginTop="12dp"-->
-<!--        android:layout_marginRight="24dp"-->
-<!--        android:layout_marginLeft="24dp"-->
-<!--        android:background="@color/white"/>-->
 
     <Spinner
         android:id="@+id/expenseCategorySpinner"
@@ -119,7 +103,6 @@
         android:layout_marginTop="12dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
-        android:textColor="@color/white"
         android:inputType="date"
         android:padding="10dp"
         android:background="@color/white"/>
@@ -142,7 +125,6 @@
         android:layout_marginTop="12dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
-        android:textColor="@color/white"
         android:inputType="textMultiLine"
         android:padding="10dp"
         android:background="@color/white"/>
@@ -172,6 +154,5 @@
         android:textColor="@color/white"
         app:layout_constraintTop_toBottomOf="@id/createExpenseButton"
         android:backgroundTint="#163566" />
-
 
 </LinearLayout>
