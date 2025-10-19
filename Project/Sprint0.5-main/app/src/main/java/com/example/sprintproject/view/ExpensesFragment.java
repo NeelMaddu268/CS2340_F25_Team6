@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
+import com.example.sprintproject.viewmodel.DateViewModel;              // <-- ADD
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Locale;
 public class ExpensesFragment extends Fragment {
 
     private ExpensesFragmentViewModel expensesFragmentViewModel;
+    private DateViewModel dateVM;                                    // <-- ADD
     private RecyclerView recyclerView;
     private ExpenseAdapter adapter;
 
@@ -48,7 +50,6 @@ public class ExpensesFragment extends Fragment {
             ViewGroup container,
             Bundle savedInstanceState
     ) {
-        
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         EdgeToEdge.enable(requireActivity());
@@ -56,12 +57,7 @@ public class ExpensesFragment extends Fragment {
                 view.findViewById(R.id.expenselog_layout),
                 (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(
-                            systemBars.left,
-                            systemBars.top,
-                            systemBars.right,
-                            systemBars.bottom
-                    );
+                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                     return insets;
                 }
         );
@@ -70,7 +66,7 @@ public class ExpensesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         adapter = new ExpenseAdapter(expense -> {
-            Intent intent =  new Intent(requireContext(), ExpenseDetailsActivity.class);
+            Intent intent = new Intent(requireContext(), ExpenseDetailsActivity.class);
             intent.putExtra("expenseName", expense.getName());
             intent.putExtra("expenseAmount", expense.getAmount());
             intent.putExtra("expenseCategory", expense.getCategory());
@@ -80,17 +76,33 @@ public class ExpensesFragment extends Fragment {
         });
         recyclerView.setAdapter(adapter);
 
+        // Scope to activity so Dashboard/Budgets/Expenses share the same selected date
+        expensesFragmentViewModel = new ViewModelProvider(requireActivity())
+                .get(ExpensesFragmentViewModel.class);
+        dateVM = new ViewModelProvider(requireActivity())
+                .get(DateViewModel.class);
 
-        expensesFragmentViewModel =
-                new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
-        expensesFragmentViewModel.getExpenses().observe(getViewLifecycleOwner(), expenses -> {
-            adapter.submitList(expenses);
+        // Always submit a NEW list to force DiffUtil refresh between empty/non-empty
+        expensesFragmentViewModel.getExpenses().observe(
+                getViewLifecycleOwner(),
+                list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
+        );
+
+        // React to date changes: show expenses with date <= selected (day-aware)
+        dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
+            if (selected != null) {
+                expensesFragmentViewModel.loadExpensesFor(selected);
+            }
         });
 
-        expensesFragmentViewModel.loadExpenses();
+        // Seed immediately using saved/today date (in case observer hasn't fired yet)
+        if (dateVM.getCurrentDate().getValue() != null) {
+            expensesFragmentViewModel.loadExpensesFor(dateVM.getCurrentDate().getValue());
+        } else {
+            expensesFragmentViewModel.loadExpenses(); // rare fallback
+        }
 
         Button addExpense = view.findViewById(R.id.addExpense);
-
         addExpense.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_expense_creation, null);
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
@@ -108,19 +120,17 @@ public class ExpensesFragment extends Fragment {
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
-            expenseCreationViewModel.getCategories()
-                    .observe(getViewLifecycleOwner(), categories -> {
-                        List<String> allCategories = new ArrayList<>();
-                        allCategories.add("Choose a category");
-                        allCategories.addAll(categories);
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                                requireContext(),
-                                android.R.layout.simple_spinner_dropdown_item,
-                                allCategories
-                        );
-                        categorySpinner.setAdapter(adapter);
-                    });
-
+            expenseCreationViewModel.getCategories().observe(getViewLifecycleOwner(), categories -> {
+                List<String> all = new ArrayList<>();
+                all.add("Choose a category");
+                all.addAll(categories);
+                ArrayAdapter<String> catAdapter = new ArrayAdapter<>(
+                        requireContext(),
+                        android.R.layout.simple_spinner_dropdown_item,
+                        all
+                );
+                categorySpinner.setAdapter(catAdapter);
+            });
             expenseCreationViewModel.loadCategories();
 
             createBtn.setOnClickListener(view1 -> {
@@ -131,18 +141,18 @@ public class ExpensesFragment extends Fragment {
                 String notes = expenseNotes.getText().toString();
 
                 if (category.equals("Choose a category")) {
-                    Toast.makeText(requireContext(),
-                            "Please select a valid category", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Please select a valid category", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
+                expenseCreationViewModel.createExpense(name, date, amount, category, notes);
+
+                // Clear inputs
                 expenseName.setText("");
                 expenseDate.setText("");
                 expenseAmount.setText("");
                 categorySpinner.setSelection(0);
                 expenseNotes.setText("");
-
-                expenseCreationViewModel.createExpense(name, date, amount, category, notes);
 
                 dialog.dismiss();
             });
@@ -152,25 +162,22 @@ public class ExpensesFragment extends Fragment {
                 int year = today.get(Calendar.YEAR);
                 int month = today.get(Calendar.MONTH);
                 int day = today.get(Calendar.DAY_OF_MONTH);
-                DatePickerDialog datePickerDialog = new DatePickerDialog(
+                DatePickerDialog picker = new DatePickerDialog(
                         requireContext(),
-                        (view1, selectedYear, selectedMonth, selectedDay) -> {
-                            Calendar selectedDate = Calendar.getInstance();
-                            selectedDate.set(selectedYear, selectedMonth, selectedDay);
-
+                        (view1, y, mZero, dd) -> {
+                            Calendar sel = Calendar.getInstance();
+                            sel.set(y, mZero, dd);
                             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-                            String formattedDate = sdf.format(selectedDate.getTime());
-                            expenseDate.setText(formattedDate);
-                        }, year, month, day
+                            expenseDate.setText(sdf.format(sel.getTime()));
+                        },
+                        year, month, day
                 );
-                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-                datePickerDialog.show();
+                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
+                picker.show();
             });
 
             dialog.show();
         });
-
-
 
         return view;
     }
