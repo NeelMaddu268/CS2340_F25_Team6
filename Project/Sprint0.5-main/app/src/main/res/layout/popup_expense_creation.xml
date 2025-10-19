@@ -109,7 +109,9 @@
         android:layout_marginRight="24dp"
         android:focusable="false"
         android:clickable="true"
-        android:hint="Select Date" />
+        android:hint="Select Date"
+        android:inputType="date"
+        android:padding="10dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -158,6 +160,5 @@
         android:textColor="@color/white"
         app:layout_constraintTop_toBottomOf="@id/createExpenseButton"
         android:backgroundTint="#163566" />
-
 
 </LinearLayout>
