@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
@@ -16,14 +17,13 @@ import java.util.Map;
 
 public class AuthenticationViewModel extends ViewModel {
     private final MutableLiveData<FirebaseUser> userLiveData;
-    private final FirebaseAuth mAuth;
     private final MutableLiveData<String> errorMessage;
+    private final FirebaseAuth mAuth;
 
     public AuthenticationViewModel() {
-        //DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         userLiveData = new MutableLiveData<>();
-        mAuth = FirebaseAuth.getInstance();
         errorMessage = new MutableLiveData<>();
+        mAuth = FirebaseAuth.getInstance();
     }
 
     public LiveData<FirebaseUser> getUserLiveData() {
@@ -122,14 +122,6 @@ public class AuthenticationViewModel extends ViewModel {
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", firebaseUser.getEmail());
 
-        databaseReference.collection("users").document(uid)
-                .set(userData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "User document created for" + uid);
-                })
-                .addOnFailureListener(e -> {
-                    Log.w("Firestore", "Error creating user document", e);
-                });
-
+        FirestoreManager.getInstance().addUser(uid, userData);
     }
 }

@@ -1,58 +1,70 @@
 package com.example.sprintproject.view;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.Budget;
 
-import java.util.List;
+import java.util.Locale;
 
-public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetViewHolder> {
-    private final Context context;
-    private List<Budget> budgets;
+public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewHolder> {
+
     private final OnBudgetClickListener onBudgetClickListener;
 
-    public BudgetAdapter(
-            Context context, List<Budget> budgets, OnBudgetClickListener onBudgetClickListener) {
-        this.context = context;
-        this.budgets = budgets;
+    private static final DiffUtil.ItemCallback<Budget> BUDGET_DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Budget>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Budget oldItem, @NonNull Budget newItem) {
+                    return oldItem.getId().equals(newItem.getId());
+                }
+
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull Budget oldItem, @NonNull Budget newItem) {
+                    return oldItem.getAmount() == newItem.getAmount()
+                            && oldItem.getSpentToDate() == newItem.getSpentToDate()
+                            && oldItem.getMoneyRemaining() == newItem.getMoneyRemaining()
+                            && oldItem.getName().equals(newItem.getName());
+                }
+            };
+
+    public BudgetAdapter(OnBudgetClickListener onBudgetClickListener) {
+        super(BUDGET_DIFF_CALLBACK);
         this.onBudgetClickListener = onBudgetClickListener;
     }
 
     // Creating row layouts
     @Override
-    public BudgetViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_budget, parent, false);
+    public BudgetViewHolder onCreateViewHolder(
+            ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(
+                R.layout.item_budget, parent, false);
         return new BudgetViewHolder(view);
     }
 
     // Binding data to each row
     @Override
     public void onBindViewHolder(BudgetViewHolder holder, int position) {
-        Budget budget = budgets.get(position);
+        Budget budget = getItem(position);
         holder.nameText.setText(budget.getName());
         holder.amountText.setText(String.valueOf(budget.getAmount()));
         holder.categoryText.setText(budget.getCategory());
         holder.frequencyText.setText(budget.getFrequency());
         holder.startDateText.setText(budget.getStartDate());
 
+        String totalAmount = String.format(Locale.US, "$%.2f", budget.getAmount());
+
+        holder.amountText.setText("Total: " + totalAmount);
+
         holder.itemView.setOnClickListener(v -> onBudgetClickListener.onBudgetClick(budget));
-    }
-
-    public int getItemCount() {
-        return budgets.size();
-    }
-
-    // Update the list, use the adapter
-    public void updateData(List<Budget> newBudgetsList) {
-        this.budgets = newBudgetsList;
-        notifyDataSetChanged();
     }
 
     static class BudgetViewHolder extends RecyclerView.ViewHolder {

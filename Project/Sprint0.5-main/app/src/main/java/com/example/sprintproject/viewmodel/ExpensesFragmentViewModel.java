@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -25,12 +26,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
     }
 
     public void loadExpenses() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String uid = auth.getCurrentUser().getUid();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        db.collection("users")
-                .document(uid)
-                .collection("expenses")
+        FirestoreManager.getInstance().expensesReference(uid)
                 .orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error == null && value != null)  {

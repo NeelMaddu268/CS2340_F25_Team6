@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Budget;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -24,30 +25,28 @@ public class BudgetsFragmentViewModel extends ViewModel {
     }
 
     public void loadBudgets() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String uid = auth.getCurrentUser().getUid();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        db.collection("users")
-                .document(uid)
-                .collection("budgets")
+        FirestoreManager.getInstance().budgetsReference(uid)
                 .orderBy("startDate", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    if (error == null && value != null)  {
-                        List<Budget> budgets = new ArrayList<>();
-                        for (DocumentSnapshot doc : value.getDocuments()) {
-                            Budget budget = doc.toObject(Budget.class);
-                            if (budget != null) {
-                                budget.setId(doc.getId()); // set the documented id here
-                                if (budget.getMoneyRemaining() == 0 && budget.getSpentToDate() > 0) {
-                                    budget.setMoneyRemaining(budget.getAmount() - budget.getSpentToDate());
-                                }
-                                budgets.add(budget);
-                            }
-                        }
-                        budgetsLiveData.setValue(budgets);
+                .addSnapshotListener((querySnapshot, error) -> {
+                    if (error != null || querySnapshot == null) {
+                        budgetsLiveData.setValue(new ArrayList<>());
+                        return;
                     }
+
+                    List<Budget> budgets = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        Budget budget = doc.toObject(Budget.class);
+                        if (budget != null) {
+                            budget.setId(doc.getId()); // set the documented id here
+                            budgets.add(budget);
+                        }
+                    }
+                    budgetsLiveData.setValue(budgets);
                 });
     }
+             
     public LiveData<Budget> getBudgetById(String budgetId) {
         MutableLiveData<Budget> live = new MutableLiveData<>();
         String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
