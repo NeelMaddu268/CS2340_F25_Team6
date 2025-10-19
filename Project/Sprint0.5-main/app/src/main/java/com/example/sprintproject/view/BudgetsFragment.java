@@ -27,15 +27,18 @@ import com.example.sprintproject.R;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
-
+import com.example.sprintproject.viewmodel.DateViewModel;
 
 
 public class BudgetsFragment extends Fragment {
 
     private Button addBudget;
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
+    private DateViewModel dateViewModel;
     private RecyclerView recyclerView;
     private BudgetAdapter adapter;
 
@@ -71,11 +74,16 @@ public class BudgetsFragment extends Fragment {
         });
         recyclerView.setAdapter(adapter);
         budgetsFragmentViewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
+
+        dateViewModel = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
+
+        dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+            budgetsFragmentViewModel.loadBudgets(appDate);
+        });
+
         budgetsFragmentViewModel.getBudgets().observe(getViewLifecycleOwner(), budgets -> {
             adapter.submitList(budgets);
         });
-
-        budgetsFragmentViewModel.loadBudgets();
 
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
@@ -181,8 +189,14 @@ public class BudgetsFragment extends Fragment {
                     isValid = false;
                 }
                 if (isValid) {
+                    long timestamp = System.currentTimeMillis();
                     budgetCreationViewModel.createBudget(
-                            name, date, amount, category, frequency, null);
+                            name, date, amount, category, frequency, timestamp, () -> {
+                                AppDate appDate = dateViewModel.getCurrentDate().getValue();
+                                if (appDate != null) {
+                                    budgetsFragmentViewModel.loadBudgets(appDate);
+                                }
+                            });
                     dialog.dismiss();
                     budgetNameEntry.setText("");
                     budgetDateEntry.setText("");

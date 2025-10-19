@@ -29,7 +29,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         FirestoreManager.getInstance().expensesReference(uid)
-                .orderBy("date", Query.Direction.DESCENDING)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error == null && value != null)  {
                         List<Expense> expenses = new ArrayList<>();
