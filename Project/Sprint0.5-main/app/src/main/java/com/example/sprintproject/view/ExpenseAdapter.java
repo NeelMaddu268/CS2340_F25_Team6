@@ -1,58 +1,66 @@
 package com.example.sprintproject.view;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.Expense;
 
-import java.util.List;
+import java.util.Locale;
 
-public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
-    private final Context context;
-    private List<Expense> expenses;
+public class ExpenseAdapter extends ListAdapter<Expense, ExpenseAdapter.ExpenseViewHolder> {
+
     private final OnExpenseClickListener onExpenseClickListener;
 
-    public ExpenseAdapter(
-            Context context, List<Expense> expenses,
-            OnExpenseClickListener onExpenseClickListener) {
-        this.context = context;
-        this.expenses = expenses;
+    private static final DiffUtil.ItemCallback<Expense> EXPENSE_DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Expense>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Expense oldItem, @NonNull Expense newItem) {
+                    return oldItem.getName().equals(newItem.getName())
+                            && oldItem.getDate().equals(newItem.getDate())
+                            && oldItem.getAmount() == newItem.getAmount();
+                }
+
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull Expense oldItem, @NonNull Expense newItem) {
+                    return oldItem.getAmount() == newItem.getAmount()
+                            && oldItem.getName().equals(newItem.getName())
+                            && oldItem.getCategory().equals(newItem.getCategory())
+                            && oldItem.getDate().equals(newItem.getDate());
+                }
+            };
+
+    public ExpenseAdapter(OnExpenseClickListener onExpenseClickListener) {
+        super(EXPENSE_DIFF_CALLBACK);
         this.onExpenseClickListener = onExpenseClickListener;
     }
 
-    // Creating row layouts
+    @NonNull
     @Override
-    public ExpenseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_expense, parent, false);
+    public ExpenseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_expense, parent, false);
         return new ExpenseViewHolder(view);
     }
 
-    // Binding data to each row
     @Override
-    public void onBindViewHolder(ExpenseViewHolder holder, int position) {
-        Expense expense = expenses.get(position);
+    public void onBindViewHolder(@NonNull ExpenseViewHolder holder, int position) {
+        Expense expense = getItem(position);
         holder.nameText.setText(expense.getName());
-        holder.amountText.setText(String.valueOf(expense.getAmount()));
         holder.categoryText.setText(expense.getCategory());
         holder.startDateText.setText(expense.getDate());
 
+        holder.amountText.setText(String.format(Locale.US, "$%.2f", expense.getAmount()));
+
         holder.itemView.setOnClickListener(v -> onExpenseClickListener.onExpenseClick(expense));
-    }
-
-    public int getItemCount() {
-        return expenses.size();
-    }
-
-    // Update the list, use the adapter
-    public void updateData(List<Expense> newExpensesList) {
-        this.expenses = newExpensesList;
-        notifyDataSetChanged();
     }
 
     static class ExpenseViewHolder extends RecyclerView.ViewHolder {
@@ -71,6 +79,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     }
 
     public interface OnExpenseClickListener {
-        void onExpenseClick(Expense budget);
+        void onExpenseClick(Expense expense);
     }
 }

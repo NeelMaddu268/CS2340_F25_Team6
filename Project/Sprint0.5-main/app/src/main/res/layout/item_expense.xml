@@ -28,12 +28,6 @@
         android:layout_height="wrap_content"/>
 
     <TextView
-        android:id="@+id/textExpenseFrequency"
-        android:text="Budget Frequency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <TextView
         android:id="@+id/textExpenseDate"
         android:text="Budget Date"
         android:layout_width="wrap_content"

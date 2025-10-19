@@ -65,7 +65,7 @@ public class ExpensesFragment extends Fragment {
         recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new ExpenseAdapter(requireContext(), new ArrayList<>(), expense -> {
+        adapter = new ExpenseAdapter(expense -> {
             Intent intent =  new Intent(requireContext(), ExpenseDetailsActivity.class);
             intent.putExtra("expenseName", expense.getName());
             intent.putExtra("expenseAmount", expense.getAmount());
@@ -79,7 +79,7 @@ public class ExpensesFragment extends Fragment {
         expensesFragmentViewModel =
                 new ViewModelProvider(this).get(ExpensesFragmentViewModel.class);
         expensesFragmentViewModel.getExpenses().observe(getViewLifecycleOwner(), expenses -> {
-            adapter.updateData(expenses);
+            adapter.submitList(expenses);
         });
 
         expensesFragmentViewModel.loadExpenses();

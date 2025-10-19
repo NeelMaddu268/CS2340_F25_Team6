@@ -43,25 +43,33 @@ public class Budget {
         return startDate;
     }
 
-    public String getId() { return id; }
+    public String getId() {
+        return id;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
 
-    public double getSpentToDate() { return spentToDate; }
+    public double getSpentToDate() {
+        return spentToDate;
+    }
     public void setSpentToDate(double spentToDate) {
         this.spentToDate = spentToDate;
     }
 
-    public double getMoneyRemaining() { return moneyRemaining; }
+    public double getMoneyRemaining() {
+        return moneyRemaining;
+    }
     public void setMoneyRemaining(double moneyRemaining) {
         this.moneyRemaining = moneyRemaining;
     }
 
-    public boolean overBudget () {
+    public boolean overBudget() {
         return moneyRemaining < 0;
     }
-    public double getProgressPercent () {
+
+    public double getProgressPercent() {
         if (amount <= 0) {
             return 0;
         } else {
