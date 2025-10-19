@@ -5,9 +5,18 @@ public class Expense {
     private double amount;
     private String category;
     private String date;
+    private String notes;
 
     public Expense() {
 
+    }
+
+    public Expense(String name, double amount, String category, String date, String notes) {
+        this.name = name;
+        this.amount = amount;
+        this.category = category;
+        this.date = date;
+        this.notes = notes;
     }
 
     public Expense(String name, double amount, String category, String date) {
@@ -15,6 +24,7 @@ public class Expense {
         this.amount = amount;
         this.category = category;
         this.date = date;
+        this.notes = null;
     }
 
     public String getName() {
@@ -33,6 +43,10 @@ public class Expense {
         return date;
     }
 
+    public String getNotes() {
+        return notes;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -47,5 +61,9 @@ public class Expense {
 
     public void setDate(String startDate) {
         this.date = startDate;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

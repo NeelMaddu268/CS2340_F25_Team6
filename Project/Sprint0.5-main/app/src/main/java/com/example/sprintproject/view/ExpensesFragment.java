@@ -71,6 +71,7 @@ public class ExpensesFragment extends Fragment {
             intent.putExtra("expenseAmount", expense.getAmount());
             intent.putExtra("expenseCategory", expense.getCategory());
             intent.putExtra("expenseDate", expense.getDate());
+            intent.putExtra("expenseNotes", expense.getNotes());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
@@ -95,6 +96,7 @@ public class ExpensesFragment extends Fragment {
             EditText expenseName = popupView.findViewById(R.id.ExpenseName);
             EditText expenseAmount = popupView.findViewById(R.id.ExpenseAmount);
             EditText expenseDate = popupView.findViewById(R.id.ExpenseDate);
+            EditText expenseNotes = popupView.findViewById(R.id.ExpenseNotes);
             Button createBtn = popupView.findViewById(R.id.createExpenseButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
@@ -122,6 +124,7 @@ public class ExpensesFragment extends Fragment {
                 String date = expenseDate.getText().toString();
                 String amount = expenseAmount.getText().toString();
                 String category = categorySpinner.getSelectedItem().toString();
+                String notes = expenseNotes.getText().toString();
 
                 if (category.equals("Choose a category")) {
                     Toast.makeText(requireContext(),
@@ -133,8 +136,9 @@ public class ExpensesFragment extends Fragment {
                 expenseDate.setText("");
                 expenseAmount.setText("");
                 categorySpinner.setSelection(0);
+                expenseNotes.setText("");
 
-                expenseCreationViewModel.createExpense(name, date, amount, category);
+                expenseCreationViewModel.createExpense(name, date, amount, category, notes);
 
                 dialog.dismiss();
             });
