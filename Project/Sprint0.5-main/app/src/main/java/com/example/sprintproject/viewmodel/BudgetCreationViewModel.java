@@ -125,9 +125,14 @@ public class BudgetCreationViewModel extends ViewModel {
                             budgetData.getStartDate());
 
                     budget.setStartDateTimestamp(budgetData.getStartDateTimestamp());
-
                     budget.setSpentToDate(spentToDate);
                     budget.setMoneyRemaining(budgetData.getAmount() - spentToDate);
+
+                    budget.setCompleted(false);
+                    budget.setIsOverBudget(false);
+                    budget.setHasPreviousCycle(false);
+                    budget.setPreviousCycleOverBudget(false);
+                    budget.setPreviousCycleEndTimestamp(0L);
 
 
                     FirestoreManager.getInstance().budgetsReference(uid).add(budget)
@@ -172,9 +177,9 @@ public class BudgetCreationViewModel extends ViewModel {
     public void createSampleBudgets(Runnable onComplete) {
         Calendar calendar = Calendar.getInstance();
         String[][] sampleBudgets = {
-                {"Eating Budget", "Oct 20, 2025", "100.00", "Eating", "Weekly"},
-                {"Travel Budget", "Oct 21, 2025", "1000.00", "Travel", "Monthly"},
-                {"Gaming Budget", "Oct 22, 2025", "1500.00", "Gaming", "Weekly"}
+                {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
+                {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
+                {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
         };
 
         final int[] completedCount = {0};

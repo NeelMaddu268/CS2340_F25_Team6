@@ -158,11 +158,16 @@ public class ExpenseCreationViewModel extends ViewModel {
     }
 
     public void createSampleExpenses() {
-        createExpense("Tin Drum", "Oct 19, 2025", "20.00", "Eating", null);
+
+//        {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
+//        {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
+//        {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
+//
+        createExpense("Tin Drum", "Oct 15, 2025", "20.00", "Eating", null);
         createExpense("Panda Express", "Oct 20, 2025", "30.00", "Eating", "Was Hungry");
 
-        createExpense("Hawaii", "Oct 20, 2025", "100.00", "Travel", null);
-        createExpense("Spain", "Oct 21, 2025", "500.00", "Travel", "Spring Break");
+        createExpense("Hawaii", "Oct 18, 2025", "100.00", "Travel", null);
+        createExpense("Spain", "Oct 19, 2025", "500.00", "Travel", "Spring Break");
 
         createExpense("Xbox", "Oct 21, 2025", "200.00", "Gaming", null);
         createExpense("PS5", "Oct 22, 2025", "800.00", "Gaming", "Xbox Broke");

@@ -8,7 +8,11 @@ public class Budget {
     private String startDate;
     private long startDateTimestamp;
     private boolean isCompleted;
-    private boolean wasOverBudget;
+
+    private boolean isOverBudget;
+    private boolean hasPreviousCycle;
+    private boolean previousCycleOverBudget;
+    private long previousCycleEndTimestamp;
 
     private String id; // stores the firebase document id
     private double spentToDate; // money spent up to today
@@ -25,7 +29,34 @@ public class Budget {
         this.frequency = frequency;
         this.startDate = startDate;
         this.isCompleted = false;
-        this.wasOverBudget = false;
+        this.isOverBudget = false;
+        this.hasPreviousCycle = false;
+        this.previousCycleOverBudget = false;
+        this.previousCycleEndTimestamp = 0L;
+    }
+
+    public boolean isHasPreviousCycle() {
+        return hasPreviousCycle;
+    }
+
+    public void setHasPreviousCycle(boolean hasPreviousCycle) {
+        this.hasPreviousCycle = hasPreviousCycle;
+    }
+
+    public boolean isPreviousCycleOverBudget() {
+        return previousCycleOverBudget;
+    }
+
+    public void setPreviousCycleOverBudget(boolean previousCycleOverBudget) {
+        this.previousCycleOverBudget = previousCycleOverBudget;
+    }
+
+    public long getPreviousCycleEndTimestamp() {
+        return previousCycleEndTimestamp;
+    }
+
+    public void setPreviousCycleEndTimestamp(long previousCycleEndTimestamp) {
+        this.previousCycleEndTimestamp = previousCycleEndTimestamp;
     }
 
     public String getName() {
@@ -90,12 +121,12 @@ public class Budget {
         isCompleted = completed;
     }
 
-    public boolean wasOverBudget() {
-        return wasOverBudget;
+    public boolean isOverBudget() {
+        return isOverBudget;
     }
 
-    public void setWasOverBudget(boolean wasOverBudget) {
-        this.wasOverBudget = wasOverBudget;
+    public void setIsOverBudget(boolean isOverBudget) {
+        this.isOverBudget = isOverBudget;
     }
 
     public long getStartDateTimestamp() {

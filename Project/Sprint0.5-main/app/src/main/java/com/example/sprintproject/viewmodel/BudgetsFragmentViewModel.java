@@ -56,8 +56,20 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
                             boolean expired = isBudgetExpired(budget, currentDate);
                             if (expired) {
+
+                                boolean over = budget.overBudget();
+
+                                if (!budget.isHasPreviousCycle()) {
+                                    budget.setHasPreviousCycle(true);
+                                } else {
+                                    budget.setPreviousCycleOverBudget(budget.isOverBudget());
+                                }
+
+                                budget.setIsOverBudget(over);
                                 budget.setCompleted(true);
-                                budget.setWasOverBudget(budget.overBudget());
+
+                                budget.setPreviousCycleEndTimestamp(System.currentTimeMillis());
+
                                 updateBudget(budget);
                             } else {
                                 budgets.add(budget);
