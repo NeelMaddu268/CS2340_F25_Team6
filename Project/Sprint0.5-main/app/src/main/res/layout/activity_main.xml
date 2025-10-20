@@ -5,36 +5,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A44E1"
+    android:background="@color/white"
     tools:context=".view.MainActivity">
 
 
     <ImageView
-        android:id="@+id/appLogo"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_marginBottom="20dp"
+        android:id="@+id/appLogo3"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
         android:contentDescription="@string/wallet_icon_desc"
-        android:src="@drawable/wallet"
+        android:src="@drawable/animated_logo"
         app:layout_constraintBottom_toTopOf="@id/appName"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:tint="@android:color/white" />
+        app:tint="#357DED" />
+
 
     <TextView
         android:id="@+id/appName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:fontFamily="@font/montserrat_regular"
         android:text="@string/app_name"
+        android:textColor="#357DED"
         android:textSize="38sp"
         android:textStyle="bold"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnStart"
-        android:layout_marginBottom="80dp" />
-
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/btnStart"
@@ -47,6 +47,7 @@
         android:backgroundTint="@null"
         app:backgroundTint="@null"
         app:layout_constraintStart_toStartOf="parent"
+        android:fontFamily="@font/montserrat_regular"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnQuit"
         android:layout_marginHorizontal="40dp"
@@ -61,6 +62,7 @@
         android:layout_marginBottom="244dp"
         android:background="@drawable/btn_start"
         android:backgroundTint="@null"
+        android:fontFamily="@font/montserrat_regular"
         android:text="@string/quit_button"
         android:textColor="#1A44E1"
         android:textStyle="bold"
