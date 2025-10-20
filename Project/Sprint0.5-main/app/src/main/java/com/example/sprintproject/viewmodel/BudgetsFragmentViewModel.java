@@ -70,7 +70,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     List<Budget> list = new ArrayList<>();
                     for (DocumentSnapshot doc : qs.getDocuments()) {
                         Budget b = toBudgetWithId(doc);
-                        if (b != null) list.add(b);
+                        if (b != null) {
+                            list.add(b);
+                        }
                     }
                     budgetsLiveData.postValue(list);
                 });
@@ -261,9 +263,15 @@ public class BudgetsFragmentViewModel extends ViewModel {
     /** Extract a year-month-day from raw Firestore value or fallback string. */
     private YMD extractYMD(Object rawStartDate, String fallbackStr) {
         // Native types
-        if (rawStartDate instanceof Timestamp) return fromDate(((Timestamp) rawStartDate).toDate());
-        if (rawStartDate instanceof Date)      return fromDate((Date) rawStartDate);
-        if (rawStartDate instanceof Long)      return fromDate(new Date((Long) rawStartDate));
+        if (rawStartDate instanceof Timestamp) {
+            return fromDate(((Timestamp) rawStartDate).toDate());
+        }
+        if (rawStartDate instanceof Date) {
+            return fromDate((Date) rawStartDate);
+        }
+        if (rawStartDate instanceof Long) {
+            return fromDate(new Date((Long) rawStartDate));
+        }
 
         // String in the doc field
         if (rawStartDate instanceof String) {

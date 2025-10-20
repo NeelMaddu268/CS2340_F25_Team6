@@ -59,15 +59,19 @@ public class BudgetsFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
 
         addBudget = view.findViewById(R.id.addBudget);
 
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
                 view.findViewById(R.id.budgets_layout), (v, insets) -> {
-                    Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                    Insets systemBars =
+                            insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(systemBars.left, systemBars.top,
+                            systemBars.right, systemBars.bottom);
                     return insets;
                 });
 
@@ -93,8 +97,8 @@ public class BudgetsFragment extends Fragment {
 
         // Render list (force new instance so DiffUtil always updates)
         budgetsFragmentViewModel.getBudgets()
-                .observe(getViewLifecycleOwner(),
-                        list -> adapter.submitList(list == null ? null : new java.util.ArrayList<>(list)));
+                .observe(getViewLifecycleOwner(), list ->
+                        adapter.submitList(list == null ? null : new java.util.ArrayList<>(list)));
 
         // Seed based on current date: if it's today -> show all; else filter immediately
         AppDate seed = dateVM.getCurrentDate().getValue();
@@ -121,7 +125,7 @@ public class BudgetsFragment extends Fragment {
                         for (DocumentSnapshot doc : querySnapshot) {
                             Budget budget = doc.toObject(Budget.class);
                             if (budget != null) {
-                                budget.setId(doc.getId()); // if you need to keep track of the Firestore ID
+                                budget.setId(doc.getId());
                                 updatedBudgets.add(budget);
                             }
                         }
@@ -143,7 +147,8 @@ public class BudgetsFragment extends Fragment {
         // ---------- Add Budget dialog (unchanged) ----------
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
-            AlertDialog dialog = new AlertDialog.Builder(requireActivity()).setView(popupView).create();
+            AlertDialog dialog = new
+                    AlertDialog.Builder(requireActivity()).setView(popupView).create();
 
             EditText budgetNameEntry = popupView.findViewById(R.id.BudgetNameEntry);
             EditText budgetAmountEntry = popupView.findViewById(R.id.BudgetAmountEntry);
@@ -161,19 +166,23 @@ public class BudgetsFragment extends Fragment {
             freqAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             budgetFrequencyEntry.setAdapter(freqAdapter);
 
-            budgetFrequencyEntry.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override public void onItemSelected(AdapterView<?> parent, View view1, int pos, long id) {
-                    boolean enable = pos != 0;
-                    budgetDateEntry.setEnabled(enable);
-                    budgetDateEntry.setFocusable(false);
-                    budgetDateEntry.setClickable(enable);
-                    if (!enable) budgetDateEntry.setText("");
-                }
-                @Override public void onNothingSelected(AdapterView<?> parent) {
-                    budgetDateEntry.setEnabled(false);
-                    budgetDateEntry.setFocusable(false);
-                    budgetDateEntry.setClickable(false);
-                }
+            budgetFrequencyEntry.setOnItemSelectedListener(
+                    new AdapterView.OnItemSelectedListener() {
+                    @Override public void onItemSelected(AdapterView<?> parent,
+                                                         View view1, int pos, long id) {
+                        boolean enable = pos != 0;
+                        budgetDateEntry.setEnabled(enable);
+                        budgetDateEntry.setFocusable(false);
+                        budgetDateEntry.setClickable(enable);
+                        if (!enable) {
+                            budgetDateEntry.setText("");
+                        }
+                    }
+                    @Override public void onNothingSelected(AdapterView<?> parent) {
+                        budgetDateEntry.setEnabled(false);
+                        budgetDateEntry.setFocusable(false);
+                        budgetDateEntry.setClickable(false);
+                    }
             });
 
             budgetDateEntry.setOnClickListener(m -> {
@@ -214,15 +223,24 @@ public class BudgetsFragment extends Fragment {
                 boolean isValid = true;
                 try {
                     int intAmount = Integer.parseInt(amount);
-                    if (intAmount <= 0) { budgetAmountEntry.setError("Amount must be greater than 0"); isValid = false; }
+                    if (intAmount <= 0) {
+                        budgetAmountEntry.setError("Amount must be greater than 0");
+                        isValid = false;
+                    }
                     if (budgetFrequencyEntry.getSelectedItemPosition() == 0) {
                         TextView errorText = (TextView) budgetFrequencyEntry.getSelectedView();
                         if (errorText != null) errorText.setError("");
                         isValid = false;
                     }
-                    if (name.isEmpty()) { budgetNameEntry.setError("Please enter a name"); isValid = false; }
-                    if (category.isEmpty()) { budgetCategoryEntry.setError("Please enter a category"); isValid = false; }
-                    if (date.isEmpty()) { budgetDateEntry.setError("Please select a date"); isValid = false; }
+                    if (name.isEmpty()) {
+                        budgetNameEntry.setError("Please enter a name"); isValid = false;
+                    }
+                    if (category.isEmpty()) {
+                        budgetCategoryEntry.setError("Please enter a category"); isValid = false;
+                    }
+                    if (date.isEmpty()) {
+                        budgetDateEntry.setError("Please select a date"); isValid = false;
+                    }
                 } catch (NumberFormatException e) {
                     budgetAmountEntry.setError("Amount must be a number");
                     isValid = false;

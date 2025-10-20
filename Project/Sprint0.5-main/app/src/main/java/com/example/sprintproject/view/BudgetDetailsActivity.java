@@ -92,9 +92,11 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                         if (total != null && spent != null) {
                             double surplus = total - spent;
                             if (surplus >= 0) {
-                                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
+                                budgetSurplusText.setText(
+                                        "Surplus: $" + String.format("%.2f", surplus));
                             } else {
-                                budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(surplus)));
+                                budgetSurplusText.setText("Over budget by: $"
+                                        + String.format("%.2f", Math.abs(surplus)));
                             }
                         }
                     });
@@ -158,7 +160,8 @@ public class BudgetDetailsActivity extends AppCompatActivity {
             if (surplus >= 0) {
                 budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
             } else {
-                budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(surplus)));
+                budgetSurplusText.setText("Over budget by: $"
+                        + String.format("%.2f", Math.abs(surplus)));
             }
         });
 
@@ -206,9 +209,11 @@ public class BudgetDetailsActivity extends AppCompatActivity {
 
             double budgetSurplus = total - spent;
             if (budgetSurplus >= 0) {
-                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", budgetSurplus));
+                budgetSurplusText.setText(
+                        "Surplus: $" + String.format("%.2f", budgetSurplus));
             } else {
-                budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(budgetSurplus)));
+                budgetSurplusText.setText(
+                        "Over budget by: $" + String.format("%.2f", Math.abs(budgetSurplus)));
             }
         }
     }

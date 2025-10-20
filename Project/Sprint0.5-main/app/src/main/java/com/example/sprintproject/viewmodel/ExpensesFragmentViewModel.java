@@ -177,8 +177,12 @@ public class ExpensesFragmentViewModel extends ViewModel {
                 SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
                 sdf.setLenient(false);
                 Date d = sdf.parse(t);
-                if (d != null) return fromDate(d);
-            } catch (ParseException ignored) {}
+                if (d != null) {
+                    return fromDate(d);
+                }
+            } catch (ParseException ignored) {
+
+            }
         }
 
         List<String> monthOnly = Arrays.asList(
@@ -194,7 +198,10 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     c.setTime(d);
                     return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
                 }
-            } catch (ParseException ignored) {}
+            } catch (ParseException ignored)
+            {
+
+            }
         }
 
         // Loose fallback like "2023-05" or "2023/05"
