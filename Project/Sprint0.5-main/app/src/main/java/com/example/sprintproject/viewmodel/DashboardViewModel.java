@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.sprintproject.model.Budget;
+import com.example.sprintproject.model.AppDate;
+
 
 import java.util.List;
 
@@ -25,6 +27,10 @@ public class DashboardViewModel extends ViewModel {
 
     public LiveData<List<Budget>> getBudgetsList() {
         return budgetsVM.getBudgets();
+    }
+
+    public void loadDataFor(AppDate date) {
+        budgetsVM.loadBudgetsFor(date);
     }
 
 }

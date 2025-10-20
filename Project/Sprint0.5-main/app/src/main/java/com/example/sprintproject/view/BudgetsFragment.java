@@ -163,7 +163,7 @@ public class BudgetsFragment extends Fragment {
                 new ViewModelProvider(requireActivity()).get(BudgetCreationViewModel.class);
         setupFrequencySpinner(popupView, budgetFrequencyEntry, budgetDateEntry);
 
-        // --- Date picker setup ---
+        // Date picker setup
         budgetDateEntry.setOnClickListener(m -> {
             String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
             final Calendar today = Calendar.getInstance();
@@ -193,7 +193,7 @@ public class BudgetsFragment extends Fragment {
 
         cancelButton.setOnClickListener(x -> dialog.dismiss());
 
-        // --- Create Budget button logic ---
+        // Create Budget button logic
         createBudgetButton.setOnClickListener(x -> {
             String name = budgetNameEntry.getText().toString();
             String date = budgetDateEntry.getText().toString();

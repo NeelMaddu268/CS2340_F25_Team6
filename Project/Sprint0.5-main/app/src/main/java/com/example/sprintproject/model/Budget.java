@@ -62,8 +62,9 @@ public class Budget {
     }
 
     public boolean isOverBudget() {
-        return overBudget;
+        return moneyRemaining < 0;
     }
+
 
     public void setOverBudget(boolean overBudget) {
         this.overBudget = overBudget;
