@@ -37,10 +37,12 @@ public class DashboardFragment extends Fragment {
     private DashboardViewModel dashboardVM;
 
     private ImageButton btnCalendar;
-    private TextView headerText, totalSpentText;
+    private TextView headerText;
+    private TextView totalSpentText;
+    private TextView totalRemainingText;
     private Button logoutButton;
-    private RecyclerView remainingRecycler;
-    private RemainingBudgetAdapter remainingAdapter;
+    private RecyclerView budgetRecycler;
+    private DashboardBudgetAdapter budgetAdapter;
 
     public DashboardFragment() {
         super(R.layout.fragment_dashboard);
@@ -53,18 +55,26 @@ public class DashboardFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
 
+        // --- Initialize ViewModels ---
         authenticationViewModel = new AuthenticationViewModel();
+        dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
+        dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
+        // --- UI References ---
         btnCalendar = view.findViewById(R.id.btnCalendar);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
         totalSpentText = view.findViewById(R.id.textTotalSpent);
-        remainingRecycler = view.findViewById(R.id.recyclerRemainingBudgets);
+        totalRemainingText = view.findViewById(R.id.textTotalRemaining);
+        budgetRecycler = view.findViewById(R.id.recyclerRemainingBudgets);
 
-        if (headerText != null) headerText.setText("Dashboard");
+        headerText.setText("Dashboard");
 
+        // Edge-to-edge insets
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
                 view.findViewById(R.id.dashboard_layout),
@@ -74,33 +84,28 @@ public class DashboardFragment extends Fragment {
                     return insets;
                 });
 
-        dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
-        dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
+        // --- Recycler setup ---
+        budgetAdapter = new DashboardBudgetAdapter();
+        budgetRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        budgetRecycler.setAdapter(budgetAdapter);
 
-        remainingAdapter = new RemainingBudgetAdapter();
-        remainingRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
-        remainingRecycler.setAdapter(remainingAdapter);
+        // --- Observers ---
+        dashboardVM.getBudgetsList().observe(getViewLifecycleOwner(), budgetAdapter::updateData);
 
-        // Observe totals
-        dashboardVM.getTotalSpent().observe(getViewLifecycleOwner(), total -> {
-            totalSpentText.setText(String.format(Locale.US, "Total Spent: $%.2f", total));
-        });
+        dashboardVM.getTotalSpentAllTime().observe(getViewLifecycleOwner(), total ->
+                totalSpentText.setText(String.format(Locale.US,
+                        "Total Spent (All Time): $%.2f", total)));
 
-        dashboardVM.getCategoryTotals().observe(getViewLifecycleOwner(), map -> {
-            remainingAdapter.updateData(map);
-        });
+        dashboardVM.getTotalRemaining().observe(getViewLifecycleOwner(), total ->
+                totalRemainingText.setText(String.format(Locale.US,
+                        "Remaining This Cycle: $%.2f", total)));
 
-        // Update when date changes
-        dateVM.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
-            if (date != null) {
-                dashboardVM.loadDashboardData(date);
-            }
-        });
-
+        // --- Calendar picker ---
         if (btnCalendar != null) {
             btnCalendar.setOnClickListener(v -> openDatePicker());
         }
 
+        // --- Logout button ---
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
                 authenticationViewModel.logout();
@@ -108,6 +113,9 @@ public class DashboardFragment extends Fragment {
                 requireActivity().finish();
             });
         }
+
+        // --- Initial load ---
+        dashboardVM.loadData();
 
         return view;
     }
@@ -138,7 +146,7 @@ public class DashboardFragment extends Fragment {
         super.onResume();
         AppDate currentDate = dateVM.getCurrentDate().getValue();
         if (currentDate != null) {
-            dashboardVM.loadDashboardData(currentDate);
+            dashboardVM.loadData();
         }
     }
 }

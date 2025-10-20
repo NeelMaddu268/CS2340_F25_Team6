@@ -64,15 +64,28 @@
         android:id="@+id/textTotalSpent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Total Spent: $0.00"
+        android:text="Total Spent (All Time): $0.00"
         android:fontFamily="@font/montserrat_regular"
         android:textStyle="bold"
         android:textSize="20sp"
         android:textColor="@android:color/white"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="4dp"
         tools:text="Total Spent: $126.75" />
+
+    <!-- Total Remaining Label -->
+    <TextView
+        android:id="@+id/textTotalRemaining"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Remaining This Cycle: $0.00"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        tools:text="Remaining This Cycle: $560.00" />
 
     <!-- RecyclerView for Remaining Budgets -->
     <androidx.recyclerview.widget.RecyclerView

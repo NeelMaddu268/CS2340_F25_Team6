@@ -13,8 +13,18 @@ public class BudgetDetailsViewModel extends ViewModel {
 
     private final FirestoreManager firestore = FirestoreManager.getInstance();
 
-    /** Trying to put the calculator data into subcollection under the budget */
-    public void saveCalculation(String budgetId, double total, double spent, double remaining,
+    /**
+     * Saves the calculation data for a specific budget under the user's Firestore collection.
+     *
+     * @param budgetId  The ID of the budget document to save the calculation under.
+     * @param total     The total budget amount.
+     * @param spent     The total amount spent so far.
+     * @param remaining The remaining budget balance.
+     * @param onSuccess Callback to execute if the data is successfully saved.
+     * @param onFailure Callback to execute if the save operation fails.
+     */
+    public void saveCalculation(String budgetId,
+                                       double total, double spent, double remaining,
                                 Runnable onSuccess, Runnable onFailure) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -48,7 +58,12 @@ public class BudgetDetailsViewModel extends ViewModel {
                 });
     }
 
-    /** Load the calculation data, if it has any from /calculations */
+    /**
+     * Loads the calculation data for a specific budget from Firestore, if available.
+     *
+     * @param budgetId The ID of the budget to load calculations for.
+     * @param callback The callback to handle loaded calculation data.
+     */
     public void loadCalculation(String budgetId, FirestoreCalcCallback callback) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {

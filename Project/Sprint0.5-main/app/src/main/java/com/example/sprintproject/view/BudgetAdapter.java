@@ -24,16 +24,23 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
             new DiffUtil.ItemCallback<Budget>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Budget oldItem, @NonNull Budget newItem) {
-                    return oldItem.getId().equals(newItem.getId());
+                    return oldItem.getId() != null && oldItem.getId().equals(newItem.getId());
                 }
 
                 @Override
-                public boolean areContentsTheSame(
-                        @NonNull Budget oldItem, @NonNull Budget newItem) {
+                public boolean areContentsTheSame(@NonNull Budget oldItem,
+                                                  @NonNull Budget newItem) {
                     return oldItem.getAmount() == newItem.getAmount()
                             && oldItem.getSpentToDate() == newItem.getSpentToDate()
                             && oldItem.getMoneyRemaining() == newItem.getMoneyRemaining()
-                            && oldItem.getName().equals(newItem.getName());
+                            && safeEq(oldItem.getName(), newItem.getName())
+                            && safeEq(oldItem.getCategory(), newItem.getCategory())
+                            && safeEq(oldItem.getFrequency(), newItem.getFrequency())
+                            && safeEq(oldItem.getStartDate(), newItem.getStartDate());
+                }
+
+                private boolean safeEq(String a, String b) {
+                    return (a == null && b == null) || (a != null && a.equals(b));
                 }
             };
 
@@ -57,7 +64,12 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
         Budget budget = getItem(position);
         holder.nameText.setText(budget.getName());
         holder.amountText.setText(String.valueOf(budget.getAmount()));
-        holder.categoryText.setText(budget.getCategory());
+        String displayCategory = budget.getCategory();
+        if (displayCategory != null && !displayCategory.isEmpty()) {
+            displayCategory = displayCategory.substring(0, 1)
+                    .toUpperCase() + displayCategory.substring(1);
+        }
+        holder.categoryText.setText(displayCategory);
         holder.frequencyText.setText(budget.getFrequency());
         holder.startDateText.setText(budget.getStartDate());
 
@@ -85,9 +97,11 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
             holder.itemView.setBackgroundColor(Color.parseColor("#e3dd98"));
         }
 
-        String totalAmount = String.format(Locale.US, "$%.2f", budget.getAmount());
+        String remainingBudgetBalance =
+                String.format(Locale.US, "$%.2f", budget.getMoneyRemaining());
 
-        holder.amountText.setText("Total: " + totalAmount);
+        holder.amountText.setText("Remaining: "
+                + remainingBudgetBalance);
 
         holder.itemView.setOnClickListener(v -> onBudgetClickListener.onBudgetClick(budget));
     }

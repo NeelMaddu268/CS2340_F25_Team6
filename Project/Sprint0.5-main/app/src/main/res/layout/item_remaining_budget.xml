@@ -3,30 +3,39 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="12dp"
     android:background="@android:color/white"
-    android:gravity="center_vertical"
-    android:elevation="1dp"
-    android:layout_marginVertical="4dp">
+    android:layout_marginVertical="4dp"
+    android:elevation="1dp">
 
+    <!-- Budget Name -->
     <TextView
-        android:id="@+id/textRemainingCategory"
-        android:layout_width="0dp"
+        android:id="@+id/textBudgetName"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Category"
-        android:textSize="16sp"
+        android:text="Budget Name"
+        android:textStyle="bold"
+        android:textSize="18sp"
         android:textColor="#357DED"
         android:fontFamily="sans-serif-medium" />
 
+    <!-- Spent and Remaining Info -->
     <TextView
-        android:id="@+id/textRemainingAmount"
-        android:layout_width="wrap_content"
+        android:id="@+id/textBudgetSpent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="$0.00"
-        android:textSize="16sp"
+        android:text="Spent: $0.00"
+        android:textSize="15sp"
         android:textColor="#333333"
-        android:fontFamily="sans-serif-medium" />
+        android:layout_marginTop="2dp" />
 
+    <TextView
+        android:id="@+id/textBudgetRemaining"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Remaining: $0.00 / Total: $0.00"
+        android:textSize="15sp"
+        android:textColor="#333333"
+        android:layout_marginTop="2dp" />
 </LinearLayout>
