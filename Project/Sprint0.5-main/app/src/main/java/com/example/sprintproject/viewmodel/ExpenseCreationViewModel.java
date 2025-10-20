@@ -71,7 +71,6 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         String uid = auth.getCurrentUser().getUid();
 
-        // ✅ Normalize category
         String normalizedCategory = category == null ? "" : category.trim().toLowerCase(Locale.US);
 
         double amount;
@@ -88,7 +87,6 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         long timestamp = parseDateToMillis(date);
 
-        // ✅ Save expense with normalized category
         Expense expense = new Expense(name, amount, normalizedCategory, date, notes);
         expense.setTimestamp(timestamp);
 
@@ -97,7 +95,6 @@ public class ExpenseCreationViewModel extends ViewModel {
                 .addOnSuccessListener(documentReference -> {
                     String expenseId = documentReference.getId();
 
-                    // ✅ Link to or create normalized category
                     FirestoreManager.getInstance().categoriesReference(uid)
                             .whereEqualTo("name", normalizedCategory)
                             .get()
@@ -118,7 +115,6 @@ public class ExpenseCreationViewModel extends ViewModel {
                                 }
                             });
 
-                    // ✅ Update linked budget totals
                     FirestoreManager.getInstance().budgetsReference(uid)
                             .whereEqualTo("category", normalizedCategory)
                             .get()

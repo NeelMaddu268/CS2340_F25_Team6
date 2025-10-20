@@ -88,7 +88,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
         }
         String uid = auth.getCurrentUser().getUid();
 
-        // ✅ Only attach once
         if (activeListener == null) {
             activeListener = FirestoreManager.getInstance()
                     .budgetsReference(uid)
@@ -107,7 +106,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
                             }
                         }
 
-                        // ✅ Sort by newest startDateTimestamp before posting
                         list.sort((b1, b2) -> Long.compare(
                                 b2.getStartDateTimestamp(),
                                 b1.getStartDateTimestamp()
@@ -132,7 +130,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
         }
         String uid = auth.getCurrentUser().getUid();
 
-        // ✅ Don’t detach and recreate listener — just reuse existing one
         if (activeListener == null) {
             activeListener = FirestoreManager.getInstance()
                     .budgetsReference(uid)
@@ -241,7 +238,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
 
         } catch (ParseException e) {
-            System.err.println("❌ Failed to apply rollover for " + budget.getName());
+            System.err.println("Failed to apply rollover for " + budget.getName());
             e.printStackTrace();
         }
     }
