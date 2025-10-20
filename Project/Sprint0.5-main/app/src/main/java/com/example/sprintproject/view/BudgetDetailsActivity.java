@@ -62,13 +62,7 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(view -> finish());
 
-        budgetProgressBar = findViewById(R.id.budgetProgressBar);
-        budgetSurplusText = findViewById(R.id.budgetPositiveText);
-        budgetInputTotal = findViewById(R.id.budgetInputTotal);
-        budgetInputSpent = findViewById(R.id.budgetInputSpent);
-        budgetInputRemaining = findViewById(R.id.budgetInputRemaining);
-        budgetComputeButton = findViewById(R.id.budgetComputeButton);
-        budgetSaveButton = findViewById(R.id.budgetSaveButton);
+        initBudgetViews();
 
         viewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
 
@@ -106,64 +100,7 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         }
 
         // the 2 input fill the 3 input automatically
-        budgetComputeButton.setOnClickListener(v -> {
-            String totalString = budgetInputTotal.getText().toString();
-            String spentString = budgetInputSpent.getText().toString();
-            String remainingString = budgetInputRemaining.getText().toString();
-
-            int filledInputs = 0;
-            if (!TextUtils.isEmpty(totalString)) {
-                filledInputs++;
-            }
-            if (!TextUtils.isEmpty(spentString)) {
-                filledInputs++;
-            }
-            if (!TextUtils.isEmpty(remainingString)) {
-                filledInputs++;
-            }
-            // what happens when less than 2 are filled
-            if (filledInputs < 2) {
-                Toast.makeText(this, "Please fill in 2 inputs", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            double total;
-            double spent;
-            double remaining;
-            if (TextUtils.isEmpty(totalString)) {
-                total = 0.0;
-            } else {
-                total = Double.parseDouble(totalString);
-            }
-            if (TextUtils.isEmpty(spentString)) {
-                spent = 0.0;
-            } else {
-                spent = Double.parseDouble(spentString);
-            }
-            if (TextUtils.isEmpty(remainingString)) {
-                remaining = 0.0;
-            } else {
-                remaining = Double.parseDouble(remainingString);
-            }
-
-            if (TextUtils.isEmpty(totalString)) {
-                total = spent + remaining;
-                budgetInputTotal.setText(String.valueOf(total));
-            } else if (TextUtils.isEmpty(spentString)) {
-                spent = total - remaining;
-                budgetInputSpent.setText(String.valueOf(spent));
-            } else if (TextUtils.isEmpty(remainingString)) {
-                remaining = total - spent;
-                budgetInputRemaining.setText(String.valueOf(remaining));
-            }
-
-            double surplus = total - spent;
-            if (surplus >= 0) {
-                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
-            } else {
-                budgetSurplusText.setText("Over budget by: $"
-                        + String.format("%.2f", Math.abs(surplus)));
-            }
-        });
+        setupComputeButton();
 
         // save the calculations
         budgetSaveButton.setOnClickListener(v -> {
@@ -224,6 +161,63 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         } catch (NumberFormatException e) {
             return 0.0;
         }
+    }
+
+    private void initBudgetViews() {
+        budgetProgressBar = findViewById(R.id.budgetProgressBar);
+        budgetSurplusText = findViewById(R.id.budgetPositiveText);
+        budgetInputTotal = findViewById(R.id.budgetInputTotal);
+        budgetInputSpent = findViewById(R.id.budgetInputSpent);
+        budgetInputRemaining = findViewById(R.id.budgetInputRemaining);
+        budgetComputeButton = findViewById(R.id.budgetComputeButton);
+        budgetSaveButton = findViewById(R.id.budgetSaveButton);
+    }
+
+    private void setupComputeButton() {
+        budgetComputeButton.setOnClickListener(v -> {
+            String totalString = budgetInputTotal.getText().toString();
+            String spentString = budgetInputSpent.getText().toString();
+            String remainingString = budgetInputRemaining.getText().toString();
+
+            int filledInputs = 0;
+            if (!TextUtils.isEmpty(totalString)) {
+                filledInputs++;
+            }
+            if (!TextUtils.isEmpty(spentString)) {
+                filledInputs++;
+            }
+            if (!TextUtils.isEmpty(remainingString)) {
+                filledInputs++;
+            }
+
+            if (filledInputs < 2) {
+                Toast.makeText(this, "Please fill in 2 inputs", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double total = parseCarefully(totalString);
+            double spent = parseCarefully(spentString);
+            double remaining = parseCarefully(remainingString);
+
+            if (TextUtils.isEmpty(totalString)) {
+                total = spent + remaining;
+                budgetInputTotal.setText(String.valueOf(total));
+            } else if (TextUtils.isEmpty(spentString)) {
+                spent = total - remaining;
+                budgetInputSpent.setText(String.valueOf(spent));
+            } else if (TextUtils.isEmpty(remainingString)) {
+                remaining = total - spent;
+                budgetInputRemaining.setText(String.valueOf(remaining));
+            }
+
+            double surplus = total - spent;
+            if (surplus >= 0) {
+                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
+            } else {
+                budgetSurplusText.setText("Over budget by: $"
+                        + String.format("%.2f", Math.abs(surplus)));
+            }
+        });
     }
 }
 

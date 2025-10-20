@@ -1,7 +1,5 @@
 package com.example.sprintproject.viewmodel;
 
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -48,6 +46,39 @@ public class BudgetsFragmentViewModel extends ViewModel {
         }
     }
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        detachActiveListener();
+    }
+
+    private boolean isBudgetExpired(Budget budget, Date currentDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        try {
+            Date startDate = sdf.parse(budget.getStartDate());
+            if (startDate == null) {
+                return false;
+            }
+
+            Calendar start = Calendar.getInstance();
+            start.setTime(startDate);
+            Calendar end = Calendar.getInstance();
+
+            if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
+                end.setTime(start.getTime());
+                end.add(Calendar.DAY_OF_YEAR, 7);
+            } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
+                end.setTime(start.getTime());
+                end.add(Calendar.MONTH, 1);
+            }
+            return currentDate.after(end.getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     /** Load all budgets (no filtering). */
     public void loadBudgets() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -79,8 +110,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
     }
 
     /**
-     * Load budgets where budget.startDate <= selected (day-aware).
-     * Works even if startDate is stored as a String (client-side filtering).
+     * Loads budgets for a specific date.
+     *
+     * @param appDate The selected date used to filter budgets.
      */
     public void loadBudgetsFor(@NonNull AppDate appDate) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -100,11 +132,14 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 .addOnSuccessListener(qs -> {
                     List<Budget> filtered = new ArrayList<>();
                     Calendar current = Calendar.getInstance();
-                    current.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
+                    current.set(appDate.getYear(), appDate.getMonth() - 1,
+                            appDate.getDay(), 0, 0, 0);
 
                     for (DocumentSnapshot doc : qs.getDocuments()) {
                         Budget b = toBudgetWithId(doc);
-                        if (b == null) continue;
+                        if (b == null) {
+                            continue;
+                        }
 
                         Object raw = doc.get("startDate");   // Timestamp/Date/Long/String
                         String fallback = b.getStartDate();  // model’s string if present
@@ -130,23 +165,32 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 });
     }
 
+    /**
+     * Applies a rollover to a budget if its period has expired.
+     *
+     * @param budget      The budget object to roll over to a new period.
+     * @param currentDate The current date used to determine expiration and new start date.
+     */
     public void applyRollover(Budget budget, Date currentDate) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
             Date startDate = sdf.parse(budget.getStartDate());
             if (startDate == null) {
-                System.out.println("Skipping rollover for " + budget.getName() + " (invalid start date)");
+                System.out.println("Skipping rollover for "
+                        + budget.getName() + " (invalid start date)");
                 return;
             }
 
             if (startDate.after(currentDate)) {
-                System.out.println("Skipping rollover for " + budget.getName() + " (start date is in the future)");
+                System.out.println("Skipping rollover for "
+                        + budget.getName() + " (start date is in the future)");
                 return;
             }
 
             // Don't roll over the same budget multiple times within the same session
             if (budget.isHasPreviousCycle() && !isBudgetExpired(budget, currentDate)) {
-                System.out.println("Skipping rollover for " + budget.getName() + " (already rolled over)");
+                System.out.println("Skipping rollover for "
+                        + budget.getName() + " (already rolled over)");
                 return;
             }
 
@@ -181,13 +225,18 @@ public class BudgetsFragmentViewModel extends ViewModel {
             System.out.println("Rolled over budget: " + budget.getName());
 
 
-        } catch (ParseException e){
+        } catch (ParseException e) {
             System.err.println("❌ Failed to apply rollover for " + budget.getName());
             e.printStackTrace();
         }
     }
 
-    /** Get single budget by id. */
+    /**
+     * Retrieves a single budget document by its ID.
+     *
+     * @param budgetId The unique identifier of the budget to fetch.
+     * @return A LiveData object that emits updates for the requested budget.
+     */
     public LiveData<Budget> getBudgetById(String budgetId) {
         MutableLiveData<Budget> live = new MutableLiveData<>();
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -202,7 +251,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 .collection("budgets")
                 .document(budgetId)
                 .addSnapshotListener((snap, err) -> {
-                    if (err != null) return;
+                    if (err != null) {
+                        return;
+                    }
                     if (snap != null && snap.exists()) {
                         live.setValue(toBudgetWithId(snap));
                     }
@@ -210,7 +261,13 @@ public class BudgetsFragmentViewModel extends ViewModel {
         return live;
     }
 
-    /** Update an existing budget (requires id). */
+    /**
+     * Updates an existing budget document in Firestore.
+     * This requires that the budget has a valid ID and that a user is authenticated.
+     *
+     * @param budget The budget object containing updated fields such as
+     *               start date, spent amount, and remaining balance.
+     */
     public void updateBudget(Budget budget) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -242,12 +299,20 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
     private Budget toBudgetWithId(@NonNull DocumentSnapshot doc) {
         Budget b = doc.toObject(Budget.class);
-        if (b == null) return null;
+        if (b == null) {
+            return null;
+        }
         b.setId(doc.getId());
         return b;
     }
 
-    /** Day-aware compare: true if startDate <= selected AppDate. */
+    /**
+     * Determines whether a budget start date is on or before the selected application date.
+     *
+     * @param start    The start date of the budget, represented as a YMD object.
+     * @param selected The selected application date to compare against.
+     * @return True if the budget starts on or before the selected date; false otherwise.
+     */
     private boolean startedOnOrBefore(YMD start, AppDate selected) {
         Calendar sel = Calendar.getInstance();
         sel.set(selected.getYear(), selected.getMonth() - 1, selected.getDay(), 0, 0, 0);
@@ -260,7 +325,14 @@ public class BudgetsFragmentViewModel extends ViewModel {
         return !st.after(sel);
     }
 
-    /** Extract a year-month-day from raw Firestore value or fallback string. */
+    /**
+     * Extracts a year, month, and day from a Firestore field value or fallback string.
+     *
+     * @param rawStartDate The Firestore field, which may be a Timestamp, Date, Long, or String.
+     * @param fallbackStr  A backup string representation to parse
+     *                     if the raw value is null or invalid.
+     * @return A YMD object containing the extracted year, month, and day, or null if parsing fails.
+     */
     private YMD extractYMD(Object rawStartDate, String fallbackStr) {
         // Native types
         if (rawStartDate instanceof Timestamp) {
@@ -276,7 +348,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
         // String in the doc field
         if (rawStartDate instanceof String) {
             YMD ymd = parseYMDFromString((String) rawStartDate);
-            if (ymd != null) return ymd;
+            if (ymd != null) {
+                return ymd;
+            }
         }
         // Fallback to model field
         if (fallbackStr != null) {
@@ -295,11 +369,21 @@ public class BudgetsFragmentViewModel extends ViewModel {
         );
     }
 
-    /** Try strict parses; if month-only, default day=1. */
+    /**
+     * Attempts to parse a date string into a YMD object.
+     * Supports full and month-only formats.
+     *
+     * @param s The date string to parse.
+     * @return A YMD object if parsing succeeds, or null otherwise.
+     */
     private YMD parseYMDFromString(String s) {
-        if (s == null) return null;
+        if (s == null) {
+            return null;
+        }
         String t = s.trim();
-        if (t.isEmpty()) return null;
+        if (t.isEmpty()) {
+            return null;
+        }
 
         // Full date formats (contain a day)
         List<String> fullFormats = Arrays.asList(
@@ -317,8 +401,12 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
                 sdf.setLenient(false);
                 Date d = sdf.parse(t);
-                if (d != null) return fromDate(d);
-            } catch (ParseException ignored) {}
+                if (d != null) {
+                    return fromDate(d);
+                }
+            } catch (ParseException ignored) {
+
+            }
         }
 
         // Month-only formats (default day = 1)
@@ -340,7 +428,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     c.setTime(d);
                     return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
                 }
-            } catch (ParseException ignored) {}
+            } catch (ParseException ignored) {
+
+            }
         }
 
         // Loose numeric fallbacks like "2023-05" or "2023/05"
@@ -350,54 +440,40 @@ public class BudgetsFragmentViewModel extends ViewModel {
             try {
                 int y = Integer.parseInt(parts[0]);
                 int m = Integer.parseInt(parts[1]);
-                if (m >= 1 && m <= 12) return new YMD(y, m, 1);
-            } catch (NumberFormatException ignored) {}
+                if (m >= 1 && m <= 12) {
+                    return new YMD(y, m, 1);
+                }
+            } catch (NumberFormatException ignored) {
+
+            }
         }
         return null;
     }
 
     /** Simple holder for a full date (year, month, day). month = 1..12 */
     private static final class YMD {
-        final int year;
-        final int month;
-        final int day;
+        private final int year;
+        private final int month;
+        private final int day;
         YMD(int year, int month, int day) {
             this.year = year;
             this.month = month;
             this.day = day;
         }
-    }
 
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        detachActiveListener();
-    }
-
-    private boolean isBudgetExpired(Budget budget, Date currentDate) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-        try {
-            Date startDate = sdf.parse(budget.getStartDate());
-            if (startDate == null) {
-                return false;
-            }
-
-            Calendar start = Calendar.getInstance();
-            start.setTime(startDate);
-            Calendar end = Calendar.getInstance();
-
-            if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
-                end.setTime(start.getTime());
-                end.add(Calendar.DAY_OF_YEAR, 7);
-            } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
-                end.setTime(start.getTime());
-                end.add(Calendar.MONTH, 1);
-            }
-            return currentDate.after(end.getTime());
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return false;
+        public int getYear() {
+            return year;
         }
+
+        public int getMonth() {
+            return month;
+        }
+
+        public int getDay() {
+            return day;
+        }
+
+
     }
 }
 

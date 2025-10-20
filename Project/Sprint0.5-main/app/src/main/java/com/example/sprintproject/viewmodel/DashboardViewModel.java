@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -31,8 +30,12 @@ public class DashboardViewModel extends ViewModel {
     private final MutableLiveData<Map<String, Double>> categoryTotals =
             new MutableLiveData<>(new LinkedHashMap<>());
 
-    public LiveData<Double> getTotalSpent() { return totalSpent; }
-    public LiveData<Map<String, Double>> getCategoryTotals() { return categoryTotals; }
+    public LiveData<Double> getTotalSpent() {
+        return totalSpent;
+    }
+    public LiveData<Map<String, Double>> getCategoryTotals() {
+        return categoryTotals;
+    }
 
     public void loadDashboardData(AppDate currentDate) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -52,7 +55,9 @@ public class DashboardViewModel extends ViewModel {
 
                     for (DocumentSnapshot doc : budgetSnap.getDocuments()) {
                         Budget b = doc.toObject(Budget.class);
-                        if (b == null) continue;
+                        if (b == null) {
+                            continue;
+                        }
 
                         CycleBounds bounds = computeCycleBounds(b, currentDate);
                         if (bounds == null) {
@@ -70,7 +75,9 @@ public class DashboardViewModel extends ViewModel {
                                     double spent = 0.0;
                                     for (DocumentSnapshot eDoc : es.getDocuments()) {
                                         Expense e = eDoc.toObject(Expense.class);
-                                        if (e != null) spent += e.getAmount();
+                                        if (e != null) {
+                                            spent += e.getAmount();
+                                        }
                                     }
                                     double remaining = Math.max(0.0, b.getAmount() - spent);
                                     remainingByCat.put(b.getCategory(), remaining);
@@ -91,10 +98,19 @@ public class DashboardViewModel extends ViewModel {
                 });
     }
 
-    /** Compute the active weekly/monthly window for a budget. */
+    /**
+     * Computes the active budget window (weekly or monthly) for the given budget.
+     *
+     * @param b       The budget whose cycle bounds are being calculated.
+     * @param current The current date used to find which cycle is active.
+     * @return A CycleBounds object defining the start and end timestamps of the active cycle,
+     *         or null if the budget start date is invalid.
+     */
     private CycleBounds computeCycleBounds(Budget b, AppDate current) {
         long start = b.getStartDateTimestamp();
-        if (start <= 0) return null;
+        if (start <= 0) {
+            return null;
+        }
 
         Calendar currentCal = Calendar.getInstance();
         currentCal.set(current.getYear(), current.getMonth() - 1, current.getDay(), 0, 0, 0);
@@ -102,7 +118,9 @@ public class DashboardViewModel extends ViewModel {
 
         if ("Weekly".equalsIgnoreCase(b.getFrequency())) {
             long period = 7L * 24 * 60 * 60 * 1000L;
-            if (now < start) return new CycleBounds(start, start + period);
+            if (now < start) {
+                return new CycleBounds(start, start + period);
+            }
             long diff = now - start;
             long offset = (diff / period) * period;
             return new CycleBounds(start + offset, start + offset + period);
@@ -123,8 +141,17 @@ public class DashboardViewModel extends ViewModel {
     }
 
     private static class CycleBounds {
-        final long start;
-        final long end;
-        CycleBounds(long s, long e) { start = s; end = e; }
+        private final long start;
+        private final long end;
+        CycleBounds(long s, long e) {
+            start = s;
+            end = e;
+        }
+        long getStart() {
+            return start;
+        }
+        long getEnd() {
+            return end;
+        }
     }
 }

@@ -8,7 +8,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import androidx.activity.ComponentActivity;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.sprintproject.R;

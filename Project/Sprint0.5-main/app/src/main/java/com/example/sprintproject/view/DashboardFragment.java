@@ -37,7 +37,8 @@ public class DashboardFragment extends Fragment {
     private DashboardViewModel dashboardVM;
 
     private ImageButton btnCalendar;
-    private TextView headerText, totalSpentText;
+    private TextView headerText;
+    private TextView totalSpentText;
     private Button logoutButton;
     private RecyclerView remainingRecycler;
     private RemainingBudgetAdapter remainingAdapter;
@@ -53,7 +54,9 @@ public class DashboardFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
 
         authenticationViewModel = new AuthenticationViewModel();
 
@@ -63,7 +66,9 @@ public class DashboardFragment extends Fragment {
         totalSpentText = view.findViewById(R.id.textTotalSpent);
         remainingRecycler = view.findViewById(R.id.recyclerRemainingBudgets);
 
-        if (headerText != null) headerText.setText("Dashboard");
+        if (headerText != null) {
+            headerText.setText("Dashboard");
+        }
 
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(

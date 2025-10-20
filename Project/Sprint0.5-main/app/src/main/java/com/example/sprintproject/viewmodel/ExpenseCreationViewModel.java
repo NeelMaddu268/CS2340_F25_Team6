@@ -127,40 +127,59 @@ public class ExpenseCreationViewModel extends ViewModel {
                                                 .get()
                                                 .addOnSuccessListener(expenseQuery -> {
                                                     double spentToDate = 0;
-                                                    for (DocumentSnapshot expenseDoc: expenseQuery.getDocuments()) {
-                                                        Expense expense2 = expenseDoc.toObject(Expense.class);
-                                                        if (expense2 != null && expense2.getTimestamp() >= budgetStart) {
+                                                    for (DocumentSnapshot expenseDoc
+                                                            : expenseQuery.getDocuments()) {
+                                                        Expense expense2 =
+                                                                expenseDoc.toObject(Expense.class);
+                                                        if (expense2 != null
+                                                            && expense2.getTimestamp()
+                                                            >= budgetStart) {
 
-                                                                long expenseTime = expense2.getTimestamp();
-                                                                long budgetEnd;
-                                                                if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
-                                                                    budgetEnd = budgetStart + (7L * 24 * 60 * 60 * 1000); // 7 days
-                                                                } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
-                                                                    budgetEnd = budgetStart + (30L * 24 * 60 * 60 * 1000); // ~30 days
-                                                                } else {
-                                                                    budgetEnd = budgetStart; // edge case
-                                                                }
+                                                            long expenseTime =
+                                                                    expense2.getTimestamp();
+                                                            long budgetEnd;
+                                                            if (budget.getFrequency().
+                                                                    equalsIgnoreCase("Weekly")) {
+                                                                budgetEnd = budgetStart
+                                                                        + (7L * 24 * 60
+                                                                        * 60 * 1000); // 7 days
+                                                            } else if (budget.getFrequency()
+                                                                    .equalsIgnoreCase("Monthly")) {
+                                                                budgetEnd = budgetStart
+                                                                        + (30L * 24 * 60
+                                                                        * 60 * 1000); // ~30 days
+                                                            } else {
+                                                                budgetEnd = budgetStart;
+                                                            }
 
-                                                                // Only include expenses within the start to end] range
-                                                                if (expenseTime >= budgetStart && expenseTime <= budgetEnd) {
-                                                                    spentToDate += expense2.getAmount();
-                                                                }
+                                                            // Only include expenses within
+                                                            // the [start to end] range
+                                                            if (expenseTime >= budgetStart
+                                                                    && expenseTime <= budgetEnd) {
+                                                                spentToDate += expense2.getAmount();
+                                                            }
                                                         }
                                                     }
 
-                                                    double moneyRemaining = budget.getAmount() - spentToDate;
+                                                    double moneyRemaining =
+                                                            budget.getAmount() - spentToDate;
 
-                                                    FirestoreManager.getInstance().budgetsReference(uid)
+                                                    FirestoreManager.getInstance().
+                                                            budgetsReference(uid)
                                                             .document(budgetDocument.getId())
                                                             .update(
                                                                     "spentToDate", spentToDate,
                                                                     "moneyRemaining", moneyRemaining
                                                             )
-                                                            .addOnSuccessListener(aVoid -> System.out.println(
-                                                                    "Budget updated with new expense"))
+                                                            .addOnSuccessListener(aVoid ->
+                                                                    System.out.println(
+                                                                    "Budget updated with "
+                                                                            + "new expense"))
 
-                                                            .addOnFailureListener(e -> System.out.println(
-                                                                    "Failed to update budget totals"));
+                                                            .addOnFailureListener(e ->
+                                                                    System.out.println(
+                                                                    "Failed to update "
+                                                                            + "budget totals"));
                                                 });
                                     }
                                 } else {
@@ -177,10 +196,10 @@ public class ExpenseCreationViewModel extends ViewModel {
 
     public void createSampleExpenses() {
 
-//        {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
-//        {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
-//        {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
-//
+        //        {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
+        //        {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
+        //        {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
+
         createExpense("Tin Drum", "Oct 15, 2025", "20.00", "Eating", null);
         createExpense("Panda Express", "Oct 20, 2025", "30.00", "Eating", "Was Hungry");
 

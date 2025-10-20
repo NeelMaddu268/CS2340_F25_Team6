@@ -57,7 +57,8 @@ public class ExpensesFragment extends Fragment {
                 view.findViewById(R.id.expenselog_layout),
                 (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                    v.setPadding(systemBars.left,
+                            systemBars.top, systemBars.right, systemBars.bottom);
                     return insets;
                 });
 
@@ -86,7 +87,6 @@ public class ExpensesFragment extends Fragment {
                 getViewLifecycleOwner(),
                 list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
         );
-
         // React to date changes: show expenses with date <= selected (day-aware)
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
             if (selected != null) {

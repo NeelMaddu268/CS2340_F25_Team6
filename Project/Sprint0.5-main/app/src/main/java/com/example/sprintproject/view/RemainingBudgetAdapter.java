@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RemainingBudgetAdapter extends RecyclerView.Adapter<RemainingBudgetAdapter.ViewHolder> {
+public class RemainingBudgetAdapter
+        extends RecyclerView.Adapter<RemainingBudgetAdapter.ViewHolder> {
 
     private final List<Map.Entry<String, Double>> entries = new ArrayList<>();
 
@@ -45,12 +46,21 @@ public class RemainingBudgetAdapter extends RecyclerView.Adapter<RemainingBudget
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView categoryText, remainingText;
+        private TextView categoryText;
+        private TextView remainingText;
 
         ViewHolder(View v) {
             super(v);
             categoryText = v.findViewById(R.id.textRemainingCategory);
             remainingText = v.findViewById(R.id.textRemainingAmount);
+        }
+
+        public TextView getCategoryText() {
+            return categoryText;
+        }
+
+        public TextView getRemainingText() {
+            return remainingText;
         }
     }
 }

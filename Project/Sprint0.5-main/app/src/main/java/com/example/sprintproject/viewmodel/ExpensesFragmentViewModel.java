@@ -45,6 +45,12 @@ public class ExpensesFragmentViewModel extends ViewModel {
         }
     }
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        detachActiveListener();
+    }
+
     /** Load all expenses (no filtering). */
     public void loadExpenses() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -58,7 +64,8 @@ public class ExpensesFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
-                .orderBy("date", Query.Direction.DESCENDING)  // change if your field is named differently
+                .orderBy("date",
+                        Query.Direction.DESCENDING)  // change if your field is named differently
                 .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
                         expensesLiveData.postValue(new ArrayList<>());
@@ -78,8 +85,10 @@ public class ExpensesFragmentViewModel extends ViewModel {
     }
 
     /**
-     * Load expenses whose date <= selected (day-aware).
-     * Works even if the 'date' field is stored as a String. Client-side filter.
+     * Loads expenses whose date is on or before the given app date.
+     * Works even if the date field is stored as a String (client-side filtering).
+     *
+     * @param appDate The selected date used to filter which expenses to show.
      */
     public void loadExpensesFor(@NonNull AppDate appDate) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -102,7 +111,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     List<Expense> filtered = new ArrayList<>();
                     for (DocumentSnapshot doc : qs.getDocuments()) {
                         Expense exp = doc.toObject(Expense.class);
-                        if (exp == null) continue;
+                        if (exp == null) {
+                            continue;
+                        }
                         // If your Expense has setId(String), uncomment:
                         // if (exp.getId() == null) exp.setId(doc.getId());
 
@@ -112,7 +123,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
                             // If your model exposes a string date getter:
                             java.lang.reflect.Method m = exp.getClass().getMethod("getDate");
                             Object val = m.invoke(exp);
-                            if (val instanceof String) fallback = (String) val;
+                            if (val instanceof String) {
+                                fallback = (String) val;
+                            }
                         } catch (Exception ignored) { /* model may not have getDate() */ }
 
                         YMD when = extractYMD(raw, fallback);
@@ -139,12 +152,20 @@ public class ExpensesFragmentViewModel extends ViewModel {
     }
 
     private YMD extractYMD(Object raw, String fallbackStr) {
-        if (raw instanceof Timestamp) return fromDate(((Timestamp) raw).toDate());
-        if (raw instanceof Date)      return fromDate((Date) raw);
-        if (raw instanceof Long)      return fromDate(new Date((Long) raw));
+        if (raw instanceof Timestamp) {
+            return fromDate(((Timestamp) raw).toDate());
+        }
+        if (raw instanceof Date)      {
+            return fromDate((Date) raw);
+        }
+        if (raw instanceof Long)      {
+            return fromDate(new Date((Long) raw));
+        }
         if (raw instanceof String) {
             YMD parsed = parseYMDFromString((String) raw);
-            if (parsed != null) return parsed;
+            if (parsed != null) {
+                return parsed;
+            }
         }
         if (fallbackStr != null) {
             return parseYMDFromString(fallbackStr);
@@ -162,11 +183,21 @@ public class ExpensesFragmentViewModel extends ViewModel {
         );
     }
 
-    /** Try full-date formats first; if month-only, default day=1. */
+    /**
+     * Parses a date string into a YMD object.
+     * Tries full-date formats first; if only a month is provided, defaults the day to 1.
+     *
+     * @param s The date string to parse.
+     * @return A YMD object if parsing succeeds, or null if parsing fails.
+     */
     private YMD parseYMDFromString(String s) {
-        if (s == null) return null;
+        if (s == null) {
+            return null;
+        }
         String t = s.trim();
-        if (t.isEmpty()) return null;
+        if (t.isEmpty()) {
+            return null;
+        }
 
         List<String> full = Arrays.asList(
                 "yyyy-MM-dd", "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy",
@@ -198,8 +229,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     c.setTime(d);
                     return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
                 }
-            } catch (ParseException ignored)
-            {
+            } catch (ParseException ignored) {
 
             }
         }
@@ -211,21 +241,25 @@ public class ExpensesFragmentViewModel extends ViewModel {
             try {
                 int y = Integer.parseInt(parts[0]);
                 int m = Integer.parseInt(parts[1]);
-                if (m >= 1 && m <= 12) return new YMD(y, m, 1);
-            } catch (NumberFormatException ignored) {}
+                if (m >= 1 && m <= 12) {
+                    return new YMD(y, m, 1);
+                }
+            } catch (NumberFormatException ignored) {
+
+            }
         }
         return null;
     }
 
     private static final class YMD {
-        final int year, month, day;
-        YMD(int y, int m, int d) { year = y; month = m; day = d; }
-    }
-
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        detachActiveListener();
+        private final int  year;
+        private final int month;
+        private final int day;
+        YMD(int y, int m, int d) {
+            year = y;
+            month = m;
+            day = d;
+        }
     }
 }
 
