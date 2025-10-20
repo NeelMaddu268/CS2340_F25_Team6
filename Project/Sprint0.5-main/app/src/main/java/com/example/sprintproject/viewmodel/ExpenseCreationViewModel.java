@@ -130,7 +130,21 @@ public class ExpenseCreationViewModel extends ViewModel {
                                                     for (DocumentSnapshot expenseDoc: expenseQuery.getDocuments()) {
                                                         Expense expense2 = expenseDoc.toObject(Expense.class);
                                                         if (expense2 != null && expense2.getTimestamp() >= budgetStart) {
-                                                            spentToDate += expense2.getAmount();
+
+                                                                long expenseTime = expense2.getTimestamp();
+                                                                long budgetEnd;
+                                                                if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
+                                                                    budgetEnd = budgetStart + (7L * 24 * 60 * 60 * 1000); // 7 days
+                                                                } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
+                                                                    budgetEnd = budgetStart + (30L * 24 * 60 * 60 * 1000); // ~30 days
+                                                                } else {
+                                                                    budgetEnd = budgetStart; // edge case
+                                                                }
+
+                                                                // Only include expenses within the start to end] range
+                                                                if (expenseTime >= budgetStart && expenseTime <= budgetEnd) {
+                                                                    spentToDate += expense2.getAmount();
+                                                                }
                                                         }
                                                     }
 
