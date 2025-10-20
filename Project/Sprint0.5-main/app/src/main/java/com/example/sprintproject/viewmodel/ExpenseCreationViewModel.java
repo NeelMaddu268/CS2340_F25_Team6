@@ -12,6 +12,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,33 +62,20 @@ public class ExpenseCreationViewModel extends ViewModel {
                 });
     }
 
-    public void createExpense(String name, String date, String amountString,
-                              String category, String notes, Runnable onBudgetUpdated) {
+    public void createExpense(
+            String name, String date, String amountString,
+            String category, String notes, Runnable onBudgetUpdated) {
+
         FirebaseAuth auth = FirebaseAuth.getInstance();
-
-        System.out.println("[createExpense] Starting for category=" + category
-                + ", amount=" + amountString + ", date=" + date);
-
-
         if (auth.getCurrentUser() == null) {
             text.setValue("User not logged in");
             return;
         }
 
         String uid = auth.getCurrentUser().getUid();
-
-        // Normalize category
-        String normalizedCategory = category == null ? "" : category.trim().toLowerCase(Locale.US);
-
-        double amount;
-        try {
-            amount = Double.parseDouble(amountString);
-            if (amount <= 0) {
-                text.setValue("Amount must be greater than 0");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            text.setValue("Invalid amount");
+        String normalizedCategory = normalizeCategory(category);
+        Double amount = parseAmount(amountString);
+        if (amount == null) {
             return;
         }
 
@@ -95,166 +83,168 @@ public class ExpenseCreationViewModel extends ViewModel {
         Expense expense = new Expense(name, amount, normalizedCategory, date, notes);
         expense.setTimestamp(timestamp);
 
-        //Step 1: Add the expense to Firestore
+        System.out.println("[createExpense] Starting for category=" + category
+                + ", amount=" + amount + ", date=" + date);
+
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
-                .addOnSuccessListener(documentReference -> {
-
+                .addOnSuccessListener(docRef -> {
                     System.out.println("[createExpense] Expense added successfully! ID="
-                            + documentReference.getId());
-
-                    System.out.println("Expense added successfully: " + name);
-
-                    String expenseId = documentReference.getId();
-
-                    //Step 1: Find or create the category document and update its expenses array
-                    FirestoreManager.getInstance().categoriesReference(uid)
-                            .whereEqualTo("name", normalizedCategory)
-                            .limit(1)
-                            .get()
-                            .addOnSuccessListener(categoryQuery -> {
-                                System.out.println("[createExpense] Category query success. Found "
-                                        + categoryQuery.size() + " docs.");
-                                if (!categoryQuery.isEmpty()) {
-                                    // Category exists — just add this expense ID
-                                    System.out.println("[createExpense] Added "
-                                            + "expense ID to existing category: "
-                                            + normalizedCategory);
-                                    DocumentSnapshot categoryDoc =
-                                            categoryQuery.getDocuments().get(0);
-                                    categoryDoc.getReference().update("expenses",
-                                            FieldValue.arrayUnion(expenseId));
-                                } else {
-                                    // Category doesn't exist — create a new one
-                                    System.out.println("[createExpense] Created new category for: "
-                                            + normalizedCategory);
-                                    Map<String, Object> newCategory = new HashMap<>();
-                                    newCategory.put("name", normalizedCategory);
-                                    newCategory.put("budgets",
-                                            Collections.emptyList());
-                                    newCategory.put("expenses",
-                                            Collections.singletonList(expenseId));
-
-                                    FirestoreManager.getInstance()
-                                            .categoriesReference(uid)
-                                            .add(newCategory)
-                                            .addOnSuccessListener(ref ->
-                                                    System.out.println("Created new category for "
-                                                            + normalizedCategory))
-                                            .addOnFailureListener(e ->
-                                                    System.err.println("Failed to create category: "
-                                                            + e.getMessage()));
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                System.err.println("[createExpense] Category query failed: "
-                                        + e.getMessage());
-                            });
-
-
-
-                    // Step 2: Update matching budget totals
-
-                    FirestoreManager.getInstance().budgetsReference(uid)
-                            .whereEqualTo("category", normalizedCategory)
-                            .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
-                            .limit(1)
-                            .get()
-                            .addOnSuccessListener(budgetQuery -> {
-                                System.out.println("[createExpense] Budget query success. Found "
-                                        + budgetQuery.size() + " docs.");
-                                if (budgetQuery.isEmpty()) {
-                                    System.out.println(
-                                            "[createExpense] No budget found for category: "
-                                            + normalizedCategory);
-                                    return;
-                                }
-                                DocumentSnapshot budgetDoc = budgetQuery.getDocuments().get(0);
-                                Budget budget = budgetDoc.toObject(Budget.class);
-                                if (budget == null) {
-                                    return;
-                                }
-
-                                long budgetStart = budget.getStartDateTimestamp();
-                                long budgetEnd = budgetStart;
-                                if ("Weekly".equalsIgnoreCase(budget.getFrequency())) {
-                                    budgetEnd += 7L * 24 * 60 * 60 * 1000;
-                                } else if ("Monthly".equalsIgnoreCase(budget.getFrequency())) {
-                                    budgetEnd += 30L * 24 * 60 * 60 * 1000;
-                                }
-                                long finalBudgetEnd = budgetEnd;
-
-                                //Nested correctly inside budgetQuery success
-                                FirestoreManager.getInstance().expensesReference(uid)
-                                        .whereEqualTo("category", normalizedCategory)
-                                        .get()
-                                        .addOnSuccessListener(expenseQuery -> {
-                                            System.out.println("[createExpense] Fetched "
-                                                    + expenseQuery.size() +
-                                                    " expenses for category " + normalizedCategory);
-                                            double spentToDate = 0;
-                                            long now = System.currentTimeMillis();
-                                            long effectiveEnd = Math.min(finalBudgetEnd, now);
-
-                                            for (DocumentSnapshot expDoc
-                                                    : expenseQuery.getDocuments()) {
-                                                Expense e = expDoc.toObject(Expense.class);
-                                                if (e != null) {
-                                                    System.out.println("Expense: " + e.getName()
-                                                            + " | $" + e.getAmount() + " | " + e.getDate());
-                                                    long t = e.getTimestamp();
-                                                    if (t >= budgetStart - 24L * 60 * 60 * 1000 && t <= effectiveEnd) {
-                                                        spentToDate += e.getAmount();
-                                                        System.out.println(" Counted toward budget: "
-                                                                + e.getName());
-                                                    } else {
-                                                        System.out.println("Skipped (out of range): "
-                                                                + e.getName());
-                                                    }
-                                                }
-                                            }
-                                            System.out.println("[createExpense] SpentToDate calculated: "
-                                                    + spentToDate);
-
-
-                                            double remaining = budget.getAmount() - spentToDate;
-                                            boolean overBudget = remaining < 0;
-
-                                            double finalSpentToDate = spentToDate;
-                                            double finalSpentToDate1 = spentToDate;
-                                            FirestoreManager.getInstance()
-                                                    .budgetsReference(uid)
-                                                    .document(budgetDoc.getId())
-                                                    .update(
-                                                            "spentToDate", spentToDate,
-                                                            "moneyRemaining", remaining,
-                                                            "overBudget", overBudget
-                                                    )
-                                                    .addOnSuccessListener(a -> {
-                                                        System.out.println("[createExpense] Budget '"
-                                                                + budget.getName() + "' updated: spent=" + finalSpentToDate1 + ", remaining=" + remaining);
-                                                        if (onBudgetUpdated != null) {
-                                                            onBudgetUpdated.run();
-                                                        }
-                                                    })
-                                                    .addOnFailureListener(e -> {
-                                                        System.err.println(
-                                                                "[createExpense] Failed to update budget: "
-                                                                + e.getMessage());
-                                                    });
-                                        })
-                                        .addOnFailureListener(e ->
-                                                System.err.println("Expense fetch failed: "
-                                                        + e.getMessage()));
-                            })
-                            .addOnFailureListener(e ->
-                                    System.err.println("Budget fetch failed: " + e.getMessage()));
-
+                            + docRef.getId());
+                    handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
+                    handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
                 })
                 .addOnFailureListener(e -> {
+                    System.err.println("[createExpense] Failed to add expense: "
+                            + e.getMessage());
                     e.printStackTrace();
                 });
+    }
 
+    private String normalizeCategory(String category) {
+        return category == null ? "" : category.trim().toLowerCase(Locale.US);
+    }
+
+    private Double parseAmount(String amountString) {
+        try {
+            double amount = Double.parseDouble(amountString);
+            if (amount <= 0) {
+                text.setValue("Amount must be greater than 0");
+                return null;
+            }
+            return amount;
+        } catch (NumberFormatException e) {
+            text.setValue("Invalid amount");
+            return null;
+        }
+    }
+
+    private void handleCategoryUpdate(String uid, String category, String expenseId) {
+        FirestoreManager.getInstance().categoriesReference(uid)
+                .whereEqualTo("name", category)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    System.out.println("[handleCategoryUpdate] Found " + query.size() + " docs.");
+                    if (!query.isEmpty()) {
+                        query.getDocuments().get(0).getReference()
+                                .update("expenses", FieldValue.arrayUnion(expenseId));
+                        System.out.println("Added expense to existing category: " + category);
+                    } else {
+                        createNewCategory(uid, category, expenseId);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        System.err.println("[handleCategoryUpdate] Failed: " + e.getMessage()));
+    }
+
+    private void createNewCategory(String uid, String category, String expenseId) {
+        Map<String, Object> newCategory = new HashMap<>();
+        newCategory.put("name", category);
+        newCategory.put("budgets", Collections.emptyList());
+        newCategory.put("expenses", Collections.singletonList(expenseId));
+
+        FirestoreManager.getInstance().categoriesReference(uid)
+                .add(newCategory)
+                .addOnSuccessListener(ref ->
+                        System.out.println("Created new category: " + category))
+                .addOnFailureListener(e ->
+                        System.err.println("Failed to create category: " + e.getMessage()));
+    }
+
+    private void handleBudgetUpdate(String uid, String category, Runnable onBudgetUpdated) {
+        FirestoreManager.getInstance().budgetsReference(uid)
+                .whereEqualTo("category", category)
+                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    System.out.println("[handleBudgetUpdate] Found " + query.size()
+                            + " budget docs.");
+                    if (query.isEmpty()) {
+                        return;
+                    }
+
+                    DocumentSnapshot budgetDoc = query.getDocuments().get(0);
+                    Budget budget = budgetDoc.toObject(Budget.class);
+                    if (budget == null) {
+                        return;
+                    }
+
+                    long budgetStart = budget.getStartDateTimestamp();
+                    long budgetEnd = calcBudgetEnd(budgetStart, budget.getFrequency());
+
+                    FirestoreManager.getInstance().expensesReference(uid)
+                            .whereEqualTo("category", category)
+                            .get()
+                            .addOnSuccessListener(expenseQuery -> {
+                                double spent = calculateSpentToDate(
+                                        expenseQuery, budgetStart, budgetEnd);
+                                updateBudgetDoc(uid, budgetDoc, budget, spent, onBudgetUpdated);
+                            })
+                            .addOnFailureListener(e ->
+                                    System.err.println("[handleBudgetUpdate] Expense fetch failed: "
+                                            + e.getMessage()));
+                })
+                .addOnFailureListener(e ->
+                        System.err.println("[handleBudgetUpdate] Budget fetch failed: "
+                                + e.getMessage()));
+    }
+
+    private long calcBudgetEnd(long start, String freq) {
+        if ("Weekly".equalsIgnoreCase(freq)) {
+            return start + 7L * 24 * 60 * 60 * 1000;
+        }
+        if ("Monthly".equalsIgnoreCase(freq)) {
+            return start + 30L * 24 * 60 * 60 * 1000;
+        }
+        return start;
+    }
+
+    private double calculateSpentToDate(QuerySnapshot expenseQuery, long start, long end) {
+        double spent = 0;
+        long now = System.currentTimeMillis();
+        long effectiveEnd = Math.min(end, now);
+
+        for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
+            Expense e = doc.toObject(Expense.class);
+            if (e == null) {
+                continue;
+            }
+            long t = e.getTimestamp();
+            if (t >= start - 24L * 60 * 60 * 1000 && t <= effectiveEnd) {
+                spent += e.getAmount();
+                System.out.println("Counted: " + e.getName());
+            } else {
+                System.out.println("Skipped (out of range): " + e.getName());
+            }
+        }
+        System.out.println("[calculateSpentToDate] Total spent: " + spent);
+        return spent;
+    }
+
+    private void updateBudgetDoc(String uid, DocumentSnapshot doc, Budget budget,
+                                 double spent, Runnable onBudgetUpdated) {
+        double remaining = budget.getAmount() - spent;
+        boolean overBudget = remaining < 0;
+
+        FirestoreManager.getInstance()
+                .budgetsReference(uid)
+                .document(doc.getId())
+                .update(
+                        "spentToDate", spent,
+                        "moneyRemaining", remaining,
+                        "overBudget", overBudget
+                )
+                .addOnSuccessListener(a -> {
+                    System.out.println("[updateBudgetDoc] Budget '" + budget.getName()
+                            + "' updated: spent=" + spent + ", remaining=" + remaining);
+                    if (onBudgetUpdated != null) {
+                        onBudgetUpdated.run();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        System.err.println("[updateBudgetDoc] Failed: " + e.getMessage()));
     }
 
 
