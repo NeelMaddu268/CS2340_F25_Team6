@@ -5,34 +5,15 @@ import android.os.Bundle;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.splashscreen.SplashScreen;
-
-import java.util.function.Supplier;
 
 import com.example.sprintproject.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean isLoading = true;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        splashScreen.setKeepOnScreenCondition(() -> isLoading);
-
-        // fake data load (example)
-        new Thread(() -> {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            isLoading = false;
-        }).start();
 
         Button btnStart = findViewById(R.id.btnStart);
         Button btnQuit = findViewById(R.id.btnQuit);

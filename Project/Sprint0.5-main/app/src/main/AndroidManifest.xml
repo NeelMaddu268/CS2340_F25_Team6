@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.sprintproject">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -14,32 +13,23 @@
         android:theme="@style/Theme.SprintProject"
         tools:targetApi="31">
 
-        <!-- Splash screen launcher -->
-        <activity
-            android:name=".view.MainActivity"
-            android:exported="true"
-            android:label="AnimatedSplashScreen"
-            android:theme="@style/Theme.MyApp.Splash">
+        <activity android:name=".view.BudgetsFragment" android:exported="false" />
+        <activity android:name=".view.ExpensesFragment" android:exported="false" />
+        <activity android:name=".view.LoginActivity" android:exported="true" />
+        <activity android:name=".view.RegisterActivity" android:exported="true" />
+        <activity android:name=".view.MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Login + Register -->
-        <activity android:name=".view.LoginActivity" android:exported="true" />
-        <activity android:name=".view.RegisterActivity" android:exported="true" />
-
-        <!-- Main App screens -->
+        <activity android:name=".view.SavingsCircleFragment" android:exported="false" />
+        <activity android:name=".view.ChatbotFragment" android:exported="false" />
         <activity android:name=".view.AppActivity" android:exported="true" />
         <activity android:name=".view.BudgetDetailsActivity" android:exported="false" />
         <activity android:name=".view.ExpenseDetailsActivity" android:exported="false" />
 
-        <!-- Fragments (kept as activities for nav handling) -->
-        <activity android:name=".view.BudgetsFragment" android:exported="false" />
-        <activity android:name=".view.ExpensesFragment" android:exported="false" />
-        <activity android:name=".view.SavingsCircleFragment" android:exported="false" />
-        <activity android:name=".view.ChatbotFragment" android:exported="false" />
-
+        
     </application>
+
 </manifest>
