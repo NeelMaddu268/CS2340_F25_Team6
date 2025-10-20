@@ -1,5 +1,6 @@
 package com.example.sprintproject.view;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,6 +61,30 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
         holder.frequencyText.setText(budget.getFrequency());
         holder.startDateText.setText(budget.getStartDate());
 
+        if (budget.isHasPreviousCycle()) {
+            if (budget.isPreviousCycleOverBudget()) {
+                holder.lastWeekBudgetText.setText("over budget.");
+                holder.lastWeekBudgetTitle.setVisibility(View.VISIBLE);
+                holder.lastWeekBudgetText.setVisibility(View.VISIBLE);
+                holder.lastWeekBudgetTitle.setBackgroundColor(Color.parseColor("#FFCDD2"));
+                holder.lastWeekBudgetText.setBackgroundColor(Color.parseColor("#FFCDD2"));
+            } else {
+                holder.lastWeekBudgetText.setText("on track.");
+                holder.lastWeekBudgetTitle.setVisibility(View.VISIBLE);
+                holder.lastWeekBudgetText.setVisibility(View.VISIBLE);
+                holder.lastWeekBudgetTitle.setBackgroundColor(Color.parseColor("#cdffda"));
+                holder.lastWeekBudgetText.setBackgroundColor(Color.parseColor("#cdffda"));
+            }
+        } else {
+            holder.lastWeekBudgetTitle.setVisibility(View.GONE);
+            holder.lastWeekBudgetText.setVisibility(View.GONE);
+        }
+        if (budget.isOverBudget()) {
+            holder.itemView.setBackgroundColor(Color.parseColor("#FFCDD2"));
+        } else {
+            holder.itemView.setBackgroundColor(Color.parseColor("#e3dd98"));
+        }
+
         String totalAmount = String.format(Locale.US, "$%.2f", budget.getAmount());
 
         holder.amountText.setText("Total: " + totalAmount);
@@ -73,6 +98,8 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
         private TextView categoryText;
         private TextView frequencyText;
         private TextView startDateText;
+        private TextView lastWeekBudgetTitle;
+        private TextView lastWeekBudgetText;
 
         public BudgetViewHolder(View itemView) {
             super(itemView);
@@ -81,6 +108,8 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
             categoryText = itemView.findViewById(R.id.textBudgetCategory);
             frequencyText = itemView.findViewById(R.id.textBudgetFrequency);
             startDateText = itemView.findViewById(R.id.textBudgetDate);
+            lastWeekBudgetTitle = itemView.findViewById(R.id.lastWeekBudgetTitle);
+            lastWeekBudgetText = itemView.findViewById(R.id.lastWeekBudgetText);
         }
     }
 

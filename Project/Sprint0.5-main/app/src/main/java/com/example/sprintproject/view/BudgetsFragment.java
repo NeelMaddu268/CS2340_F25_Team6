@@ -27,12 +27,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class BudgetsFragment extends Fragment {
@@ -97,6 +103,32 @@ public class BudgetsFragment extends Fragment {
         } else {
             budgetsFragmentViewModel.loadBudgetsFor(seed);
         }
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid = auth.getCurrentUser().getUid();
+
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .collection("budgets")
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        System.err.println("Listen failed: " + e);
+                        return;
+                    }
+
+                    if (querySnapshot != null) {
+                        List<Budget> updatedBudgets = new ArrayList<>();
+                        for (DocumentSnapshot doc : querySnapshot) {
+                            Budget budget = doc.toObject(Budget.class);
+                            if (budget != null) {
+                                budget.setId(doc.getId()); // if you need to keep track of the Firestore ID
+                                updatedBudgets.add(budget);
+                            }
+                        }
+                        adapter.submitList(updatedBudgets); // refresh UI automatically
+                    }
+                });
+
 
 
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), d -> {
