@@ -1,19 +1,30 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <!-- Your original AppCompat theme -->
+    <style name="Base.Theme.SprintProject" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- Optional: restore old accent behavior -->
+        <item name="colorControlActivated">@color/colorAccent</item>
+        <item name="colorControlHighlight">@color/colorAccent</item>
+        <item name="colorButtonNormal">@color/colorPrimary</item>
+
+        <!-- Old white background + dark text -->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:textColor">@android:color/black</item>
     </style>
 
+    <!-- Main App Theme -->
     <style name="Theme.SprintProject" parent="Base.Theme.SprintProject" />
 
+    <!-- SPLASH THEME -->
     <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
+        <!-- This shows your animated splash icon -->
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/animated_logo</item>
         <item name="windowSplashScreenBackground">@color/white</item>
-        <item name="postSplashScreenTheme">@style/Base.Theme.SprintProject</item>
-    </style>
 
+        <!-- After splash, restore your *exact* old theme -->
+        <item name="postSplashScreenTheme">@style/Theme.SprintProject</item>
+    </style>
 </resources>
