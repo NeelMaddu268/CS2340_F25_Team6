@@ -144,8 +144,11 @@ public class ExpenseCreationViewModel extends ViewModel {
                                                         Expense e = expDoc.toObject(Expense.class);
                                                         if (e != null) {
                                                             long t = e.getTimestamp();
+                                                            long now = System.currentTimeMillis();
+                                                            long effectiveEnd =
+                                                                    Math.min(now, finalBudgetEnd);
                                                             if (t >= budgetStart
-                                                                    && t <= finalBudgetEnd) {
+                                                                    && t <= effectiveEnd) {
                                                                 spentToDate += e.getAmount();
                                                             }
                                                         }

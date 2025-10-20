@@ -97,9 +97,11 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
             holder.itemView.setBackgroundColor(Color.parseColor("#e3dd98"));
         }
 
-        String totalAmount = String.format(Locale.US, "$%.2f", budget.getAmount());
+        String remainingBudgetBalance =
+                String.format(Locale.US, "$%.2f", budget.getMoneyRemaining());
 
-        holder.amountText.setText("Total: " + totalAmount);
+        holder.amountText.setText("Remaining: "
+                + remainingBudgetBalance);
 
         holder.itemView.setOnClickListener(v -> onBudgetClickListener.onBudgetClick(budget));
     }

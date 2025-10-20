@@ -64,7 +64,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
-                .orderBy("date",
+                .orderBy("timestamp",
                         Query.Direction.DESCENDING)  // change if your field is named differently
                 .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
@@ -102,7 +102,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
-                .orderBy("date", Query.Direction.DESCENDING)  // change if needed
+                .orderBy("timestamp", Query.Direction.DESCENDING)  // change if needed
                 .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
                         expensesLiveData.postValue(new ArrayList<>());

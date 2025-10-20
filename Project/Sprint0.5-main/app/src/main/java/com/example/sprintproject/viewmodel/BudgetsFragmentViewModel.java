@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.Budget;
+import com.example.sprintproject.model.Expense;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -32,6 +33,11 @@ public class BudgetsFragmentViewModel extends ViewModel {
             new MutableLiveData<>(new ArrayList<>());
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    private final MutableLiveData<Double> totalRemainingLiveData = new MutableLiveData<>(0.0);
+
+    private final MutableLiveData<Double> totalSpentAllTimeLiveData = new MutableLiveData<>(0.0);
+
+
     /** Keep exactly one active Firestore listener at a time. */
     private ListenerRegistration activeListener;
 
@@ -44,6 +50,38 @@ public class BudgetsFragmentViewModel extends ViewModel {
             activeListener.remove();
             activeListener = null;
         }
+    }
+
+    public LiveData<Double> getTotalRemaining() {
+        return totalRemainingLiveData;
+    }
+
+    public LiveData<Double> getTotalSpentAllTime() {
+        return totalSpentAllTimeLiveData;
+    }
+
+    private void computeAllTimeSpent() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            totalSpentAllTimeLiveData.postValue(0.0);
+            return;
+        }
+        String uid = auth.getCurrentUser().getUid();
+
+        FirestoreManager.getInstance().expensesReference(uid)
+                .whereLessThanOrEqualTo("timestamp", System.currentTimeMillis()) // ✅ both are long
+                .get()
+                .addOnSuccessListener(qs -> {
+                    double total = 0;
+                    for (DocumentSnapshot doc : qs.getDocuments()) {
+                        Expense e = doc.toObject(Expense.class);
+                        if (e != null) {
+                            total += e.getAmount();
+                        }
+                    }
+                    totalSpentAllTimeLiveData.postValue(total);
+                })
+                .addOnFailureListener(e -> totalSpentAllTimeLiveData.postValue(0.0));
     }
 
     @Override
@@ -113,6 +151,13 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
                         budgetsLiveData.postValue(list);
 
+                        double totalRemaining = 0;
+                        for (Budget b : list) {
+                            totalRemaining += b.getMoneyRemaining();
+                        }
+                        totalRemainingLiveData.postValue(totalRemaining);
+
+                        computeAllTimeSpent();
                     });
         }
     }
@@ -485,8 +530,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
         public int getDay() {
             return day;
         }
-
-
     }
 }
 
