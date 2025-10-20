@@ -59,12 +59,12 @@ public class DashboardFragment extends Fragment {
             return null;
         }
 
-        // --- Initialize ViewModels ---
+        // Initialize ViewModels
         authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-        // --- UI References ---
+        // UI References
         btnCalendar = view.findViewById(R.id.btnCalendar);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
@@ -84,12 +84,12 @@ public class DashboardFragment extends Fragment {
                     return insets;
                 });
 
-        // --- Recycler setup ---
+        // Recycler setup
         budgetAdapter = new DashboardBudgetAdapter();
         budgetRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         budgetRecycler.setAdapter(budgetAdapter);
 
-        // --- Observers ---
+        // Observers
         dashboardVM.getBudgetsList().observe(getViewLifecycleOwner(), budgetAdapter::updateData);
 
         dashboardVM.getTotalSpentAllTime().observe(getViewLifecycleOwner(), total ->
@@ -100,12 +100,19 @@ public class DashboardFragment extends Fragment {
                 totalRemainingText.setText(String.format(Locale.US,
                         "Remaining This Cycle: $%.2f", total)));
 
-        // --- Calendar picker ---
+        dateVM.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
+            if (date != null) {
+                dashboardVM.loadDataFor(date);
+            }
+        });
+
+
+        // Calendar picker
         if (btnCalendar != null) {
             btnCalendar.setOnClickListener(v -> openDatePicker());
         }
 
-        // --- Logout button ---
+        // Logout button
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
                 authenticationViewModel.logout();
@@ -114,7 +121,7 @@ public class DashboardFragment extends Fragment {
             });
         }
 
-        // --- Initial load ---
+        // Initial load
         dashboardVM.loadData();
 
         return view;
@@ -146,7 +153,8 @@ public class DashboardFragment extends Fragment {
         super.onResume();
         AppDate currentDate = dateVM.getCurrentDate().getValue();
         if (currentDate != null) {
-            dashboardVM.loadData();
+            dashboardVM.loadDataFor(currentDate);
         }
     }
+
 }

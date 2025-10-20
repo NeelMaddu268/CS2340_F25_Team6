@@ -13,10 +13,8 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,6 +35,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
     private final MutableLiveData<Double> totalSpentAllTimeLiveData = new MutableLiveData<>(0.0);
 
+    private static final String TAG = "BudgetsVM";
 
     /** Keep exactly one active Firestore listener at a time. */
     private ListenerRegistration activeListener;
@@ -69,7 +68,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
         String uid = auth.getCurrentUser().getUid();
 
         FirestoreManager.getInstance().expensesReference(uid)
-                .whereLessThanOrEqualTo("timestamp", System.currentTimeMillis()) // ✅ both are long
+                .whereLessThanOrEqualTo("timestamp", System.currentTimeMillis())
                 .get()
                 .addOnSuccessListener(qs -> {
                     double total = 0;
@@ -81,7 +80,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     }
                     totalSpentAllTimeLiveData.postValue(total);
                 })
-                .addOnFailureListener(e -> totalSpentAllTimeLiveData.postValue(0.0));
+                .addOnFailureListener(e -> {
+                    totalSpentAllTimeLiveData.postValue(0.0);
+                });
     }
 
     @Override
@@ -90,78 +91,100 @@ public class BudgetsFragmentViewModel extends ViewModel {
         detachActiveListener();
     }
 
-    private boolean isBudgetExpired(Budget budget, Date currentDate) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+    private boolean isBudgetExpired(Budget budget, Date compareDate) {
         try {
-            Date startDate = sdf.parse(budget.getStartDate());
+            Date startDate;
+            if (budget.getStartDateTimestamp() > 0) {
+                startDate = new Date(budget.getStartDateTimestamp());
+            } else {
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                startDate = sdf.parse(budget.getStartDate());
+            }
+
             if (startDate == null) {
                 return false;
             }
 
             Calendar start = Calendar.getInstance();
             start.setTime(startDate);
-            Calendar end = Calendar.getInstance();
+            Calendar end = (Calendar) start.clone();
 
-            if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
-                end.setTime(start.getTime());
+            if ("Weekly".equalsIgnoreCase(budget.getFrequency())) {
                 end.add(Calendar.DAY_OF_YEAR, 7);
-            } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
-                end.setTime(start.getTime());
+            } else if ("Monthly".equalsIgnoreCase(budget.getFrequency())) {
                 end.add(Calendar.MONTH, 1);
             }
-            return currentDate.after(end.getTime());
-        } catch (ParseException e) {
-            e.printStackTrace();
+
+            boolean expired = compareDate.after(end.getTime());
+            return expired;
+
+        } catch (Exception e) {
             return false;
         }
     }
 
 
-    /** Load all budgets (no filtering). */
+    // Load all budgets (no filtering)
     public void loadBudgets() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             budgetsLiveData.postValue(new ArrayList<>());
+            totalRemainingLiveData.postValue(0.0);
             return;
         }
         String uid = auth.getCurrentUser().getUid();
 
-        if (activeListener == null) {
-            activeListener = FirestoreManager.getInstance()
-                    .budgetsReference(uid)
-                    .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
-                    .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
-                        if (e != null || qs == null) {
-                            budgetsLiveData.postValue(new ArrayList<>());
-                            return;
+        detachActiveListener();
+
+        activeListener = FirestoreManager.getInstance()
+                .budgetsReference(uid)
+                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((qs, e) -> {
+                    if (e != null || qs == null) {
+                        budgetsLiveData.postValue(new ArrayList<>());
+                        totalRemainingLiveData.postValue(0.0);
+                        return;
+                    }
+
+
+                    List<Budget> list = new ArrayList<>();
+                    Date today = new Date();
+
+                    for (DocumentSnapshot doc : qs.getDocuments()) {
+                        Budget b = toBudgetWithId(doc);
+                        if (b == null) {
+                            continue;
                         }
 
-                        List<Budget> list = new ArrayList<>();
-                        for (DocumentSnapshot doc : qs.getDocuments()) {
-                            Budget b = toBudgetWithId(doc);
-                            if (b != null) {
-                                list.add(b);
-                            }
+                        b.setOverBudget(b.getMoneyRemaining() < 0);
+
+                        if (isBudgetExpired(b, today)) {
+                            applyRollover(b, today);
                         }
 
-                        list.sort((b1, b2) -> Long.compare(
-                                b2.getStartDateTimestamp(),
-                                b1.getStartDateTimestamp()
-                        ));
+                        list.add(b);
+                    }
 
-                        budgetsLiveData.postValue(list);
+                    list.sort((b1, b2) ->
+                            Long.compare(b2.getStartDateTimestamp(), b1.getStartDateTimestamp()));
 
-                        double totalRemaining = 0;
-                        for (Budget b : list) {
-                            totalRemaining += b.getMoneyRemaining();
-                        }
-                        totalRemainingLiveData.postValue(totalRemaining);
+                    budgetsLiveData.postValue(list);
 
-                        computeAllTimeSpent();
-                    });
-        }
+                    double totalRemaining = 0;
+                    for (Budget b : list) {
+                        totalRemaining += b.getMoneyRemaining();
+                    }
+                    totalRemainingLiveData.postValue(totalRemaining);
+
+                    computeAllTimeSpent();
+                });
     }
 
+    /**
+     * Loads budgets for a specific date.
+     *
+     * @param appDate The selected date used to filter budgets.
+     */
     /**
      * Loads budgets for a specific date.
      *
@@ -171,120 +194,117 @@ public class BudgetsFragmentViewModel extends ViewModel {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             budgetsLiveData.postValue(new ArrayList<>());
+            totalRemainingLiveData.postValue(0.0);
             return;
         }
         String uid = auth.getCurrentUser().getUid();
 
-        if (activeListener == null) {
-            activeListener = FirestoreManager.getInstance()
-                    .budgetsReference(uid)
-                    .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
-                    .addSnapshotListener((qs, e) -> {
-                        if (e != null || qs == null) {
-                            budgetsLiveData.postValue(new ArrayList<>());
-                            return;
+        Calendar selected = Calendar.getInstance();
+        selected.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
+        selected.set(Calendar.MILLISECOND, 0);
+
+        detachActiveListener();
+
+        activeListener = FirestoreManager.getInstance()
+                .budgetsReference(uid)
+                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((qs, e) -> {
+                    if (e != null || qs == null) {
+                        budgetsLiveData.postValue(new ArrayList<>());
+                        totalRemainingLiveData.postValue(0.0);
+                        return;
+                    }
+
+                    List<Budget> list = new ArrayList<>();
+
+                    for (DocumentSnapshot doc : qs.getDocuments()) {
+                        Budget b = toBudgetWithId(doc);
+                        if (b == null) {
+                            continue;
                         }
 
-                        List<Budget> filtered = new ArrayList<>();
-                        Calendar currentDate = Calendar.getInstance();
-                        currentDate.set(appDate.getYear(), appDate.getMonth() - 1,
-                                appDate.getDay(), 0, 0, 0);
-
-                        for (DocumentSnapshot doc : qs.getDocuments()) {
-                            Budget b = toBudgetWithId(doc);
-                            if (b == null) {
-                                continue;
-                            }
-
-                            Object raw = doc.get("startDate");
-                            String fallback = b.getStartDate();
-                            YMD start = extractYMD(raw, fallback);
-
-                            if (start != null && startedOnOrBefore(start, appDate)) {
-                                boolean expired = isBudgetExpired(b, currentDate.getTime());
-                                if (expired) {
-                                    applyRollover(b, currentDate.getTime());
-                                }
-                                filtered.add(b);
-                            }
+                        boolean expired = isBudgetExpired(b, selected.getTime());
+                        if (expired) {
+                            applyRollover(b, selected.getTime());
                         }
 
-                        filtered.sort((b1, b2) -> {
-                            int cmp = Long.compare(b2.getStartDateTimestamp(),
-                                    b1.getStartDateTimestamp());
-                            if (cmp == 0) {
-                                return b1.getName().compareToIgnoreCase(b2.getName());
-                            }
-                            return cmp;
-                        });
+                        b.setOverBudget(b.getMoneyRemaining() < 0);
 
-                    });
-        }
+                        list.add(b);
+                    }
+
+                    list.sort((b1, b2) ->
+                            Long.compare(b2.getStartDateTimestamp(), b1.getStartDateTimestamp()));
+
+                    budgetsLiveData.postValue(list);
+
+                    double totalRemaining = 0;
+                    for (Budget b : list) {
+                        totalRemaining += b.getMoneyRemaining();
+                    }
+                    totalRemainingLiveData.postValue(totalRemaining);
+
+                    computeAllTimeSpent();
+                });
     }
 
     /**
      * Applies a rollover to a budget if its period has expired.
      *
      * @param budget      The budget object to roll over to a new period.
-     * @param currentDate The current date used to determine expiration and new start date.
+     * @param targetDate The current date used to determine expiration and new start date.
      */
-    public void applyRollover(Budget budget, Date currentDate) {
+    public void applyRollover(Budget budget, Date targetDate) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-            Date startDate = sdf.parse(budget.getStartDate());
+
+            Date startDate = (budget.getStartDateTimestamp() > 0)
+                    ? new Date(budget.getStartDateTimestamp())
+                    : sdf.parse(budget.getStartDate());
+
             if (startDate == null) {
-                System.out.println("Skipping rollover for "
-                        + budget.getName() + " (invalid start date)");
                 return;
             }
 
-            if (startDate.after(currentDate)) {
-                System.out.println("Skipping rollover for "
-                        + budget.getName() + " (start date is in the future)");
-                return;
+            Calendar currentStart = Calendar.getInstance();
+            currentStart.setTime(startDate);
+
+            boolean rolledAny = false;
+            int safety = 0;
+
+            while (isBudgetExpired(budget, targetDate) && safety < 36) {
+                safety++;
+
+                Calendar nextStart = (Calendar) currentStart.clone();
+                if ("Weekly".equalsIgnoreCase(budget.getFrequency())) {
+                    nextStart.add(Calendar.DAY_OF_YEAR, 7);
+                } else if ("Monthly".equalsIgnoreCase(budget.getFrequency())) {
+                    nextStart.add(Calendar.MONTH, 1);
+                } else {
+                    break;
+                }
+
+                boolean wasOver = budget.getMoneyRemaining() < 0;
+                budget.setPreviousCycleOverBudget(wasOver);
+                budget.setPreviousCycleEndTimestamp(System.currentTimeMillis());
+
+                double newTotal = budget.getAmount() + budget.getMoneyRemaining();
+
+                budget.setSpentToDate(0);
+                budget.setMoneyRemaining(newTotal);
+                budget.setStartDate(sdf.format(nextStart.getTime()));
+                budget.setStartDateTimestamp(nextStart.getTimeInMillis());
+                budget.setHasPreviousCycle(true);
+
+                currentStart = nextStart;
+                rolledAny = true;
             }
 
-            // Don't roll over the same budget multiple times within the same session
-            if (budget.isHasPreviousCycle() && !isBudgetExpired(budget, currentDate)) {
-                System.out.println("Skipping rollover for "
-                        + budget.getName() + " (already rolled over)");
-                return;
+            if (rolledAny) {
+                updateBudget(budget);
             }
-
-            Calendar nextStart = Calendar.getInstance();
-            nextStart.setTime(startDate);
-
-
-            if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
-                nextStart.add(Calendar.DAY_OF_YEAR, 7);
-            } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
-                nextStart.add(Calendar.MONTH, 1);
-            }
-
-
-            //Add the rollover
-            double remaining = budget.getMoneyRemaining();
-            double newTotal = budget.getAmount() + remaining;
-
-            // current startDate is the old one — safe to log first
-            System.out.println("Rolling over budget: " + budget.getName());
-            System.out.println("  Previous start date: " + budget.getStartDate());
-            System.out.println("  Remaining money: " + remaining);
-            System.out.println("  New total (with rollover): " + newTotal);
-
-            budget.setSpentToDate(0);
-            budget.setMoneyRemaining(budget.getAmount() + remaining);
-            budget.setStartDate(sdf.format(nextStart.getTime()));
-            budget.setStartDateTimestamp(nextStart.getTimeInMillis());
-            budget.setHasPreviousCycle(true);
-
-            updateBudget(budget);
-            System.out.println("Rolled over budget: " + budget.getName());
-
-
-        } catch (ParseException e) {
-            System.err.println("Failed to apply rollover for " + budget.getName());
-            e.printStackTrace();
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "applyRollover(): Exception for " + budget.getName(), e);
         }
     }
 
@@ -328,11 +348,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
     public void updateBudget(Budget budget) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            System.err.println("UpdateBudget: no verified user found!");
             return;
         }
         if (budget.getId() == null || budget.getId().isEmpty()) {
-            System.err.println("UpdateBudget: no id found!");
             return;
         }
         String uid = auth.getCurrentUser().getUid();
@@ -346,10 +364,14 @@ public class BudgetsFragmentViewModel extends ViewModel {
                         "startDateTimestamp", budget.getStartDateTimestamp(),
                         "spentToDate", budget.getSpentToDate(),
                         "moneyRemaining", budget.getMoneyRemaining(),
-                        "hasPreviousCycle", budget.isHasPreviousCycle()
+                        "hasPreviousCycle", budget.isHasPreviousCycle(),
+                        "previousCycleOverBudget", budget.isPreviousCycleOverBudget(),
+                        "previousCycleEndTimestamp", budget.getPreviousCycleEndTimestamp()
                 )
-                .addOnSuccessListener(v -> System.out.println("Budget updated successfully"))
-                .addOnFailureListener(e -> System.err.println("Budget failed to update"));
+                .addOnSuccessListener(v ->
+                        android.util.Log.d(TAG, "updateBudget(): SUCCESS for " + budget.getName()))
+                .addOnFailureListener(e ->
+                        android.util.Log.e(TAG, "updateBudget(): FAIL for " + budget.getName(), e));
     }
 
     private Budget toBudgetWithId(@NonNull DocumentSnapshot doc) {
@@ -508,7 +530,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
         return null;
     }
 
-    /** Simple holder for a full date (year, month, day). month = 1..12 */
     private static final class YMD {
         private final int year;
         private final int month;

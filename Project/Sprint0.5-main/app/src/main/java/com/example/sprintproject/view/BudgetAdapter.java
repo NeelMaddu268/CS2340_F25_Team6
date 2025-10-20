@@ -74,6 +74,7 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
         holder.startDateText.setText(budget.getStartDate());
 
         if (budget.isHasPreviousCycle()) {
+            holder.lastWeekBudgetTitle.setText("Last cycle you were ");
             if (budget.isPreviousCycleOverBudget()) {
                 holder.lastWeekBudgetText.setText("over budget.");
                 holder.lastWeekBudgetTitle.setVisibility(View.VISIBLE);

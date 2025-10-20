@@ -143,7 +143,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                             .get()
                                             .addOnSuccessListener(catSnap -> {
                                                 if (!catSnap.isEmpty()) {
-                                                    // Found existing — append budget safely
+                                                    // Found existing, add budget
                                                     DocumentSnapshot existing =
                                                             catSnap.getDocuments().get(0);
                                                     existing.getReference().update(
@@ -151,7 +151,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                                             FieldValue.arrayUnion(budgetId)
                                                     );
                                                 } else {
-                                                    // Create only if still not found
+                                                    // Create if not found
                                                     Map<String, Object> cat = new HashMap<>();
                                                     cat.put("name", category);
                                                     cat.put("budgets",

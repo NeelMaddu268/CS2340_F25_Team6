@@ -75,30 +75,26 @@ public class ExpensesFragment extends Fragment {
         });
         recyclerView.setAdapter(adapter);
 
-        // Scope to activity so Dashboard/Budgets/Expenses share the same selected date
         expensesFragmentViewModel = new ViewModelProvider(requireActivity())
-
                 .get(ExpensesFragmentViewModel.class);
         dateVM = new ViewModelProvider(requireActivity())
                 .get(DateViewModel.class);
 
-        // Always submit a NEW list to force DiffUtil refresh between empty/non-empty
         expensesFragmentViewModel.getExpenses().observe(
                 getViewLifecycleOwner(),
                 list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
         );
-        // React to date changes: show expenses with date <= selected (day-aware)
+
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
             if (selected != null) {
                 expensesFragmentViewModel.loadExpensesFor(selected);
             }
         });
 
-        // Seed immediately using saved/today date (in case observer hasn't fired yet)
         if (dateVM.getCurrentDate().getValue() != null) {
             expensesFragmentViewModel.loadExpensesFor(dateVM.getCurrentDate().getValue());
         } else {
-            expensesFragmentViewModel.loadExpenses(); // rare fallback
+            expensesFragmentViewModel.loadExpenses();
         }
 
         Button addExpense = view.findViewById(R.id.addExpense);

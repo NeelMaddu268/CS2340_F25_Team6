@@ -32,7 +32,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
             new MutableLiveData<>(new ArrayList<>());
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private ListenerRegistration activeListener; // keep only one listener
+    private ListenerRegistration activeListener;
 
     public LiveData<List<Expense>> getExpenses() {
         return expensesLiveData;
@@ -65,7 +65,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
                 .orderBy("timestamp",
-                        Query.Direction.DESCENDING)  // change if your field is named differently
+                        Query.Direction.DESCENDING)
                 .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
                         expensesLiveData.postValue(new ArrayList<>());
@@ -75,8 +75,6 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     for (DocumentSnapshot doc : qs.getDocuments()) {
                         Expense exp = doc.toObject(Expense.class);
                         if (exp != null) {
-                            // If your Expense has setId(String), uncomment the next line:
-                            // exp.setId(doc.getId());
                             list.add(exp);
                         }
                     }
@@ -102,7 +100,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
-                .orderBy("timestamp", Query.Direction.DESCENDING)  // change if needed
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
                         expensesLiveData.postValue(new ArrayList<>());
@@ -114,19 +112,18 @@ public class ExpensesFragmentViewModel extends ViewModel {
                         if (exp == null) {
                             continue;
                         }
-                        // If your Expense has setId(String), uncomment:
-                        // if (exp.getId() == null) exp.setId(doc.getId());
 
-                        Object raw = doc.get("date");       // Timestamp/Date/Long/String
+                        Object raw = doc.get("date");
                         String fallback = null;
                         try {
-                            // If your model exposes a string date getter:
                             java.lang.reflect.Method m = exp.getClass().getMethod("getDate");
                             Object val = m.invoke(exp);
                             if (val instanceof String) {
                                 fallback = (String) val;
                             }
-                        } catch (Exception ignored) { /* model may not have getDate() */ }
+                        } catch (Exception ignored) {
+
+                        }
 
                         YMD when = extractYMD(raw, fallback);
                         if (when != null && onOrBefore(when, appDate)) {
@@ -137,7 +134,6 @@ public class ExpensesFragmentViewModel extends ViewModel {
                 });
     }
 
-    // -------- helpers --------
 
     private boolean onOrBefore(YMD item, AppDate selected) {
         Calendar sel = Calendar.getInstance();
@@ -234,7 +230,6 @@ public class ExpensesFragmentViewModel extends ViewModel {
             }
         }
 
-        // Loose fallback like "2023-05" or "2023/05"
         String cleaned = t.replace('/', '-');
         String[] parts = cleaned.split("-");
         if (parts.length >= 2) {

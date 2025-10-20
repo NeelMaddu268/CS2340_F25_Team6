@@ -6,9 +6,10 @@ import static org.junit.Assert.*;
 
 /**
  * Combined Unit Tests for Sprint 1 & 2 requirements.
- * - Covers budget surplus and percent calculations
- * - Validates expense date (no future dates)
- * - Checks input validation for account creation/login
+ * - Budget surplus and percent calculations
+ * - Expense date validation
+ * - Authentication input validation
+ * - Edge cases for rollover logic and invalid inputs
  */
 public class AppUnitTests {
     @Test
@@ -21,6 +22,18 @@ public class AppUnitTests {
     public void testComputePercentUsed() {
         int percent = BudgetCalculator.computePercentUsed(1000, 250);
         assertEquals(25, percent);
+    }
+
+    @Test
+    public void testZeroTotalBudget() {
+        int percent = BudgetCalculator.computePercentUsed(0, 500);
+        assertEquals(0, percent);
+    }
+
+    @Test
+    public void testOverBudgetReturnsNegativeSurplus() {
+        double surplus = BudgetCalculator.computeSurplus(500, 700);
+        assertTrue(surplus < 0);
     }
 
     @Test
@@ -41,6 +54,18 @@ public class AppUnitTests {
     }
 
     @Test
+    public void testExpenseWithNullDateFails() {
+        Calendar now = Calendar.getInstance();
+        assertFalse(ExpenseValidator.isValidExpenseDate(null, now.getTime()));
+    }
+
+    @Test
+    public void testExpenseWithSameDayIsValid() {
+        Calendar today = Calendar.getInstance();
+        assertTrue(ExpenseValidator.isValidExpenseDate(today.getTime(), today.getTime()));
+    }
+
+    @Test
     public void testRejectEmptyCredentials() {
         assertFalse(AuthValidator.isValidInput("", "pass"));
         assertFalse(AuthValidator.isValidInput(" ", " "));
@@ -50,6 +75,17 @@ public class AppUnitTests {
     @Test
     public void testAcceptValidCredentials() {
         assertTrue(AuthValidator.isValidInput("user@email.com", "password123"));
+    }
+
+    @Test
+    public void testRejectShortPassword() {
+        assertFalse(AuthValidator.isValidInput("user@email.com", "a"));
+    }
+
+    @Test
+    public void testRejectInvalidEmailFormat() {
+        assertFalse(AuthValidator.isValidInput("useremail.com", "password"));
+        assertFalse(AuthValidator.isValidInput("user@", "password"));
     }
 
     public static class BudgetCalculator {
@@ -67,14 +103,28 @@ public class AppUnitTests {
 
     public static class AuthValidator {
         public static boolean isValidInput(String email, String password) {
-            return email != null && password != null
-                    && !email.trim().isEmpty() && !password.trim().isEmpty();
+            if (email == null || password == null) {
+                return false;
+            }
+            if (email.trim().isEmpty() || password.trim().isEmpty()) {
+                return false;
+            }
+            if (!email.contains("@") || !email.contains(".")) {
+                return false;
+            }
+            if (password.length() < 3) {
+                return false;
+            }
+            return true;
         }
     }
 
     public static class ExpenseValidator {
         public static boolean isValidExpenseDate(
                 java.util.Date expenseDate, java.util.Date currentDate) {
+            if (expenseDate == null || currentDate == null) {
+                return false;
+            }
             return !expenseDate.after(currentDate);
         }
     }
