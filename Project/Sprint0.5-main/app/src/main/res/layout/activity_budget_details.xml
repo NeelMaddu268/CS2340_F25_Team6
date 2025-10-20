@@ -50,19 +50,15 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/backButton"
-            android:text="Back"
-            android:layout_marginBottom="16dp"/>
-
         <ProgressBar
             android:id="@+id/budgetProgressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" />
+            android:layout_height="32dp"
+            android:max="100"
+            android:progressTint="@color/blue"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/budgetPositiveText"
@@ -70,36 +66,77 @@
             android:layout_height="wrap_content"
             android:text="Surplus: "
             android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="8dp" />
 
         <!--calculator section -->
+        <TextView
+            android:id="@+id/budgetCalculatorText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Budget Calculator"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/labelBudgetTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total Budget: "
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
+
         <EditText
             android:id="@+id/budgetInputTotal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
+            android:minHeight="16dp"
             android:paddingVertical="12dp"
             android:inputType="numberDecimal"
             android:hint="Enter Total Budget"
             android:autofillHints="budgetTotal"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/labelSpentToDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Spent-to-date: "
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
 
         <EditText
             android:id="@+id/budgetInputSpent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
+            android:minHeight="16dp"
             android:paddingVertical="12dp"
             android:inputType="numberDecimal"
             android:hint="Enter Spent to Date"
             android:autofillHints="budgetSpent"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/labelBudgetRemaining"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remaining Budget: "
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
 
         <EditText
             android:id="@+id/budgetInputRemaining"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
+            android:minHeight="16dp"
             android:paddingVertical="12dp"
             android:inputType="numberDecimal"
             android:hint="Enter Remaining"
@@ -111,13 +148,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Compute Budget"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
         <Button
             android:id="@+id/budgetSaveButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save Budget"/>
+            android:text="Save Budget"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/backButton"
+            android:text="Back"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"/>
 
     </LinearLayout>
 
