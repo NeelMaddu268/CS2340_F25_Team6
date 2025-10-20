@@ -18,7 +18,9 @@ public class BudgetDetailsViewModel extends ViewModel {
                                 Runnable onSuccess, Runnable onFailure) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            if (onFailure != null) onFailure.run();
+            if (onFailure != null) {
+                onFailure.run();
+            }
             return;
         }
         String uid = auth.getCurrentUser().getUid();
@@ -35,17 +37,23 @@ public class BudgetDetailsViewModel extends ViewModel {
                 .document("userCalculations")
                 .set(calc)
                 .addOnSuccessListener(a -> {
-                    if (onSuccess != null) onSuccess.run();
+                    if (onSuccess != null) {
+                        onSuccess.run();
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    if (onFailure != null) onFailure.run();
+                    if (onFailure != null) {
+                        onFailure.run();
+                    }
                 });
     }
 
     /** Load the calculation data, if it has any from /calculations */
     public void loadCalculation(String budgetId, FirestoreCalcCallback callback) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) return;
+        if (auth.getCurrentUser() == null) {
+            return;
+        }
 
         String uid = auth.getCurrentUser().getUid();
 
