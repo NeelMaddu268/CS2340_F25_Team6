@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;              // <-- ADD
@@ -39,6 +40,8 @@ public class ExpensesFragment extends Fragment {
     private DateViewModel dateVM;                                    // <-- ADD
     private RecyclerView recyclerView;
     private ExpenseAdapter adapter;
+    private BudgetsFragmentViewModel budgetsFragmentViewModel;
+
 
     public ExpensesFragment() {
         super(R.layout.fragment_expenses);
@@ -63,7 +66,8 @@ public class ExpensesFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
+        budgetsFragmentViewModel = new ViewModelProvider(requireActivity())
+                .get(BudgetsFragmentViewModel.class);
         adapter = new ExpenseAdapter(expense -> {
             Intent intent = new Intent(requireContext(), ExpenseDetailsActivity.class);
             intent.putExtra("expenseName", expense.getName());
@@ -161,7 +165,10 @@ public class ExpensesFragment extends Fragment {
                     isValid = false;
                 }
                 if (isValid) {
-                    expenseCreationViewModel.createExpense(name, date, amount, category, notes);
+                    expenseCreationViewModel.createExpense(name, date,
+                            amount, category, notes, () -> {
+                            budgetsFragmentViewModel.loadBudgets(); //Refresh UI properly
+                        });
                     dialog.dismiss();
                     expenseName.setText("");
                     expenseDate.setText("");

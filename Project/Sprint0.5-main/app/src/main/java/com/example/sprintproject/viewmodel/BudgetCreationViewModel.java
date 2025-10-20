@@ -153,13 +153,17 @@ public class BudgetCreationViewModel extends ViewModel {
                                                 } else {
                                                     // Create if not found
                                                     Map<String, Object> cat = new HashMap<>();
-                                                    cat.put("name", category);
+                                                    cat.put("name",
+                                                            category.trim()
+                                                                    .toLowerCase(
+                                                                            Locale.US));
                                                     cat.put("budgets",
                                                             Collections.singletonList(budgetId));
                                                     cat.put("expenses", Collections.emptyList());
                                                     FirestoreManager.getInstance()
                                                             .categoriesReference(uid)
                                                             .add(cat);
+
                                                 }
                                                 if (onComplete != null) {
                                                     onComplete.run();
@@ -187,9 +191,9 @@ public class BudgetCreationViewModel extends ViewModel {
     public void createSampleBudgets(Runnable onComplete) {
         Calendar calendar = Calendar.getInstance();
         String[][] sampleBudgets = {
-                {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
-                {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
-                {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
+                {"Eating Budget", "Oct 17, 2025", "100.00", "eating", "Weekly"},
+                {"Travel Budget", "Oct 19, 2025", "1000.00", "travel", "Monthly"},
+                {"Gaming Budget", "Oct 21, 2025", "1500.00", "gaming", "Weekly"}
         };
 
         final int[] completedCount = {0};
