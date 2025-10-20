@@ -87,15 +87,13 @@ public class BudgetsFragmentViewModel extends ViewModel {
         String uid = auth.getCurrentUser().getUid();
 
         detachActiveListener();
+        activeListener = null;
 
-        activeListener = FirestoreManager.getInstance()
+        FirestoreManager.getInstance()
                 .budgetsReference(uid)
                 .orderBy("startDate", Query.Direction.DESCENDING)
-                .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
-                    if (e != null || qs == null) {
-                        budgetsLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
+                .get()
+                .addOnSuccessListener(qs -> {
                     List<Budget> filtered = new ArrayList<>();
                     Calendar current = Calendar.getInstance();
                     current.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
@@ -132,8 +130,16 @@ public class BudgetsFragmentViewModel extends ViewModel {
                         }
                     }
                     budgetsLiveData.postValue(filtered);
+                })
+                .addOnFailureListener(err -> {
+                    budgetsLiveData.postValue(new ArrayList<>());
+                    System.err.println("Failed to load budgets: " + err.getMessage());
                 });
     }
+//
+//    public void checkAndApplyRollovers(Date simulatedDate) {
+//
+//    }
 
     /** Get single budget by id. */
     public LiveData<Budget> getBudgetById(String budgetId) {

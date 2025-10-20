@@ -13,10 +13,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.Budget;
+import com.example.sprintproject.viewmodel.BudgetDetailsViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
-
-import android.text.Editable;
-import android.text.TextWatcher;
 
 public class BudgetDetailsActivity extends AppCompatActivity {
 
@@ -32,11 +30,14 @@ public class BudgetDetailsActivity extends AppCompatActivity {
     private Button budgetSaveButton;
 
     private BudgetsFragmentViewModel viewModel;
+    private BudgetDetailsViewModel budgetDetailsViewModel;
     private Budget currentBudget;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_details);
+
+        budgetDetailsViewModel = new ViewModelProvider(this).get(BudgetDetailsViewModel.class);
 
         // Get the budget details from the intent
         String budgetName = getIntent().getStringExtra("budgetName");
@@ -69,56 +70,6 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         budgetComputeButton = findViewById(R.id.budgetComputeButton);
         budgetSaveButton = findViewById(R.id.budgetSaveButton);
 
-        TextWatcher liveUpdates = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int before, int count) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                String totalString = budgetInputTotal.getText().toString();
-                String spentString = budgetInputSpent.getText().toString();
-                String remainingString = budgetInputRemaining.getText().toString();
-
-                int filledInputs = 0;
-                if (!totalString.isEmpty()) {
-                    filledInputs++;
-                }
-                if (!spentString.isEmpty()) {
-                    filledInputs++;
-                }
-                if (!remainingString.isEmpty()) {
-                    filledInputs++;
-                }
-                if (filledInputs >= 2) {
-                    double total = totalString.isEmpty() ? 0.0 : Double.parseDouble(totalString);
-                    double spent = spentString.isEmpty() ? 0.0 : Double.parseDouble(spentString);
-                    double remaining = remainingString.isEmpty() ? 0.0 : Double.parseDouble(remainingString);
-
-                    if (totalString.isEmpty()) {
-                        total = spent + remaining;
-                        budgetInputTotal.setHint("Total: $" + String.valueOf(total));
-                    } else if (spentString.isEmpty()) {
-                        spent = total - remaining;
-                        budgetInputSpent.setHint("Spent to Date: $" + String.valueOf(spent));
-                    } else if (remainingString.isEmpty()) {
-                        remaining = total - spent;
-                        budgetInputRemaining.setHint("Remaining: $" + String.valueOf(remaining));
-                    }
-
-                    updateProgressBar(total, spent);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        };
-
-        budgetInputTotal.addTextChangedListener(liveUpdates);
-        budgetInputRemaining.addTextChangedListener(liveUpdates);
-        budgetInputSpent.addTextChangedListener(liveUpdates);
-
         viewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
 
         String budgetID = getIntent().getStringExtra("budgetId");
@@ -127,6 +78,26 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                 if (budget != null) {
                     currentBudget = budget;
                     updateBudgetUI(budget);
+
+                    budgetDetailsViewModel.loadCalculation(budgetID, (total, spent, remaining) -> {
+                        if (total != null) {
+                            budgetInputTotal.setText(String.valueOf(total));
+                        }
+                        if (spent != null) {
+                            budgetInputSpent.setText(String.valueOf(spent));
+                        }
+                        if (remaining != null) {
+                            budgetInputRemaining.setText(String.valueOf(remaining));
+                        }
+                        if (total != null && spent != null) {
+                            double surplus = total - spent;
+                            if (surplus >= 0) {
+                                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
+                            } else {
+                                budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(surplus)));
+                            }
+                        }
+                    });
                 }
             });
 
@@ -183,7 +154,12 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                 budgetInputRemaining.setText(String.valueOf(remaining));
             }
 
-            updateProgressBar(total, spent);
+            double surplus = total - spent;
+            if (surplus >= 0) {
+                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
+            } else {
+                budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(surplus)));
+            }
         });
 
         // save the calculations
@@ -198,33 +174,34 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                 double spent = Double.parseDouble(budgetInputSpent.getText().toString());
                 double remaining = Double.parseDouble(budgetInputRemaining.getText().toString());
 
-                currentBudget.setAmount(total);
-                currentBudget.setSpentToDate(spent);
-                currentBudget.setMoneyRemaining(remaining);
-
-                viewModel.updateBudget(currentBudget);
-                Toast.makeText(this, "Budget saved!", Toast.LENGTH_SHORT).show();
-
+                budgetDetailsViewModel.saveCalculation(
+                        currentBudget.getId(),
+                        total,
+                        spent,
+                        remaining,
+                        () -> {
+                            Toast.makeText(this, "Budget saved!", Toast.LENGTH_SHORT).show();
+                        },
+                        () -> {
+                            Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show();
+                        }
+                );
             } catch (NumberFormatException e) {
                 Toast.makeText(this, "Invalid numbers were entered.", Toast.LENGTH_SHORT).show();
             }
         });
-
-
     }
 
     // this is how to update the UI
     private void updateBudgetUI(Budget budget) {
-        budgetInputTotal.setText(String.valueOf(budget.getAmount()));
-        budgetInputSpent.setText(String.valueOf(budget.getSpentToDate()));
-        budgetInputRemaining.setText(String.valueOf(budget.getMoneyRemaining()));
+        budgetSurplusText.setText("");
         updateProgressBar(budget.getAmount(), budget.getSpentToDate());
     }
 
     // updating the progress bar UI
     private void updateProgressBar(double total, double spent) {
         if (total > 0) {
-            int budgetPercent = (int) ((spent/total) * 100);
+            int budgetPercent = (int) ((spent / total) * 100);
             budgetProgressBar.setProgress(budgetPercent);
 
             double budgetSurplus = total - spent;
@@ -233,6 +210,14 @@ public class BudgetDetailsActivity extends AppCompatActivity {
             } else {
                 budgetSurplusText.setText("Over budget by: $" + String.format("%.2f", Math.abs(budgetSurplus)));
             }
+        }
+    }
+
+    private double parseCarefully(String val) {
+        try {
+            return Double.parseDouble(val);
+        } catch (NumberFormatException e) {
+            return 0.0;
         }
     }
 }
