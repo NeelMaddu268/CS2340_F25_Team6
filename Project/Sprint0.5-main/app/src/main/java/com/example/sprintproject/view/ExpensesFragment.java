@@ -59,8 +59,7 @@ public class ExpensesFragment extends Fragment {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                     v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                     return insets;
-                }
-        );
+                });
 
         recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -108,7 +107,6 @@ public class ExpensesFragment extends Fragment {
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
                     .setView(popupView)
                     .create();
-
             EditText expenseName = popupView.findViewById(R.id.ExpenseName);
             EditText expenseAmount = popupView.findViewById(R.id.ExpenseAmount);
             EditText expenseDate = popupView.findViewById(R.id.ExpenseDate);
@@ -120,17 +118,20 @@ public class ExpensesFragment extends Fragment {
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
-            expenseCreationViewModel.getCategories().observe(getViewLifecycleOwner(), categories -> {
-                List<String> all = new ArrayList<>();
-                all.add("Choose a category");
-                all.addAll(categories);
-                ArrayAdapter<String> catAdapter = new ArrayAdapter<>(
-                        requireContext(),
-                        android.R.layout.simple_spinner_dropdown_item,
-                        all
-                );
-                categorySpinner.setAdapter(catAdapter);
-            });
+            expenseCreationViewModel.getCategories().observe(
+                    getViewLifecycleOwner(),
+                    categories -> {
+                        List<String> allCategories = new ArrayList<>();
+                        allCategories.add("Choose a category");
+                        allCategories.addAll(categories);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                requireContext(),
+                                android.R.layout.simple_spinner_dropdown_item,
+                                allCategories
+                        );
+                        categorySpinner.setAdapter(adapter);
+                    });
+
             expenseCreationViewModel.loadCategories();
 
             createBtn.setOnClickListener(view1 -> {
@@ -139,22 +140,39 @@ public class ExpensesFragment extends Fragment {
                 String amount = expenseAmount.getText().toString();
                 String category = categorySpinner.getSelectedItem().toString();
                 String notes = expenseNotes.getText().toString();
-
-                if (category.equals("Choose a category")) {
-                    Toast.makeText(requireContext(), "Please select a valid category", Toast.LENGTH_SHORT).show();
-                    return;
+                boolean isValid = true;
+                try {
+                    int intAmount = Integer.parseInt(amount);
+                    if (intAmount <= 0) {
+                        expenseAmount.setError("Amount must be greater than 0");
+                        isValid = false;
+                    }
+                    if (name.equals("")) {
+                        expenseName.setError("Please enter a name");
+                        isValid = false;
+                    }
+                    if (category.equals("Choose a category")) {
+                        Toast.makeText(requireContext(), "Please select a valid category",
+                                Toast.LENGTH_SHORT).show();
+                        isValid = false;
+                    }
+                    if (date.equals("")) {
+                        expenseDate.setError("Please select a date");
+                        isValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    expenseAmount.setError("Amount must be a number");
+                    isValid = false;
                 }
-
-                expenseCreationViewModel.createExpense(name, date, amount, category, notes);
-
-                // Clear inputs
-                expenseName.setText("");
-                expenseDate.setText("");
-                expenseAmount.setText("");
-                categorySpinner.setSelection(0);
-                expenseNotes.setText("");
-
-                dialog.dismiss();
+                if (isValid) {
+                    expenseCreationViewModel.createExpense(name, date, amount, category, notes);
+                    dialog.dismiss();
+                    expenseName.setText("");
+                    expenseDate.setText("");
+                    expenseAmount.setText("");
+                    categorySpinner.setSelection(0);
+                    expenseNotes.setText("");
+                }
             });
 
             expenseDate.setOnClickListener(v1 -> {
