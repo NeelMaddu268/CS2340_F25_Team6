@@ -27,18 +27,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.AppDate;
-import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
+
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 public class BudgetsFragment extends Fragment {
@@ -73,7 +69,6 @@ public class BudgetsFragment extends Fragment {
                 });
 
         setupRecyclerView(view);
-        setupFirestoreListener();
 
         budgetsFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(BudgetsFragmentViewModel.class);
@@ -145,34 +140,6 @@ public class BudgetsFragment extends Fragment {
         recyclerView.setAdapter(adapter);
     }
 
-    private void setupFirestoreListener() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        String uid = auth.getCurrentUser().getUid();
-
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(uid)
-                .collection("budgets")
-                .addSnapshotListener((querySnapshot, e) -> {
-                    if (e != null) {
-                        System.err.println("Listen failed: " + e);
-                        return;
-                    }
-
-                    if (querySnapshot != null) {
-                        List<Budget> updatedBudgets = new ArrayList<>();
-                        for (DocumentSnapshot doc : querySnapshot) {
-                            Budget budget = doc.toObject(Budget.class);
-                            if (budget != null) {
-                                budget.setId(doc.getId());
-                                updatedBudgets.add(budget);
-                            }
-                        }
-                        adapter.submitList(updatedBudgets);
-                    }
-                });
-    }
-
     private void setupAddBudgetDialog() {
         addBudget.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_budget_creation, null);
@@ -192,7 +159,8 @@ public class BudgetsFragment extends Fragment {
         Button createBudgetButton = popupView.findViewById(R.id.createBudgetButton);
         Button cancelButton = popupView.findViewById(R.id.cancelButton);
 
-        BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
+        BudgetCreationViewModel budgetCreationViewModel =
+                new ViewModelProvider(requireActivity()).get(BudgetCreationViewModel.class);
         setupFrequencySpinner(popupView, budgetFrequencyEntry, budgetDateEntry);
 
         // --- Date picker setup ---

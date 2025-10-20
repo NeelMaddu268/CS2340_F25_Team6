@@ -51,7 +51,6 @@ public class ExpensesFragment extends Fragment {
             Bundle savedInstanceState
     ) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
                 view.findViewById(R.id.expenselog_layout),
@@ -78,6 +77,7 @@ public class ExpensesFragment extends Fragment {
 
         // Scope to activity so Dashboard/Budgets/Expenses share the same selected date
         expensesFragmentViewModel = new ViewModelProvider(requireActivity())
+
                 .get(ExpensesFragmentViewModel.class);
         dateVM = new ViewModelProvider(requireActivity())
                 .get(DateViewModel.class);

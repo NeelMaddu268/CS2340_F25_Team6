@@ -88,25 +88,35 @@ public class BudgetsFragmentViewModel extends ViewModel {
         }
         String uid = auth.getCurrentUser().getUid();
 
-        detachActiveListener();
-
-        activeListener = FirestoreManager.getInstance()
-                .budgetsReference(uid)
-                .orderBy("startDate", Query.Direction.DESCENDING)
-                .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
-                    if (e != null || qs == null) {
-                        budgetsLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-                    List<Budget> list = new ArrayList<>();
-                    for (DocumentSnapshot doc : qs.getDocuments()) {
-                        Budget b = toBudgetWithId(doc);
-                        if (b != null) {
-                            list.add(b);
+        // ✅ Only attach once
+        if (activeListener == null) {
+            activeListener = FirestoreManager.getInstance()
+                    .budgetsReference(uid)
+                    .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                    .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
+                        if (e != null || qs == null) {
+                            budgetsLiveData.postValue(new ArrayList<>());
+                            return;
                         }
-                    }
-                    budgetsLiveData.postValue(list);
-                });
+
+                        List<Budget> list = new ArrayList<>();
+                        for (DocumentSnapshot doc : qs.getDocuments()) {
+                            Budget b = toBudgetWithId(doc);
+                            if (b != null) {
+                                list.add(b);
+                            }
+                        }
+
+                        // ✅ Sort by newest startDateTimestamp before posting
+                        list.sort((b1, b2) -> Long.compare(
+                                b2.getStartDateTimestamp(),
+                                b1.getStartDateTimestamp()
+                        ));
+
+                        budgetsLiveData.postValue(list);
+
+                    });
+        }
     }
 
     /**
@@ -122,47 +132,52 @@ public class BudgetsFragmentViewModel extends ViewModel {
         }
         String uid = auth.getCurrentUser().getUid();
 
-        detachActiveListener();
-        activeListener = null;
-
-        FirestoreManager.getInstance()
-                .budgetsReference(uid)
-                .orderBy("startDate", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(qs -> {
-                    List<Budget> filtered = new ArrayList<>();
-                    Calendar current = Calendar.getInstance();
-                    current.set(appDate.getYear(), appDate.getMonth() - 1,
-                            appDate.getDay(), 0, 0, 0);
-
-                    for (DocumentSnapshot doc : qs.getDocuments()) {
-                        Budget b = toBudgetWithId(doc);
-                        if (b == null) {
-                            continue;
+        // ✅ Don’t detach and recreate listener — just reuse existing one
+        if (activeListener == null) {
+            activeListener = FirestoreManager.getInstance()
+                    .budgetsReference(uid)
+                    .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                    .addSnapshotListener((qs, e) -> {
+                        if (e != null || qs == null) {
+                            budgetsLiveData.postValue(new ArrayList<>());
+                            return;
                         }
 
-                        Object raw = doc.get("startDate");   // Timestamp/Date/Long/String
-                        String fallback = b.getStartDate();  // model’s string if present
-                        YMD start = extractYMD(raw, fallback);
+                        List<Budget> filtered = new ArrayList<>();
+                        Calendar currentDate = Calendar.getInstance();
+                        currentDate.set(appDate.getYear(), appDate.getMonth() - 1,
+                                appDate.getDay(), 0, 0, 0);
 
-                        if (start != null && startedOnOrBefore(start, appDate)) {
+                        for (DocumentSnapshot doc : qs.getDocuments()) {
+                            Budget b = toBudgetWithId(doc);
+                            if (b == null) {
+                                continue;
+                            }
 
-                            boolean expired = isBudgetExpired(b, current.getTime());
+                            Object raw = doc.get("startDate");
+                            String fallback = b.getStartDate();
+                            YMD start = extractYMD(raw, fallback);
 
-                            if (expired) {
-                                applyRollover(b, current.getTime());
-                                filtered.add(b);
-                            } else {
+                            if (start != null && startedOnOrBefore(start, appDate)) {
+                                boolean expired = isBudgetExpired(b, currentDate.getTime());
+                                if (expired) {
+                                    applyRollover(b, currentDate.getTime());
+                                }
                                 filtered.add(b);
                             }
                         }
-                    }
-                    budgetsLiveData.postValue(filtered);
-                })
-                .addOnFailureListener(err -> {
-                    budgetsLiveData.postValue(new ArrayList<>());
-                    System.err.println("Failed to load budgets: " + err.getMessage());
-                });
+
+                        filtered.sort((b1, b2) -> {
+                            int cmp = Long.compare(b2.getStartDateTimestamp(),
+                                    b1.getStartDateTimestamp());
+                            if (cmp == 0) {
+                                return b1.getName().compareToIgnoreCase(b2.getName());
+                            }
+                            return cmp;
+                        });
+
+                    });
+        }
     }
 
     /**
@@ -295,9 +310,10 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 .addOnFailureListener(e -> System.err.println("Budget failed to update"));
     }
 
-    // -------- Helpers --------
-
     private Budget toBudgetWithId(@NonNull DocumentSnapshot doc) {
+        if (doc.getId() == null || doc.getId().trim().isEmpty()) {
+            return null;
+        }
         Budget b = doc.toObject(Budget.class);
         if (b == null) {
             return null;
