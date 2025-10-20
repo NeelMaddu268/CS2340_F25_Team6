@@ -1,5 +1,7 @@
 package com.example.sprintproject.viewmodel;
 
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -111,19 +113,8 @@ public class BudgetsFragmentViewModel extends ViewModel {
                             boolean expired = isBudgetExpired(b, current.getTime());
 
                             if (expired) {
-                                boolean over = b.isOverBudget();
-
-                                if (!b.isHasPreviousCycle()) {
-                                    b.setHasPreviousCycle(true);
-                                } else {
-                                    b.setPreviousCycleOverBudget(over);
-                                }
-
-                                b.setIsOverBudget(over);
-                                b.setCompleted(true);
-                                b.setPreviousCycleEndTimestamp(System.currentTimeMillis());
-
-                                updateBudget(b);
+                                applyRollover(b, current.getTime());
+                                filtered.add(b);
                             } else {
                                 filtered.add(b);
                             }
@@ -136,10 +127,63 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     System.err.println("Failed to load budgets: " + err.getMessage());
                 });
     }
-//
-//    public void checkAndApplyRollovers(Date simulatedDate) {
-//
-//    }
+
+    public void applyRollover(Budget budget, Date currentDate) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+            Date startDate = sdf.parse(budget.getStartDate());
+            if (startDate == null) {
+                System.out.println("Skipping rollover for " + budget.getName() + " (invalid start date)");
+                return;
+            }
+
+            if (startDate.after(currentDate)) {
+                System.out.println("Skipping rollover for " + budget.getName() + " (start date is in the future)");
+                return;
+            }
+
+            // Don't roll over the same budget multiple times within the same session
+            if (budget.isHasPreviousCycle() && !isBudgetExpired(budget, currentDate)) {
+                System.out.println("Skipping rollover for " + budget.getName() + " (already rolled over)");
+                return;
+            }
+
+            Calendar nextStart = Calendar.getInstance();
+            nextStart.setTime(startDate);
+
+
+            if (budget.getFrequency().equalsIgnoreCase("Weekly")) {
+                nextStart.add(Calendar.DAY_OF_YEAR, 7);
+            } else if (budget.getFrequency().equalsIgnoreCase("Monthly")) {
+                nextStart.add(Calendar.MONTH, 1);
+            }
+
+
+            //Add the rollover
+            double remaining = budget.getMoneyRemaining();
+            double newTotal = budget.getAmount() + remaining;
+
+            // current startDate is the old one — safe to log first
+            System.out.println("Rolling over budget: " + budget.getName());
+            System.out.println("  Previous start date: " + budget.getStartDate());
+            System.out.println("  Remaining money: " + remaining);
+            System.out.println("  New total (with rollover): " + newTotal);
+
+            budget.setSpentToDate(0);
+            budget.setMoneyRemaining(budget.getAmount() + remaining);
+            budget.setStartDate(sdf.format(nextStart.getTime()));
+            budget.setStartDateTimestamp(nextStart.getTimeInMillis());
+            budget.setHasPreviousCycle(true);
+
+            updateBudget(budget);
+            System.out.println("Rolled over budget: " + budget.getName());
+
+
+        } catch (ParseException e){
+            System.err.println("❌ Failed to apply rollover for " + budget.getName());
+            e.printStackTrace();
+        }
+    }
 
     /** Get single budget by id. */
     public LiveData<Budget> getBudgetById(String budgetId) {
@@ -181,7 +225,13 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 .document(uid)
                 .collection("budgets")
                 .document(budget.getId())
-                .set(budget)
+                .update(
+                        "startDate", budget.getStartDate(),
+                        "startDateTimestamp", budget.getStartDateTimestamp(),
+                        "spentToDate", budget.getSpentToDate(),
+                        "moneyRemaining", budget.getMoneyRemaining(),
+                        "hasPreviousCycle", budget.isHasPreviousCycle()
+                )
                 .addOnSuccessListener(v -> System.out.println("Budget updated successfully"))
                 .addOnFailureListener(e -> System.err.println("Budget failed to update"));
     }
