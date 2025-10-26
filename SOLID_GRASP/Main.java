@@ -1,7 +1,15 @@
+import org.junit.Test;
+
 import java.util.Date;
+import java.util.logging.Logger;
+
 
 public class Main {
-    public static void main(String[] args) {
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+
+    @Test
+    public void testMain() {
+
         Project project1 = new Project("Project 1", new Date(), new Date());
         Project project2 = new Project("Project 2", new Date(), new Date());
 
@@ -11,59 +19,54 @@ public class Main {
         TeamMember member1 = new TeamMember("Member 1", "member1@gmail.com");
         TeamMember member2 = new TeamMember("Member 2", "member2@gmail.com");
 
-        System.out.println("Members in Project 1 before:");
-        System.out.println("No members yet.\n");
+        logger.info("Members in Project 1 before:");
+        logger.info("No members yet.\n");
 
         leader1.joinProject(project1);
         member1.joinProject(project1);
         member2.joinProject(project1);
 
-        System.out.println("Members in Project 1 after joining:");
+        logger.info("Members in Project 1 after joining:");
         leader1.identify();
         member1.identify();
         member2.identify();
-        System.out.println();
 
         member2.leaveProject(project1);
 
-        System.out.println("Members in Project 1 after one left:");
+        logger.info("Members in Project 1 after one left:");
         leader1.identify();
         member1.identify();
-        System.out.println();
 
-        System.out.println("Members in Project 2 before:");
-        System.out.println("No members yet.\n");
+        logger.info("Members in Project 2 before:");
+        logger.info("No members yet.\n");
 
         leader2.joinProject(project2);
 
-        System.out.println("Members in Project 2 after joining:");
+        logger.info("Members in Project 2 after joining:");
         leader2.identify();
-        System.out.println();
 
         Task task1 = new Task("Task 1", "Description 1", new Date(), "To Do", 1);
-        Task task2 = new Task("Task 2", "Description 2", new Date(), "To Do", 2);
-        Task task3 = new Task("Task 3", "Description 3", new Date(), "To Do", 3);
+        Task task2 = new Task("Task 2", "Description 2", new Date(), "Almost Done", 2);
+        Task task3 = new Task("Task 3", "Description 3", new Date(), "Complete", 3);
 
-        System.out.println("Tasks:");
-        System.out.println(task1.getTitle() + ", " + task1.getStatus()
-                + ", Priority " + task1.getPriority());
-        System.out.println(task2.getTitle() + ", " + task2.getStatus()
-                + ", Priority " + task2.getPriority());
-        System.out.println(task3.getTitle() + ", " + task3.getStatus()
-                + ", Priority " + task3.getPriority());
-        System.out.println();
-
+        logger.info("Tasks:");
+        logger.info(task1.getTitle() + ", " + task1.getStatus()
+                + ", " + task1.getPriority());
+        logger.info(task2.getTitle() + ", " + task2.getStatus()
+                + ", " + task2.getPriority());
+        logger.info(task3.getTitle() + ", " + task3.getStatus()
+                + ", " + task3.getPriority());
+        
         member1.updateTaskStatus(task1, "In Progress");
-        System.out.println(task1.getTitle() + " -> "
+        logger.info(task1.getTitle() + " -> "
                 + task1.getStatus() + "\n");
 
-        System.out.println("Tasks after update:");
-        System.out.println(task1.getTitle() + ", "
-                + task1.getStatus() + ", Priority " + task1.getPriority());
-        System.out.println(task2.getTitle() + ", "
-                + task2.getStatus() + ", Priority " + task2.getPriority());
-        System.out.println(task3.getTitle() + ", "
-                + task3.getStatus() + ", Priority " + task3.getPriority());
-        System.out.println();
+        logger.info("Tasks after update:");
+        logger.info(task1.getTitle() + ", "
+                + task1.getStatus() + ", " + task1.getPriority());
+        logger.info(task2.getTitle() + ", "
+                + task2.getStatus() + ", " + task2.getPriority());
+        logger.info(task3.getTitle() + ", "
+                + task3.getStatus() + ", " + task3.getPriority());
     }
 }

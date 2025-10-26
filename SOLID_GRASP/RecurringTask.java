@@ -19,16 +19,12 @@ public class RecurringTask extends Task {
     }
 
     public String getRecurrenceType(int recurringDays) {
-        if (recurringDays == 7) {
-            return "Weekly Task!";
-        } else if (recurringDays == 14) {
-            return "Bi-weekly Task";
-        } else if (recurringDays == 30) {
-            return "Monthly Task";
-        } else if (recurringDays == 1) {
-            return "Daily Task";
-        } else {
-            return "The task returns every " + recurringDays + " days.";
-        }
+        return switch (recurringDays) {
+        case 1 -> "Daily Task!";
+        case 7 -> "Weekly Task!";
+        case 14 -> "Bi-Weekly Task!";
+        case 30 -> "Monthly Task!";
+        default -> "The task returns every " + recurringDays + " days.";
+        };
     }
 }
