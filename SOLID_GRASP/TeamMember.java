@@ -24,6 +24,7 @@ public class TeamMember implements Member {
 
     @Override
     public void joinProject(Project project) {
+        // Add team member to project
         project.addTeamMember(this);
     }
 
