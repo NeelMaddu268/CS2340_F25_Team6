@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -6,8 +7,8 @@ public class Project {
     private String description;
     private Date startDate;
     private Date endDate;
-    private List<Task> tasks;
-    private List<Member> members;
+    private List<Task> tasks = new ArrayList<>();
+    private List<Member> members = new ArrayList<>();
 
     public Project(String name, Date startDate, Date endDate) {
         this.name = name;

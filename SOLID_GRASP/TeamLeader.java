@@ -19,7 +19,7 @@ public class TeamLeader implements Member {
 
     @Override
     public void identify() {
-        System.out.println(name + " is a Team Member.");
+        System.out.println(name + " is a Team Leader.");
     }
 
     @Override
