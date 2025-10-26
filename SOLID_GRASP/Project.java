@@ -50,4 +50,12 @@ public class Project {
     public Date getEndDate() {
         return endDate;
     }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public List<Member> getMembers() {
+        return members;
+    }
 }
