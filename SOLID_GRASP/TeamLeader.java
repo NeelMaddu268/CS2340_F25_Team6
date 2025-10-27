@@ -31,4 +31,8 @@ public class TeamLeader implements Member {
     public void leaveProject(Project project) {
         project.removeTeamMember(this);
     }
+
+    public void provideFeedback(TeamMember member, String feedback) {
+        System.out.println("Feedback for " + member.getName() + ": " + feedback);
+    }
 }
