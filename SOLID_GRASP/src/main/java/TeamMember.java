@@ -1,3 +1,5 @@
+package src.main.java;
+
 public class TeamMember implements Member {
     private String name;
     private String email;

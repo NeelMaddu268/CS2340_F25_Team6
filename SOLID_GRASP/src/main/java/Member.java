@@ -1,3 +1,5 @@
+package src.main.java;
+
 public interface Member {
     String getName();
     String getEmail();

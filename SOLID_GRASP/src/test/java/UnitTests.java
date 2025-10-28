@@ -1,6 +1,12 @@
+package src.test.java;
+
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import java.util.Date;
+import src.main.java.Project;
+import src.main.java.Task;
+import src.main.java.TeamLeader;
+import src.main.java.TeamMember;;
 
 public class UnitTests {
     @Test

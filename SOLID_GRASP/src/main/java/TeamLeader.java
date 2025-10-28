@@ -1,3 +1,5 @@
+package src.main.java;
+
 public class TeamLeader implements Member {
     private String name;
     private String email;
