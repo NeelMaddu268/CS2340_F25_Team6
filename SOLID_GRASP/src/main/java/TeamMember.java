@@ -1,8 +1,10 @@
-public class TeamLeader implements Member {
+package src.main.java;
+
+public class TeamMember implements Member {
     private String name;
     private String email;
 
-    public TeamLeader(String name, String email) {
+    public TeamMember(String name, String email) {
         this.name = name;
         this.email = email;
     }
@@ -19,11 +21,12 @@ public class TeamLeader implements Member {
 
     @Override
     public void identify() {
-        System.out.println(name + " is a Team Leader.");
+        System.out.println(name + " is a Team Member.");
     }
 
     @Override
     public void joinProject(Project project) {
+        // Add team member to project
         project.addTeamMember(this);
     }
 
@@ -32,7 +35,7 @@ public class TeamLeader implements Member {
         project.removeTeamMember(this);
     }
 
-    public void provideFeedback(TeamMember member, String feedback) {
-        System.out.println("Feedback for " + member.getName() + ": " + feedback);
+    public void updateTaskStatus(Task task, String newStatus) {
+        task.setStatus(newStatus);
     }
 }
