@@ -11,11 +11,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.SavingsCircle;
+import androidx.recyclerview.widget.ListAdapter;
 
 import java.util.Locale;
 
 public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCircleAdapter.SavingsCircleViewHolder> {
-    private final SavingsCircleAdapter.onSavingsCircleClickListener onSavingsCircleClickListener;
+    private final OnSavingsCircleClickListener onSavingsCircleClickListener;
 
     private static final DiffUtil.ItemCallback<SavingsCircle> SAVINGS_CIRCLE_DIFF_CALLBACK =
             new DiffUtil.ItemCallback<SavingsCircle>() {
@@ -36,7 +37,7 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
                 }
             };
 
-    public SavingsCircleAdapter(SavingsCircleAdapter.OnSavingsCircleClickListener onSavingsCircleClickListener) {
+    public SavingsCircleAdapter(OnSavingsCircleClickListener onSavingsCircleClickListener) {
         super(SAVINGS_CIRCLE_DIFF_CALLBACK);
         this.onSavingsCircleClickListener = onSavingsCircleClickListener;
     }
@@ -50,7 +51,7 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SavingsCircleAdapter holder, int position) {
+    public void onBindViewHolder(@NonNull SavingsCircleViewHolder holder, int position) {
         SavingsCircle circle = getItem(position);
         holder.groupName.setText(circle.getName());
         holder.groupTitle.setText("Challenge: " + circle.getTitle());
@@ -58,7 +59,7 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
         holder.groupFrequency.setText("Goal: " + circle.getFrequency());
 
         holder.itemView.setOnClickListener(v ->
-                clickListener.onSavingsCircleClick(circle));
+                onSavingsCircleClickListener.onSavingsCircleClick(circle));
     }
 
     static class SavingsCircleViewHolder extends RecyclerView.ViewHolder {

@@ -110,6 +110,31 @@ public class SavingsCircleFragment extends Fragment {
                 String frequency = groupFrequency.getText().toString();
                 String notes = groupNotes.getText().toString();
 
+                if (name.isEmpty()) {
+                    groupName.setError("Please enter a name");
+                    return;
+                }
+                if (email.isEmpty()) {
+                    groupEmail.setError("Please enter an email");
+                    return;
+                }
+                if (invite.isEmpty()) {
+                    groupInvite.setError("Please enter an invite");
+                    return;
+                }
+                if (title.isEmpty()) {
+                    groupInvite.setError("Please enter a challenge title");
+                }
+                if (goal.isEmpty()) {
+                    groupInvite.setError("Please enter a challenge goal");
+                }
+
+                if (frequency.isEmpty()) {
+                    groupInvite.setError("Please enter a frequency");
+                }
+
+                dialog.dismiss();
+
 //                boolean isValid = true;
 //                try {
 //                    if (name.equals("")) {
@@ -136,7 +161,8 @@ public class SavingsCircleFragment extends Fragment {
 //                    groupNotes.setText("");
 //                }
             });
-
-            return view;
-        }
+            dialog.show();
+        });
+        return view;
     }
+}
