@@ -34,9 +34,9 @@ import java.util.List;
 public class SavingsCircleFragment extends Fragment {
 
     private RecyclerView recyclerView;
-    private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private SavingsCircleAdapter adapter;
-    private BudgetsFragmentViewModel budgetsFragmentViewModel;
+    private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
+    private SavingsCircleCreationViewModel savingsCircleCreationViewModel;
 
     public SavingsCircleFragment() {
         super(R.layout.fragment_savingscircle);
@@ -82,6 +82,7 @@ public class SavingsCircleFragment extends Fragment {
 
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
+        savingsCircleCreationViewModel = new ViewModelProvider(this).get(SavingsCircleCreationViewModel.class);
         Button addGroup = view.findViewById(R.id.addGroup);
         addGroup.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_savingscircle_creation, null);
@@ -93,8 +94,15 @@ public class SavingsCircleFragment extends Fragment {
             EditText groupInvite = popupView.findViewById(R.id.GroupInvite);
             EditText groupChallengeTitle = popupView.findViewById(R.id.GroupChallengeTitle);
             EditText groupChallengeGoal = popupView.findViewById(R.id.GroupChallengeGoal);
-            EditText groupFrequency = popupView.findViewById(R.id.GroupFrequency);
             EditText groupNotes = popupView.findViewById(R.id.GroupNotes);
+            Spinner groupFrequency = popupView.findViewById(R.id.GroupFrequency);
+            ArrayAdapter<String> frequencyAdapter = new ArrayAdapter<>(
+                    requireContext(),
+                    android.R.layout.simple_spinner_item,
+                    new String[]{"Weekly", "Monthly"}
+            );
+            frequencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            groupFrequency.setAdapter(frequencyAdapter);
             Button createBtn = popupView.findViewById(R.id.createGroupButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             SavingsCircleCreationViewModel savingsCreationViewModel = new SavingsCircleCreationViewModel();
@@ -107,8 +115,13 @@ public class SavingsCircleFragment extends Fragment {
                 String invite = groupInvite.getText().toString();
                 String title = groupChallengeTitle.getText().toString();
                 String goal = groupChallengeGoal.getText().toString();
-                String frequency = groupFrequency.getText().toString();
+                String frequency = groupFrequency.getSelectedItem().toString();
                 String notes = groupNotes.getText().toString();
+
+                if (!frequency.equals("Weekly") && !frequency.equals("Monthly")) {
+                    Toast.makeText(requireContext(), "Invalid frequency", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 if (name.isEmpty()) {
                     groupName.setError("Please enter a name");
@@ -123,43 +136,22 @@ public class SavingsCircleFragment extends Fragment {
                     return;
                 }
                 if (title.isEmpty()) {
-                    groupInvite.setError("Please enter a challenge title");
+                    groupChallengeTitle.setError("Please enter a challenge title");
                 }
                 if (goal.isEmpty()) {
-                    groupInvite.setError("Please enter a challenge goal");
+                    groupChallengeGoal.setError("Please enter a challenge goal");
                 }
 
-                if (frequency.isEmpty()) {
-                    groupInvite.setError("Please enter a frequency");
+                double intAmount = Integer.parseInt(goal);
+                if (intAmount <= 0) {
+                    groupChallengeGoal.setError("Amount must be greater than 0");
                 }
 
+                savingsCircleCreationViewModel.createSavingsCircle(
+                        name, email, title, goal, frequency, notes
+                );
+                Toast.makeText(requireContext(), "Savings Circle created!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
-
-//                boolean isValid = true;
-//                try {
-//                    if (name.equals("")) {
-//                        expenseName.setError("Please enter a name");
-//                        isValid = false;
-//                    }
-//
-//                } catch (NumberFormatException e) {
-//                    expenseAmount.setError("Amount must be a number");
-//                    isValid = false;
-//                }
-//                if (isValid) {
-//                    savingsCircleCreationViewModel.createSavingsCircle(name, email, invite, title,
-//                            goal, frequency, notes, () -> {
-//                                budgetsFragmentViewModel.loadBudgets(); //Refresh UI properly
-//                            });
-//                    dialog.dismiss();
-//                    groupName.setText("");
-//                    groupEmail.setText("");
-//                    groupInvite.setText("");
-//                    groupChallengeTitle.setText("");
-//                    groupChallengeGoal.setText("");
-//                    groupFrequency.setText("");
-//                    groupNotes.setText("");
-//                }
             });
             dialog.show();
         });

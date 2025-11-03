@@ -1,15 +1,14 @@
 package com.example.sprintproject.model;
-
 import java.util.List;
 
 public class SavingsCircle {
     private String name;
-//    private final List<User> members;
-//    private final int challengeAmount;
+    private List<User> members;
+    private int challengeAmount;
     private String email;
     private String invite;
     private String title;
-    private String goal;
+    private double goal;
     private String frequency;
     private String notes;
 
@@ -17,13 +16,13 @@ public class SavingsCircle {
 
     }
 
-//    public SavingsCircle(String name, List<User> members, int challengeAmount) {
-//        this.name = name;
-//        this.members = members;
-//        this.challengeAmount = challengeAmount;
-//    }
+    public SavingsCircle(String name, List<User> members, int challengeAmount) {
+        this.name = name;
+        this.members = members;
+        this.challengeAmount = challengeAmount;
+    }
 
-    public SavingsCircle(String name, String email, String invite, String title, String goal, String frequency, String notes) {
+    public SavingsCircle(String name, String email, String invite, String title, double goal, String frequency, String notes) {
         this.name = name;
         this.email = email;
         this.invite = invite;
@@ -33,7 +32,7 @@ public class SavingsCircle {
         this.notes = notes;
     }
 
-    public SavingsCircle(String name, String email, String invite, String title, String goal, String frequency) {
+    public SavingsCircle(String name, String email, String invite, String title, double goal, String frequency) {
         this.name = name;
         this.email = email;
         this.invite = invite;
@@ -59,7 +58,7 @@ public class SavingsCircle {
         return title;
     }
 
-    public String getGoal() {
+    public double getGoal() {
         return goal;
     }
 
@@ -71,13 +70,13 @@ public class SavingsCircle {
         return notes;
     }
 
-//    public List<User> getMembers() {
-//        return members;
-//    }
-//
-//    public int getChallengeAmount() {
-//        return challengeAmount;
-//    }
+    public List<User> getMembers() {
+        return members;
+    }
+
+    public int getChallengeAmount() {
+        return challengeAmount;
+    }
 
     public void setName(String name) {
         this.name = name;
@@ -95,7 +94,7 @@ public class SavingsCircle {
         this.title = title;
     }
 
-    public void setGoal(String goal) {
+    public void setGoal(double goal) {
         this.goal = goal;
     }
 

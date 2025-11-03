@@ -129,7 +129,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
-        android:inputType="textMultiLine"
+        android:inputType="numberDecimal"
         android:padding="10dp"
         android:background="@color/white"/>
 
@@ -144,7 +144,7 @@
         android:text="Frequency"
         android:textColor="@color/white"/>
 
-    <EditText
+    <Spinner
         android:id="@+id/GroupFrequency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

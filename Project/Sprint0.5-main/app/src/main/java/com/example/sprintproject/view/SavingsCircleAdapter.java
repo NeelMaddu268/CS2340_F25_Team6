@@ -31,7 +31,7 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
                     return oldItem.getName().equals(newItem.getName())
                             && oldItem.getEmail().equals(newItem.getEmail())
                             && oldItem.getTitle().equals(newItem.getTitle())
-                            && oldItem.getGoal().equals(newItem.getGoal())
+                            && oldItem.getGoal() == (newItem.getGoal())
                             && oldItem.getFrequency().equals(newItem.getFrequency())
                             && oldItem.getNotes().equals(newItem.getNotes());
                 }

@@ -2,6 +2,7 @@ package com.example.sprintproject;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.model.SavingsCircle;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -42,6 +43,10 @@ public class FirestoreManager {
         return db.collection("users").document(uid).collection("categories");
     }
 
+    public CollectionReference savingsCircleReference(String uid) {
+        return db.collection("users").document(uid).collection("savingsCircle");
+    }
+
     public void addUser(String uid, Map<String, Object> userData) {
         db.collection("users").document(uid).set(userData);
     }
@@ -52,5 +57,9 @@ public class FirestoreManager {
 
     public void addExpense(String uid, Expense expense) {
         expensesReference(uid).add(expense);
+    }
+
+    public void addGroup(String uid, SavingsCircle savingsCircle) {
+        savingsCircleReference(uid).add(savingsCircle);
     }
 }
