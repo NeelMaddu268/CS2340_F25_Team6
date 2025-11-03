@@ -84,6 +84,10 @@ public class SavingsCircleFragment extends Fragment {
                 .get(SavingsCircleFragmentViewModel.class);
         savingsCircleCreationViewModel = new ViewModelProvider(this).get(SavingsCircleCreationViewModel.class);
         Button addGroup = view.findViewById(R.id.addGroup);
+        savingsCircleFragmentViewModel.getSavingsCircle().observe(
+                getViewLifecycleOwner(),
+                list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
+        );
         addGroup.setOnClickListener(v -> {
             View popupView = getLayoutInflater().inflate(R.layout.popup_savingscircle_creation, null);
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
@@ -110,13 +114,13 @@ public class SavingsCircleFragment extends Fragment {
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
             createBtn.setOnClickListener(view1 -> {
-                String name = groupName.getText().toString();
-                String email = groupEmail.getText().toString();
-                String invite = groupInvite.getText().toString();
-                String title = groupChallengeTitle.getText().toString();
-                String goal = groupChallengeGoal.getText().toString();
+                String name = groupName.getText().toString().trim();
+                String email = groupEmail.getText().toString().trim();
+                String invite = groupInvite.getText().toString().trim();
+                String title = groupChallengeTitle.getText().toString().trim();
+                String goal = groupChallengeGoal.getText().toString().trim();
                 String frequency = groupFrequency.getSelectedItem().toString();
-                String notes = groupNotes.getText().toString();
+                String notes = groupNotes.getText().toString().trim();
 
                 if (!frequency.equals("Weekly") && !frequency.equals("Monthly")) {
                     Toast.makeText(requireContext(), "Invalid frequency", Toast.LENGTH_SHORT).show();
@@ -137,19 +141,33 @@ public class SavingsCircleFragment extends Fragment {
                 }
                 if (title.isEmpty()) {
                     groupChallengeTitle.setError("Please enter a challenge title");
+                    return;
                 }
                 if (goal.isEmpty()) {
                     groupChallengeGoal.setError("Please enter a challenge goal");
+                    return;
                 }
 
-                double intAmount = Integer.parseInt(goal);
-                if (intAmount <= 0) {
-                    groupChallengeGoal.setError("Amount must be greater than 0");
+                try {
+                    double goalAmount = Double.parseDouble(goal);
+                    if (goalAmount <= 0) {
+                        groupChallengeGoal.setError("Amount must be greater than 0");
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    groupChallengeGoal.setError("Invalid number");
+                    return;
                 }
 
                 savingsCircleCreationViewModel.createSavingsCircle(
                         name, email, title, goal, frequency, notes
                 );
+
+                savingsCircleCreationViewModel.getText().observe(getViewLifecycleOwner(), message -> {
+                    if (message != null && !message.isEmpty()) {
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                });
                 Toast.makeText(requireContext(), "Savings Circle created!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
