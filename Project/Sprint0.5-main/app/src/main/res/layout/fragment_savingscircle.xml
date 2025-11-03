@@ -25,4 +25,21 @@
         android:fontFamily="@font/montserrat_regular"
         android:textColor="@color/white"/>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/savingsCircleRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false" />
+
+    <Button
+        android:id="@+id/addGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add New Group"
+        android:layout_marginHorizontal="24sp"
+        android:backgroundTint="@color/white"
+        android:fontFamily="@font/montserrat_regular"
+        android:textColor="#357DED"
+        app:layout_constraintTop_toBottomOf="@id/savings_circle_text" />
 </LinearLayout>

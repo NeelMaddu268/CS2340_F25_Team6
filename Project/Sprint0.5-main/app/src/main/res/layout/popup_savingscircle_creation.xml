@@ -1,25 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:background="#357DED"
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/expenseCreationTitle"
+        android:id="@+id/savings_circle_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:fontFamily="sans-serif-medium"
         android:gravity="center"
-        android:padding="12dp"
-        android:text="Expense Creation"
+        android:padding="5dp"
+        android:text="Savings Circle"
         android:textColor="@color/white"
         android:textSize="30sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:text="Group Name"
+        android:textSize="20dp"
+        android:textColor="@color/white" />
+
+    <EditText
+        android:id="@+id/GroupName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:padding="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginLeft="24dp"
+        android:background="@color/white"
+        android:inputType="textMultiLine" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/white"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:text="Creator Email"
+        android:textSize="20dp" />
+
+    <EditText
+        android:id="@+id/GroupEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginLeft="24dp"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:background="@color/white"
+        android:inputType="textEmailAddress"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -28,34 +72,58 @@
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
         android:paddingTop="12dp"
-        android:text="Expense Name"
         android:textSize="20dp"
-        android:textColor="@color/white" />
+        android:text="Invite Option"
+        android:textColor="@color/white"/>
 
     <EditText
-        android:id="@+id/ExpenseName"
+        android:id="@+id/GroupInvite"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:padding="10dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="5dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
+        android:inputType="textMultiLine"
+        android:padding="10dp"
+        android:textSize="20dp"
         android:background="@color/white"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:textColor="@color/white"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
-        android:paddingTop="12dp"
-        android:text="Amount"
-        android:textSize="20dp" />
+        android:paddingTop="5dp"
+        android:textSize="20dp"
+        android:text="Saving Challenge Title"
+        android:textColor="@color/white"/>
 
     <EditText
-        android:id="@+id/ExpenseAmount"
+        android:id="@+id/GroupChallengeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="5dp"
+        android:inputType="textMultiLine"
+        android:padding="10dp"
+        android:textSize="20dp"
+        android:background="@color/white"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:paddingTop="5dp"
+        android:textSize="20dp"
+        android:text="Saving Challenge Goal"
+        android:textColor="@color/white"/>
+
+    <EditText
+        android:id="@+id/GroupChallengeGoal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -63,7 +131,6 @@
         android:layout_marginLeft="24dp"
         android:inputType="numberDecimal"
         android:padding="10dp"
-        android:textSize="20dp"
         android:background="@color/white"/>
 
     <TextView
@@ -72,21 +139,21 @@
         android:layout_gravity="center_horizontal"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
-        android:paddingTop="12dp"
+        android:paddingTop="5dp"
         android:textSize="20dp"
-        android:text="Category"
+        android:text="Frequency"
         android:textColor="@color/white"/>
 
     <Spinner
-        android:id="@+id/expenseCategorySpinner"
+        android:id="@+id/GroupFrequency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="5dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
+        android:inputType="textMultiLine"
         android:padding="10dp"
-        android:background="@color/white" />
+        android:background="@color/white"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -94,41 +161,13 @@
         android:layout_gravity="center_horizontal"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
-        android:paddingTop="12dp"
-        android:textSize="20dp"
-        android:text="Date"
-        android:textColor="@color/white"/>
-
-    <EditText
-        android:id="@+id/ExpenseDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="#357DED"
-        android:background="@color/white"
-        android:layout_marginTop="12dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
-        android:focusable="false"
-        android:clickable="true"
-        android:hint="Select Date"
-        android:inputType="date"
-        android:padding="10dp"
-        android:textSize="20sp"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
-        android:paddingTop="12dp"
+        android:paddingTop="5dp"
         android:textSize="20dp"
         android:text="Notes"
         android:textColor="@color/white"/>
 
     <EditText
-        android:id="@+id/ExpenseNotes"
+        android:id="@+id/GroupNotes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
@@ -139,29 +178,30 @@
         android:background="@color/white"/>
 
     <Button
-        android:id="@+id/createExpenseButton"
+        android:id="@+id/createGroupButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
         android:backgroundTint="@color/white"
         android:fontFamily="sans-serif-medium"
-        android:text="Create Expense"
+        android:text="Create Group"
         android:textColor="#357DED"
-        app:layout_constraintTop_toBottomOf="@id/expenseCreationTitle" />
+        app:layout_constraintTop_toBottomOf="@id/savings_circle_text" />
 
     <Button
         android:id="@+id/closeButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="5dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
         android:fontFamily="sans-serif-medium"
         android:text="Cancel"
         android:textColor="@color/white"
-        app:layout_constraintTop_toBottomOf="@id/createExpenseButton"
+        app:layout_constraintTop_toBottomOf="@id/createGroupButton"
         android:backgroundTint="#163566" />
+
 
 </LinearLayout>
