@@ -82,6 +82,7 @@ public class SavingsCircleFragment extends Fragment {
 
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
+        savingsCircleFragmentViewModel.loadSavingsCircle();
         savingsCircleCreationViewModel = new ViewModelProvider(this).get(SavingsCircleCreationViewModel.class);
         Button addGroup = view.findViewById(R.id.addGroup);
         savingsCircleFragmentViewModel.getSavingsCircle().observe(

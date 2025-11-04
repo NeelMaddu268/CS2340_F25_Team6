@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.Expense;
 import com.google.firebase.Timestamp;

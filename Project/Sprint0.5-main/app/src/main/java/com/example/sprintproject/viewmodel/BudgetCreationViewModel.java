@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.sprintproject.FirestoreManager;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.BudgetData;
 import com.example.sprintproject.model.Expense;

@@ -1,4 +1,4 @@
-package com.example.sprintproject;
+package com.example.sprintproject.viewmodel;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
