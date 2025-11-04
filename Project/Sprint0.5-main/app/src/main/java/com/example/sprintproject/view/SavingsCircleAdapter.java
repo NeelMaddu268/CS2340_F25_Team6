@@ -33,7 +33,8 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
                             && oldItem.getTitle().equals(newItem.getTitle())
                             && oldItem.getGoal() == (newItem.getGoal())
                             && oldItem.getFrequency().equals(newItem.getFrequency())
-                            && oldItem.getNotes().equals(newItem.getNotes());
+                            && ((oldItem.getNotes() == null && newItem.getNotes() == null)
+                            || (oldItem.getNotes() != null && oldItem.getNotes().equals(newItem.getNotes())));
                 }
             };
 
@@ -54,9 +55,9 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
     public void onBindViewHolder(@NonNull SavingsCircleViewHolder holder, int position) {
         SavingsCircle circle = getItem(position);
         holder.groupName.setText(circle.getName());
-        holder.groupTitle.setText("Challenge: " + circle.getTitle());
+        holder.groupTitle.setText("Challenge Title: " + circle.getTitle());
         holder.groupGoal.setText("Goal: " + circle.getGoal());
-        holder.groupFrequency.setText("Goal: " + circle.getFrequency());
+        holder.groupFrequency.setText("Frequency: " + circle.getFrequency());
 
         holder.itemView.setOnClickListener(v ->
                 onSavingsCircleClickListener.onSavingsCircleClick(circle));
@@ -64,15 +65,16 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCirc
 
     static class SavingsCircleViewHolder extends RecyclerView.ViewHolder {
         private TextView groupName;
-        private TextView groupEmail;
         private TextView groupTitle;
         private TextView groupGoal;
         private TextView groupFrequency;
-        private TextView groupNotes;
 
         public SavingsCircleViewHolder(View itemView) {
             super(itemView);
             groupName = itemView.findViewById(R.id.textGroupName);
+            groupTitle = itemView.findViewById(R.id.textGroupTitle);
+            groupGoal = itemView.findViewById(R.id.textGroupGoal);
+            groupFrequency = itemView.findViewById(R.id.textGroupFrequency);
         }
     }
 

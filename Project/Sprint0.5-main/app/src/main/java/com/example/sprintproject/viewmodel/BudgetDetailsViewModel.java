@@ -2,7 +2,6 @@ package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.ViewModel;
 
-import com.example.sprintproject.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 
