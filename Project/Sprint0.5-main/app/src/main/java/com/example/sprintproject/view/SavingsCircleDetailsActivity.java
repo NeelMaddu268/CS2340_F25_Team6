@@ -2,7 +2,6 @@ package com.example.sprintproject.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.sprintproject.R;
-import java.util.Locale;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;

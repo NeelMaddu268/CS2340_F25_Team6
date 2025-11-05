@@ -6,11 +6,13 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.sprintproject.model.SavingsCircle;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class SavingsCircleCreationViewModel extends ViewModel {
@@ -23,49 +25,13 @@ public class SavingsCircleCreationViewModel extends ViewModel {
 
     public SavingsCircleCreationViewModel() {
         // Just sets a sample value (not used for logic)
-        text.setValue("Hello from ViewModel (placeholder)");
     }
 
     public LiveData<String> getText() {
         return text;
     }
 
-    public LiveData<List<String>> getCategories() {
-        return categoriesLiveData;
-    }
-
-    public LiveData<List<String>> getFrequencies() {
-        return frequenciesLiveData;
-    }
-
-    public void loadCategories() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirestoreManager.getInstance().categoriesReference(uid)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<String> categoryNames = new ArrayList<>();
-                    for (DocumentSnapshot doc : querySnapshot) {
-                        if (doc.getString("name") != null) {
-                            categoryNames.add(doc.getString("name"));
-                        }
-                    }
-                    categoriesLiveData.setValue(categoryNames);
-                })
-                .addOnFailureListener(e -> {
-                    categoriesLiveData.setValue(new ArrayList<>());
-                });
-    }
-
-    public void loadFrequencies() {
-        List<String> defaultFrequencies = new ArrayList<>();
-        defaultFrequencies.add("Weekly");
-        defaultFrequencies.add("Monthly");
-
-        frequenciesLiveData.setValue(defaultFrequencies);
-    }
-
-    public void createSavingsCircle(
-            String name, String email,
+    public void createUserSavingsCircle(String name, String email,
             String title, String goalString, String frequency, String notes) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -74,24 +40,55 @@ public class SavingsCircleCreationViewModel extends ViewModel {
             return;
         }
 
-        Double amount = parseAmount(goalString);
-        if (amount == null) {
+        Double goal = parseAmount(goalString);
+        if (goal == null) {
             return;
         }
 
-        SavingsCircle savingsCircle = new SavingsCircle(name, email, "", title, amount, frequency, notes);
-
         String uid = auth.getCurrentUser().getUid();
 
-        FirestoreManager.getInstance().savingsCircleReference(uid)
-                .add(savingsCircle)
+        SavingsCircle circle = new SavingsCircle();
+        circle.setName(name);
+        circle.setCreatorEmail(email);
+        circle.setCreatorId(uid);
+        circle.setTitle(title);
+        circle.setGoal(goal);
+        circle.setFrequency(frequency);
+        circle.setNotes(notes);
+        circle.setMemberIds(Collections.singletonList(uid));
+        circle.setContributions(Collections.singletonMap(uid, 0.0));
+        circle.setInvite("active");
+        circle.setSpent(0.0);
+
+        FirestoreManager.getInstance().savingsCirclesGlobalReference()
+                .add(circle)
                 .addOnSuccessListener(docRef -> {
-                    String newSavingsCircleId = docRef.getId();
-                    System.out.println("[createSavingsCircle] SavingsCircle added successfully! ID="
-                            + newSavingsCircleId);
+                    String circleId = docRef.getId();
+                    System.out.println("[createSavingsCircle] Added global circle: "
+                            + circleId);
+
+                    Map<String, Object> pointerData = new HashMap<>();
+                    pointerData.put("circleId", circleId);
+                    pointerData.put("name", name);
+                    pointerData.put("title", title);
+                    pointerData.put("goal", goal);
+
+                    FirestoreManager.getInstance()
+                            .userSavingsCirclePointers(uid)
+                            .add(pointerData)
+                            .addOnSuccessListener(ref ->
+                                System.out.println(
+                                        "[createUserSavingsCircle] Pointer added for user"))
+                            .addOnFailureListener(e -> {
+                                System.out.println(
+                                        "[createUserSavingsCircle] Failed to add pointer: "
+                                    + e.getMessage());
+                                e.printStackTrace();
+                            });
+
                 })
                 .addOnFailureListener(e -> {
-                    System.out.println("[createSavingsCircle] Failed to add savingsCircle: "
+                    System.out.println("[createSavingsCircle] Failed to create circle: "
                             + e.getMessage());
                     e.printStackTrace();
                 });
