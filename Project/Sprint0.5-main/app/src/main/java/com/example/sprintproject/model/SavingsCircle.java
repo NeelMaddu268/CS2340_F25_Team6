@@ -1,11 +1,15 @@
 package com.example.sprintproject.model;
 import java.util.List;
+import java.util.Map;
 
 public class SavingsCircle {
+    private String id;
     private String name;
-    private List<User> members;
-    private int challengeAmount;
-    private String email;
+    private String creatorId;
+    private String creatorEmail;
+    private List<String> memberIds;
+    private Map<String, Double> contributions;
+    private double spent;
     private String invite;
     private String title;
     private double goal;
@@ -16,90 +20,97 @@ public class SavingsCircle {
 
     }
 
-    public SavingsCircle(String name, List<User> members, int challengeAmount) {
-        this.name = name;
-        this.members = members;
-        this.challengeAmount = challengeAmount;
+    public String getId() {
+        return id;
     }
 
-    public SavingsCircle(String name, String email, String invite, String title, double goal, String frequency, String notes) {
-        this.name = name;
-        this.email = email;
-        this.invite = invite;
-        this.title = title;
-        this.goal = goal;
-        this.frequency = frequency;
-        this.notes = notes;
-    }
-
-    public SavingsCircle(String name, String email, String invite, String title, double goal, String frequency) {
-        this.name = name;
-        this.email = email;
-        this.invite = invite;
-        this.title = title;
-        this.goal = goal;
-        this.frequency = frequency;
-        this.notes = null;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getEmail() {
-        return email;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getInvite() {
-        return invite;
+    public String getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(String creatorId) {
+        this.creatorId = creatorId;
+    }
+
+
+    public String getCreatorEmail() {
+        return creatorEmail;
+    }
+
+    public void setCreatorEmail(String creatorEmail) {
+        this.creatorEmail = creatorEmail;
+    }
+
+    public List<String> getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(List<String> memberIds) {
+        this.memberIds = memberIds;
+    }
+
+    public Map<String, Double> getContributions() {
+        return contributions;
+    }
+
+    public void setContributions(Map<String, Double> contributions) {
+        this.contributions = contributions;
+    }
+
+    public double getSpent() {
+        return spent;
+    }
+
+    public void setSpent(double spent) {
+        this.spent = spent;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public double getGoal() {
-        return goal;
-    }
-
-    public String getFrequency() {
-        return frequency;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public List<User> getMembers() {
-        return members;
-    }
-
-    public int getChallengeAmount() {
-        return challengeAmount;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public void setInvite(String invite) {
         this.invite = invite;
+    }
+
+    public String getInvite() {
+        return invite;
     }
 
     public void setTitle(String title) {
         this.title = title;
     }
 
+    public double getGoal() {
+        return goal;
+    }
+
     public void setGoal(double goal) {
         this.goal = goal;
     }
 
+    public String getFrequency() {
+        return frequency;
+    }
+
     public void setFrequency(String frequency) {
         this.frequency = frequency;
+    }
+
+    public String getNotes() {
+        return notes;
     }
 
     public void setNotes(String notes) {

@@ -29,7 +29,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         authenticationViewModel = new AuthenticationViewModel();
 
-        EditText emailInput = findViewById(R.id.email);
+        EditText emailInput = findViewById(R.id.creatorEmail);
         EditText passwordInput = findViewById(R.id.password);
         Button loginButton = findViewById(R.id.btnLogin);
         Button createAccount = findViewById(R.id.btnCreateAccount);

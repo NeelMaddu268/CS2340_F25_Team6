@@ -22,14 +22,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.model.SavingsCircle;
-import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
-import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleCreationViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SavingsCircleFragment extends Fragment {
 
@@ -70,7 +66,7 @@ public class SavingsCircleFragment extends Fragment {
         adapter = new SavingsCircleAdapter(savings -> {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("groupName", savings.getName());
-            intent.putExtra("groupEmail", savings.getEmail());
+            intent.putExtra("groupEmail", savings.getCreatorEmail());
             intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());
@@ -83,14 +79,16 @@ public class SavingsCircleFragment extends Fragment {
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
         savingsCircleFragmentViewModel.loadSavingsCircle();
-        savingsCircleCreationViewModel = new ViewModelProvider(this).get(SavingsCircleCreationViewModel.class);
+        savingsCircleCreationViewModel = new ViewModelProvider(this)
+                .get(SavingsCircleCreationViewModel.class);
         Button addGroup = view.findViewById(R.id.addGroup);
         savingsCircleFragmentViewModel.getSavingsCircle().observe(
                 getViewLifecycleOwner(),
                 list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
         );
         addGroup.setOnClickListener(v -> {
-            View popupView = getLayoutInflater().inflate(R.layout.popup_savingscircle_creation, null);
+            View popupView = getLayoutInflater().inflate(
+                    R.layout.popup_savingscircle_creation, null);
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
                     .setView(popupView)
                     .create();
@@ -110,7 +108,6 @@ public class SavingsCircleFragment extends Fragment {
             groupFrequency.setAdapter(frequencyAdapter);
             Button createBtn = popupView.findViewById(R.id.createGroupButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
-            SavingsCircleCreationViewModel savingsCreationViewModel = new SavingsCircleCreationViewModel();
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
@@ -124,7 +121,8 @@ public class SavingsCircleFragment extends Fragment {
                 String notes = groupNotes.getText().toString().trim();
 
                 if (!frequency.equals("Weekly") && !frequency.equals("Monthly")) {
-                    Toast.makeText(requireContext(), "Invalid frequency", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(),
+                            "Invalid frequency", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -160,16 +158,19 @@ public class SavingsCircleFragment extends Fragment {
                     return;
                 }
 
-                savingsCircleCreationViewModel.createSavingsCircle(
+                savingsCircleCreationViewModel.createUserSavingsCircle(
                         name, email, title, goal, frequency, notes
                 );
 
-                savingsCircleCreationViewModel.getText().observe(getViewLifecycleOwner(), message -> {
-                    if (message != null && !message.isEmpty()) {
-                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                Toast.makeText(requireContext(), "Savings Circle created!", Toast.LENGTH_SHORT).show();
+                savingsCircleCreationViewModel.getText()
+                        .observe(getViewLifecycleOwner(), message -> {
+                            if (message != null && !message.isEmpty()) {
+                                Toast.makeText(requireContext(),
+                                        message, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                Toast.makeText(requireContext(),
+                        "Savings Circle created!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
             dialog.show();

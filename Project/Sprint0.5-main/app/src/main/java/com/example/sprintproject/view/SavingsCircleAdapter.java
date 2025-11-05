@@ -13,28 +13,29 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.SavingsCircle;
 import androidx.recyclerview.widget.ListAdapter;
 
-import java.util.Locale;
-
-public class SavingsCircleAdapter extends ListAdapter<SavingsCircle, SavingsCircleAdapter.SavingsCircleViewHolder> {
+public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
+        SavingsCircleAdapter.SavingsCircleViewHolder> {
     private final OnSavingsCircleClickListener onSavingsCircleClickListener;
 
     private static final DiffUtil.ItemCallback<SavingsCircle> SAVINGS_CIRCLE_DIFF_CALLBACK =
             new DiffUtil.ItemCallback<SavingsCircle>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull SavingsCircle oldItem, @NonNull SavingsCircle newItem) {
+                public boolean areItemsTheSame(@NonNull SavingsCircle oldItem,
+                                               @NonNull SavingsCircle newItem) {
                     return oldItem.getName().equals(newItem.getName())
-                            && oldItem.getEmail().equals(newItem.getEmail());
+                            && oldItem.getCreatorEmail().equals(newItem.getCreatorEmail());
                 }
 
                 public boolean areContentsTheSame(
                         @NonNull SavingsCircle oldItem, @NonNull SavingsCircle newItem) {
                     return oldItem.getName().equals(newItem.getName())
-                            && oldItem.getEmail().equals(newItem.getEmail())
+                            && oldItem.getCreatorEmail().equals(newItem.getCreatorEmail())
                             && oldItem.getTitle().equals(newItem.getTitle())
                             && oldItem.getGoal() == (newItem.getGoal())
                             && oldItem.getFrequency().equals(newItem.getFrequency())
                             && ((oldItem.getNotes() == null && newItem.getNotes() == null)
-                            || (oldItem.getNotes() != null && oldItem.getNotes().equals(newItem.getNotes())));
+                            || (oldItem.getNotes() != null
+                            && oldItem.getNotes().equals(newItem.getNotes())));
                 }
             };
 

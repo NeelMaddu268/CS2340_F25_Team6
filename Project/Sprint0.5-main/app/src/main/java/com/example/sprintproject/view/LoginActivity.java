@@ -29,7 +29,7 @@ public class LoginActivity extends AppCompatActivity {
         Log.d("LoginActivity", "onCreate called");
 
 
-        EditText emailInput = findViewById(R.id.email);
+        EditText emailInput = findViewById(R.id.creatorEmail);
         EditText passwordInput = findViewById(R.id.password);
         Button loginButton = findViewById(R.id.btnLogin);
         Button createAccount = findViewById(R.id.btnCreateAccount);
