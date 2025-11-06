@@ -9,7 +9,6 @@
     tools:context=".view.BudgetsFragment"
     android:orientation="vertical"
     android:padding="16dp"
-
     android:background="#357DED">
 
     <TextView

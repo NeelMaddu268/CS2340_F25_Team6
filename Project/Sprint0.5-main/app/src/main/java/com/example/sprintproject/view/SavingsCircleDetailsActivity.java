@@ -29,7 +29,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         // update the UI with the provided details
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
         TextView groupEmailTextView = findViewById(R.id.groupEmailTextView);
-        TextView groupInviteTextView = findViewById(R.id.groupInviteTextView);
         TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
@@ -37,7 +36,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         groupNameTextView.setText(groupName);
         groupEmailTextView.setText(groupEmail);
-        groupInviteTextView.setText(groupInvite);
         groupChallengeTitleTextView.setText(groupChallengeTitle);
         groupChallengeGoalTextView.setText(String.valueOf(groupChallengeGoal));
         groupFrequencyTextView.setText(groupFrequency);
