@@ -17,8 +17,7 @@
             android:textSize="45sp"
             android:fontFamily="@font/montserrat_regular"
             android:textStyle="bold"
-            android:textColor="@color/white"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/white" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,21 +27,21 @@
                 android:id="@+id/groupChallengeTitleTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:textStyle="bold"
                 android:layout_weight="1"
                 android:textColor="@color/white"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="24dp" />
 
             <TextView
                 android:id="@+id/groupChallengeGoalTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"                android:textStyle="bold"
                 android:textColor="@color/white"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="24dp"
                 android:layout_gravity="end"/>
         </LinearLayout>
 
@@ -56,14 +55,14 @@
                 android:textColor="@color/white"
                 android:fontFamily="@font/montserrat_regular"                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="30sp"
+                android:textSize="22sp"
                 android:layout_marginBottom="8dp" />
             <TextView
                 android:id="@+id/groupEmailTextView"
                 android:layout_width="wrap_content"
                 android:textColor="@color/white"
                 android:fontFamily="@font/montserrat_regular"                android:layout_height="wrap_content"
-                android:textSize="30sp"
+                android:textSize="22sp"
                 android:layout_marginBottom="8dp" />
         </LinearLayout>
 
