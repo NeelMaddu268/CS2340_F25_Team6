@@ -65,6 +65,7 @@ public class SavingsCircleFragment extends Fragment {
                 .get(SavingsCircleFragmentViewModel.class);
         adapter = new SavingsCircleAdapter(savings -> {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
+            intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
             intent.putExtra("groupEmail", savings.getCreatorEmail());
             intent.putExtra("groupInvite", savings.getInvite());
@@ -125,7 +126,6 @@ public class SavingsCircleFragment extends Fragment {
                             "Invalid frequency", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 if (name.isEmpty()) {
                     groupName.setError("Please enter a name");
                     return;

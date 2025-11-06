@@ -63,8 +63,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                                 .addOnSuccessListener(circleSnap -> {
                                     SavingsCircle circle = circleSnap.toObject(SavingsCircle.class);
                                     if (circle != null) {
+                                        circle.setId(circleSnap.getId());
                                         list.add(circle);
-                                        // post updated list each time a new circle is fetched
+
                                         savingsCircleLiveData.postValue(new ArrayList<>(list));
                                     }
                                 });

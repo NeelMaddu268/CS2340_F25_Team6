@@ -4,6 +4,7 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.util.Map;
 
@@ -50,9 +51,18 @@ public class FirestoreManager {
         return db.collection("users").document(uid).collection("savingsCirclePointers");
     }
 
+    public CollectionReference invitationsReference() {
+        return db.collection("invitations");
+    }
+
     public void addUser(String uid, Map<String, Object> userData) {
         db.collection("users").document(uid).set(userData);
     }
+
+    public Query invitationsForUser(String uid) {
+        return invitationsReference().whereEqualTo("toUid", uid);
+    }
+
 
     public void addBudget(String uid, Budget budget) {
         budgetsReference(uid).add(budget);
