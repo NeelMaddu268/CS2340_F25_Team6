@@ -26,4 +26,9 @@
         android:title="@string/chatbot"
         android:icon="@drawable/baseline_person_24" />
 
+    <item
+        android:id="@+id/Invites"
+        android:title="Invites" />
+
+
 </menu>

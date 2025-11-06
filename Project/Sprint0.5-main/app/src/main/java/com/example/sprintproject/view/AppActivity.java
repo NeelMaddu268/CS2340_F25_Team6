@@ -40,7 +40,9 @@ public class AppActivity extends AppCompatActivity {
                 replaceFragment(new ExpensesFragment());
             } else if (id == R.id.SavingsCircles) {
                 replaceFragment(new SavingsCircleFragment());
-            } else if (id == R.id.Chatbot) {
+            }  else if (id == R.id.Invites) {
+                replaceFragment(new InvitationsFragment());
+            }  else if (id == R.id.Chatbot) {
                 replaceFragment(new ChatbotFragment());
             }
             return true;

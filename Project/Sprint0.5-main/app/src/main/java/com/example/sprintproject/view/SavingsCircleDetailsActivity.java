@@ -1,26 +1,32 @@
 package com.example.sprintproject.view;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
+
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SavingsCircleDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_savingscircle_details);
 
-        // Get the group creation details from the intent
+        // get the group creation details from the intent
         String groupName = getIntent().getStringExtra("groupName");
         String groupEmail = getIntent().getStringExtra("groupEmail");
         String groupInvite = getIntent().getStringExtra("groupInvite");
         String groupChallengeTitle = getIntent().getStringExtra("groupChallengeTitle");
-        String groupChallengeGoal = getIntent().getStringExtra("groupChallenegeGoal");
+        double groupChallengeGoal = getIntent().getDoubleExtra("groupChallengeGoal", 0.0);
         String groupFrequency = getIntent().getStringExtra("groupFrequency");
         String groupNotes = getIntent().getStringExtra("groupNotes");
 
-        // Update the UI with the provided details
+        // update the UI with the provided details
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
         TextView groupEmailTextView = findViewById(R.id.groupEmailTextView);
         TextView groupInviteTextView = findViewById(R.id.groupInviteTextView);
@@ -33,9 +39,36 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         groupEmailTextView.setText(groupEmail);
         groupInviteTextView.setText(groupInvite);
         groupChallengeTitleTextView.setText(groupChallengeTitle);
-        groupChallengeGoalTextView.setText(groupChallengeGoal);
+        groupChallengeGoalTextView.setText(String.valueOf(groupChallengeGoal));
         groupFrequencyTextView.setText(groupFrequency);
         groupNotesTextView.setText(groupNotes);
+
+        EditText inviteEmailInput = findViewById(R.id.inviteEmailInput);
+        Button inviteButton = findViewById(R.id.inviteButton);
+
+        String circleId = getIntent().getStringExtra("circleId");
+        String circleName = groupName;
+
+        SavingsCircleDetailsViewModel detailsViewModel =
+                new ViewModelProvider(this).get(SavingsCircleDetailsViewModel.class);
+
+        detailsViewModel.getStatusMessage().observe(this, message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        inviteButton.setOnClickListener(v -> {
+            String inviteEmail = inviteEmailInput.getText().toString().trim();
+            if (inviteEmail.isEmpty()) {
+                inviteEmailInput.setError("Enter an email");
+                return;
+            }
+
+            detailsViewModel.sendInvite(circleId, circleName, inviteEmail);
+        });
+
 
         if (groupNotes == null || groupNotes.trim().isEmpty()) {
             groupNotesTextView.setText("Notes: None");
