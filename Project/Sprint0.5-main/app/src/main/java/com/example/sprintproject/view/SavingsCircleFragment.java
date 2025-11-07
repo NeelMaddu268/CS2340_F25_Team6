@@ -67,8 +67,6 @@ public class SavingsCircleFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
-            intent.putExtra("groupEmail", savings.getCreatorEmail());
-            intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());
             intent.putExtra("groupFrequency", savings.getFrequency());
@@ -95,8 +93,6 @@ public class SavingsCircleFragment extends Fragment {
                     .setView(popupView)
                     .create();
             EditText groupName = popupView.findViewById(R.id.GroupName);
-            EditText groupEmail = popupView.findViewById(R.id.GroupEmail);
-            EditText groupInvite = popupView.findViewById(R.id.GroupInvite);
             EditText groupChallengeTitle = popupView.findViewById(R.id.GroupChallengeTitle);
             EditText groupChallengeGoal = popupView.findViewById(R.id.GroupChallengeGoal);
             EditText groupNotes = popupView.findViewById(R.id.GroupNotes);
@@ -115,8 +111,6 @@ public class SavingsCircleFragment extends Fragment {
 
             createBtn.setOnClickListener(view1 -> {
                 String name = groupName.getText().toString().trim();
-                String email = groupEmail.getText().toString().trim();
-                String invite = groupInvite.getText().toString().trim();
                 String title = groupChallengeTitle.getText().toString().trim();
                 String goal = groupChallengeGoal.getText().toString().trim();
                 String frequency = groupFrequency.getSelectedItem().toString();
@@ -129,14 +123,6 @@ public class SavingsCircleFragment extends Fragment {
                 }
                 if (name.isEmpty()) {
                     groupName.setError("Please enter a name");
-                    return;
-                }
-                if (email.isEmpty()) {
-                    groupEmail.setError("Please enter an email");
-                    return;
-                }
-                if (invite.isEmpty()) {
-                    groupInvite.setError("Please enter an invite");
                     return;
                 }
                 if (title.isEmpty()) {
@@ -160,7 +146,7 @@ public class SavingsCircleFragment extends Fragment {
                 }
 
                 savingsCircleCreationViewModel.createUserSavingsCircle(
-                        name, email, title, goal, frequency, notes
+                        name, title, goal, frequency, notes
                 );
 
                 savingsCircleCreationViewModel.getText()

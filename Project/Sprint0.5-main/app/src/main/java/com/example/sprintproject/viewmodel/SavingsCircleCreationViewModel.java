@@ -31,7 +31,7 @@ public class SavingsCircleCreationViewModel extends ViewModel {
         return text;
     }
 
-    public void createUserSavingsCircle(String name, String email,
+    public void createUserSavingsCircle(String name,
             String title, String goalString, String frequency, String notes) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -49,7 +49,6 @@ public class SavingsCircleCreationViewModel extends ViewModel {
 
         SavingsCircle circle = new SavingsCircle();
         circle.setName(name);
-        circle.setCreatorEmail(email);
         circle.setCreatorId(uid);
         circle.setTitle(title);
         circle.setGoal(goal);

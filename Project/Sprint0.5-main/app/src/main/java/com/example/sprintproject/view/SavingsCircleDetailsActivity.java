@@ -21,8 +21,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         // get the group creation details from the intent
         String groupName = getIntent().getStringExtra("groupName");
-        String groupEmail = getIntent().getStringExtra("groupEmail");
-        String groupInvite = getIntent().getStringExtra("groupInvite");
         String groupChallengeTitle = getIntent().getStringExtra("groupChallengeTitle");
         double groupChallengeGoal = getIntent().getDoubleExtra("groupChallengeGoal", 0.0);
         String groupFrequency = getIntent().getStringExtra("groupFrequency");
@@ -30,14 +28,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         // update the UI with the provided details
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
-        TextView groupEmailTextView = findViewById(R.id.groupEmailTextView);
         TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
 
         groupNameTextView.setText(groupName);
-        groupEmailTextView.setText(groupEmail);
         groupChallengeTitleTextView.setText(groupChallengeTitle);
         groupChallengeGoalTextView.setText(String.valueOf(groupChallengeGoal));
         groupFrequencyTextView.setText(groupFrequency);
