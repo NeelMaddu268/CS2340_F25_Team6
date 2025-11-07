@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
+import com.google.firebase.auth.FirebaseAuth;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -43,6 +45,14 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         EditText inviteEmailInput = findViewById(R.id.inviteEmailInput);
         Button inviteButton = findViewById(R.id.inviteButton);
+
+        String creatorId = getIntent().getStringExtra("creatorId");
+        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        if (creatorId == null || !creatorId.equals(currentUid)) {
+            inviteEmailInput.setVisibility(View.GONE);
+            inviteButton.setVisibility(View.GONE);
+        }
 
         String circleId = getIntent().getStringExtra("circleId");
         String circleName = groupName;
