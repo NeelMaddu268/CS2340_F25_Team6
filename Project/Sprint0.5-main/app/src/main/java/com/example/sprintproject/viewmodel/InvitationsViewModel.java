@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.sprintproject.model.AppDate;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -57,7 +58,7 @@ public class InvitationsViewModel extends ViewModel {
         }
     }
 
-    public void respondToInvite(String inviteId, boolean accept) {
+    public void respondToInvite(String inviteId, boolean accept, AppDate joinDate) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         if (inviteId == null || inviteId.trim().isEmpty()) {
@@ -107,8 +108,18 @@ public class InvitationsViewModel extends ViewModel {
                                 .update(
                                         "memberIds", FieldValue.arrayUnion(currentUid),
                                         "contributions." + currentUid, 0.0
+//                                        "datesJoined." + currentUid, joinDate.toIso()
                                 )
                                 .addOnSuccessListener(aVoid2 -> {
+                                    db.collection("savingsCircles")
+                                            .document(circleId)
+                                            .update("datesJoined." + currentUid, joinDate.toIso())
+                                            .addOnSuccessListener(aVoid3 ->
+                                                    System.out.println("[respondToInvite] datesJoined added successfully")
+                                            )
+                                            .addOnFailureListener(e ->
+                                                    System.err.println("[respondToInvite] Failed to add datesJoined: " + e.getMessage())
+                                            );
                                     System.out.println("[respondToInvite] User"
                                             + " added to circle successfully");
 

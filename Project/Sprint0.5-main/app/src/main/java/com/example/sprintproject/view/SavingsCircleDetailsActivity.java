@@ -37,7 +37,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         groupNameTextView.setText(groupName);
         groupEmailTextView.setText(groupEmail);
         groupChallengeTitleTextView.setText(groupChallengeTitle);
-        groupChallengeGoalTextView.setText(String.valueOf(groupChallengeGoal));
+        groupChallengeGoalTextView.setText("$" + groupChallengeGoal);
         groupFrequencyTextView.setText(groupFrequency);
         groupNotesTextView.setText(groupNotes);
 

@@ -17,15 +17,20 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleCreationViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
+import java.net.HttpCookie;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class SavingsCircleFragment extends Fragment {
 
@@ -33,6 +38,7 @@ public class SavingsCircleFragment extends Fragment {
     private SavingsCircleAdapter adapter;
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private SavingsCircleCreationViewModel savingsCircleCreationViewModel;
+    private DateViewModel dateViewModel;
 
     public SavingsCircleFragment() {
         super(R.layout.fragment_savingscircle);
@@ -73,6 +79,18 @@ public class SavingsCircleFragment extends Fragment {
             intent.putExtra("groupChallengeGoal", savings.getGoal());
             intent.putExtra("groupFrequency", savings.getFrequency());
             intent.putExtra("groupNotes", savings.getNotes());
+            intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
+            int i = 1;
+            for (Map.Entry<String, String> date : savings.getDatesJoined().entrySet()) {
+                intent.putExtra("date" + i, date.getValue());
+                i++;
+            }
+            int j = 1;
+            for (Map.Entry<String, Double> contribution : savings.getContributions().entrySet()) {
+                intent.putExtra("contribution" + j, contribution.getValue());
+                j++;
+            }
+            intent.putExtra("memberCount", savings.getMemberIds().size());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
@@ -82,6 +100,8 @@ public class SavingsCircleFragment extends Fragment {
         savingsCircleFragmentViewModel.loadSavingsCircle();
         savingsCircleCreationViewModel = new ViewModelProvider(this)
                 .get(SavingsCircleCreationViewModel.class);
+        dateViewModel = new ViewModelProvider(this)
+                .get(DateViewModel.class);
         Button addGroup = view.findViewById(R.id.addGroup);
         savingsCircleFragmentViewModel.getSavingsCircle().observe(
                 getViewLifecycleOwner(),
@@ -158,9 +178,12 @@ public class SavingsCircleFragment extends Fragment {
                     return;
                 }
 
-                savingsCircleCreationViewModel.createUserSavingsCircle(
-                        name, email, title, goal, frequency, notes
-                );
+                dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                    if (appDate == null) return;
+                    savingsCircleCreationViewModel.createUserSavingsCircle(
+                            name, email, title, goal, frequency, notes, appDate
+                    );
+                });
 
                 savingsCircleCreationViewModel.getText()
                         .observe(getViewLifecycleOwner(), message -> {

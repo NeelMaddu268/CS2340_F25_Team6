@@ -7,6 +7,8 @@ public class SavingsCircle {
     private String name;
     private String creatorId;
     private String creatorEmail;
+    private AppDate creatorDateJoined;
+    private Map<String, String> datesJoined;
     private List<String> memberIds;
     private Map<String, Double> contributions;
     private double spent;
@@ -52,6 +54,14 @@ public class SavingsCircle {
     public void setCreatorEmail(String creatorEmail) {
         this.creatorEmail = creatorEmail;
     }
+
+    public AppDate getCreatorDateJoined() { return creatorDateJoined; }
+
+    public void setCreatorDateJoined(AppDate creatorDateJoined) { this.creatorDateJoined = creatorDateJoined; }
+
+    public Map<String, String> getDatesJoined() { return datesJoined; }
+
+    public void setDatesJoined(Map<String, String> datesJoined) { this.datesJoined = datesJoined; }
 
     public List<String> getMemberIds() {
         return memberIds;

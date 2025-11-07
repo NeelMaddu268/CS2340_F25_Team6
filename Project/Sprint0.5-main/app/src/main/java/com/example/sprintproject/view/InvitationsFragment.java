@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.InvitationsViewModel;
 
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class InvitationsFragment extends Fragment {
 
     private InvitationsViewModel invitationsViewModel;
+    private DateViewModel dateViewModel;
     private LinearLayout invitesContainer;
 
     public InvitationsFragment() {
@@ -35,6 +37,8 @@ public class InvitationsFragment extends Fragment {
         invitesContainer = view.findViewById(R.id.invitesContainer);
         invitationsViewModel = new ViewModelProvider(
                 requireActivity()).get(InvitationsViewModel.class);
+        dateViewModel = new ViewModelProvider(this)
+                .get(DateViewModel.class);
 
         // start listening for invites
         invitationsViewModel.startListening();
@@ -76,13 +80,19 @@ public class InvitationsFragment extends Fragment {
             fromEmail.setText("Invited by: " + from);
 
             acceptBtn.setOnClickListener(v -> {
-                invitationsViewModel.respondToInvite(inviteId, true);
-                Toast.makeText(requireContext(), "Joined " + name + "!", Toast.LENGTH_SHORT).show();
+                dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                    if (appDate == null) return;
+                    invitationsViewModel.respondToInvite(inviteId, true, appDate);
+                    Toast.makeText(requireContext(), "Joined " + name + "!", Toast.LENGTH_SHORT).show();
+                });
             });
 
             declineBtn.setOnClickListener(v -> {
-                invitationsViewModel.respondToInvite(inviteId, false);
-                Toast.makeText(requireContext(), "Declined invite.", Toast.LENGTH_SHORT).show();
+                dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                    if (appDate == null) return;
+                    invitationsViewModel.respondToInvite(inviteId, false, appDate);
+                    Toast.makeText(requireContext(), "Declined invite.", Toast.LENGTH_SHORT).show();
+                });
             });
 
             invitesContainer.addView(inviteView);
