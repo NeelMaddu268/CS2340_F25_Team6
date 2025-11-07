@@ -1,9 +1,11 @@
 package com.example.sprintproject.view;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -27,6 +29,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         double groupChallengeGoal = getIntent().getDoubleExtra("groupChallengeGoal", 0.0);
         String groupFrequency = getIntent().getStringExtra("groupFrequency");
         String groupNotes = getIntent().getStringExtra("groupNotes");
+        String circleId = getIntent().getStringExtra("circleId");
+
 
         // update the UI with the provided details
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
@@ -35,6 +39,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
+        Button deleteCircleButton = findViewById(R.id.deleteCircleButton);
+
 
         groupNameTextView.setText(groupName);
         groupEmailTextView.setText(groupEmail);
@@ -52,9 +58,32 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         if (creatorId == null || !creatorId.equals(currentUid)) {
             inviteEmailInput.setVisibility(View.GONE);
             inviteButton.setVisibility(View.GONE);
+            deleteCircleButton.setVisibility(View.GONE);
+        } else {
+            deleteCircleButton.setVisibility(View.VISIBLE);
+
+            deleteCircleButton.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("Delete Savings Circle")
+                        .setMessage("Are you sure you want to delete this savings circle?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            FirestoreManager.getInstance()
+                                    .deleteSavingsCircle(circleId, currentUid)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(this, "Circle deleted successfully",
+                                                Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(this, "Failed to delete: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
         }
 
-        String circleId = getIntent().getStringExtra("circleId");
         String circleName = groupName;
 
         SavingsCircleDetailsViewModel detailsViewModel =

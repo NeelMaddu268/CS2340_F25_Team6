@@ -106,7 +106,7 @@
             android:textColorHint="@color/white"
             android:hint="Enter email to invite"
             android:inputType="textEmailAddress"
-            android:layout_marginTop="400dp"
+            android:layout_marginTop="250dp"
             android:textSize="18sp" />
 
         <Button
@@ -129,6 +129,19 @@
             android:textColor="#357DED"
             android:backgroundTint="@color/white"
             android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/deleteCircleButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Delete Circle"
+            android:textColor="@color/white"
+            android:backgroundTint="#E53935"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginTop="12dp"
+            android:layout_marginHorizontal="24dp"
+            android:visibility="gone"/>
+
 
     </LinearLayout>
 </ScrollView>
