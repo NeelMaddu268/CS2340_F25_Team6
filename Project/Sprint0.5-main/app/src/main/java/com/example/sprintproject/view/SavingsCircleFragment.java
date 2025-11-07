@@ -73,6 +73,7 @@ public class SavingsCircleFragment extends Fragment {
             intent.putExtra("groupChallengeGoal", savings.getGoal());
             intent.putExtra("groupFrequency", savings.getFrequency());
             intent.putExtra("groupNotes", savings.getNotes());
+            intent.putExtra("creatorId", savings.getCreatorId());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);

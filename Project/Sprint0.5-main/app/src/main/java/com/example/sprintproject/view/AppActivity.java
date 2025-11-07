@@ -7,6 +7,9 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.databinding.ActivityAppBinding;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.sprintproject.viewmodel.DateViewModel;
+import com.example.sprintproject.viewmodel.InvitationsViewModel;
+import com.google.android.material.badge.BadgeDrawable;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 
 public class AppActivity extends AppCompatActivity {
@@ -24,6 +27,22 @@ public class AppActivity extends AppCompatActivity {
         DateViewModel dateVM = new ViewModelProvider(this).get(DateViewModel.class);
         dateVM.getCurrentDate().observe(this, d -> {
 
+        });
+
+        InvitationsViewModel invitationsViewModel = new InvitationsViewModel();
+        invitationsViewModel.startListening();
+
+        BottomNavigationView nav = binding.bottomNav;
+        BadgeDrawable inviteBadge = nav.getOrCreateBadge(R.id.Invites);
+        inviteBadge.setVisible(true);
+        inviteBadge.setNumber(0);
+
+        invitationsViewModel.getInvites().observe(this, invites -> {
+            boolean hasPending = invites != null && !invites.isEmpty();
+            inviteBadge.setVisible(hasPending);
+            if (!hasPending) {
+                inviteBadge.clearNumber();
+            }
         });
 
         // Default fragment
