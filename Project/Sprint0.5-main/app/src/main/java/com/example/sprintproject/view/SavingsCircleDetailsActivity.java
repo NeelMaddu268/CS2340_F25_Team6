@@ -8,6 +8,7 @@ import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -45,6 +46,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         TextView groupCreationTextView = findViewById(R.id.groupCreationTextView);
         TextView groupJoinedTextView = findViewById(R.id.groupJoinedTextView);
         TextView groupContributionsTextView = findViewById(R.id.groupContributionsTextView);
+        TextView goalComplete = findViewById(R.id.goalComplete);
 
         StringBuilder sb = new StringBuilder();
         for (String email : groupEmails) {
@@ -91,6 +93,10 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                     String index = email.getKey();
                     String uid = memberUids.get(index);
                     Double contribution = contributionss.get(uid);
+                    int memberCount = members.size();
+                    if (uid.equals(currentUid) && contribution / memberCount >= groupChallengeGoal) {
+                        goalComplete.setVisibility(View.VISIBLE);
+                    }
                     mb.append(email).append(": $").append(contribution != null ? contribution : 0);
                     mb.append("\n");
                 }

@@ -10,15 +10,32 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/groupNameTextView"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="45sp"
-            android:fontFamily="@font/montserrat_regular"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:layout_marginBottom="2dp"/>
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/groupNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="45sp"
+                android:fontFamily="@font/montserrat_regular"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_marginBottom="2dp"/>
+            <TextView
+                android:id="@+id/goalComplete"
+                android:layout_width="wrap_content"
+                android:text="GOAL COMPLETE"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:fontFamily="@font/montserrat_regular"
+                android:textStyle="bold"
+                android:textColor="#3db85d"
+                android:visibility="gone"
+                android:layout_marginBottom="2dp"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
