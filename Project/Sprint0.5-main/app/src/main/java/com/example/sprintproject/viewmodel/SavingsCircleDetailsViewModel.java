@@ -19,6 +19,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
     private final MutableLiveData<Map<String, Double>> contributionsLiveData = new MutableLiveData<>();
     private final MutableLiveData<Map<String, String>> membersLiveData = new MutableLiveData<>();
     private final MutableLiveData<Map<String, String>> memberUidLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Map<String, String>> memberJoinDatesLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> statusMessage = new MutableLiveData<>();
 
     public LiveData<Map<String, Double>> getContributions() {
@@ -33,6 +34,10 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         return memberUidLiveData;
     }
 
+    public LiveData<Map<String, String>> getMemberJoinDates() {
+        return memberJoinDatesLiveData;
+    }
+
     public LiveData<String> getStatusMessage() {
         return statusMessage;
     }
@@ -45,6 +50,9 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
 
             Map<String, Double> contributions = (Map<String, Double>) snapshot.get("contributions");
             if (contributions != null) contributionsLiveData.setValue(contributions);
+
+            Map<String, String> datesJoined = (Map<String, String>) snapshot.get("datesJoined");
+            if (datesJoined != null) memberJoinDatesLiveData.setValue(datesJoined);
 
             Object rawMembers = snapshot.get("memberEmails");
             if (rawMembers instanceof Map) {

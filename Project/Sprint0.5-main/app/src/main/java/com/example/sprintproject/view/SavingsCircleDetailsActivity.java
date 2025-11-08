@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
 
@@ -14,7 +15,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +52,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         TextView groupJoinedTextView = findViewById(R.id.groupJoinedTextView);
         TextView groupContributionsTextView = findViewById(R.id.groupContributionsTextView);
         TextView goalComplete = findViewById(R.id.goalComplete);
+        TextView groupEndingTextView = findViewById(R.id.groupEndingTextView);
 
         StringBuilder sb = new StringBuilder();
         for (String email : groupEmails) {
@@ -71,6 +77,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             groupJoinedTextView.setText(dateJoined);
         } else {
             groupJoinedTextView.setText("Date not available");
+        }
+
+        if (groupFrequency.equals("Weekly")) {
+            groupEndingTextView.setText(AppDate.addDays(creationDate, 7, 0));
+        } else if (groupFrequency.equals("Monthly")) {
+            groupEndingTextView.setText(AppDate.addDays(creationDate, 0, 1));
         }
 
         EditText inviteEmailInput = findViewById(R.id.inviteEmailInput);

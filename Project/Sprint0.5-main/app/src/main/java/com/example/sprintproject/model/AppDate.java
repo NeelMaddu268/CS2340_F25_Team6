@@ -1,4 +1,9 @@
 package com.example.sprintproject.model;
+import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 
@@ -44,6 +49,22 @@ public class AppDate {
 
     public String toIso() {
         return String.format(Locale.US, "%04d-%02d-%02d", year, month, day);
+    }
+
+    public static String addDays(String originalDate, int daysToAdd, int monthsToAdd) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = sdf.parse(originalDate);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.add(Calendar.DAY_OF_MONTH, daysToAdd);
+            cal.add(Calendar.MONTH, monthsToAdd);
+            String newDateString = sdf.format(cal.getTime());
+            return newDateString;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static AppDate fromYMD(int y, int m, int d) {
