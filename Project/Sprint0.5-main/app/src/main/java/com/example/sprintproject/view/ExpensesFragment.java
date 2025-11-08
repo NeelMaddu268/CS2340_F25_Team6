@@ -114,6 +114,15 @@ public class ExpensesFragment extends Fragment {
             Button createBtn = popupView.findViewById(R.id.createExpenseButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
+            Spinner groupSavingsContributionSpinner = popupView.findViewById(R.id.groupSavingsSpinner);
+            ArrayAdapter<String> groupSavingsAdapter = new ArrayAdapter<>(
+                    requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    new String[]{"No", "Yes"}
+            );
+            groupSavingsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            groupSavingsContributionSpinner.setAdapter(groupSavingsAdapter);
+
             ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
@@ -164,11 +173,19 @@ public class ExpensesFragment extends Fragment {
                     expenseAmount.setError("Amount must be a number");
                     isValid = false;
                 }
+
                 if (isValid) {
-                    expenseCreationViewModel.createExpense(name, date,
-                            amount, category, notes, () -> {
-                            budgetsFragmentViewModel.loadBudgets(); //Refresh UI properly
-                        });
+                    boolean contributesToGroupSavings = groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
+                    expenseCreationViewModel.createExpense(
+                            name,
+                            date,
+                            amount,
+                            category,
+                            notes,
+                            contributesToGroupSavings,
+                            () -> budgetsFragmentViewModel.loadBudgets()
+                    );
+
                     dialog.dismiss();
                     expenseName.setText("");
                     expenseDate.setText("");
@@ -177,6 +194,7 @@ public class ExpensesFragment extends Fragment {
                     expenseNotes.setText("");
                 }
             });
+
 
             expenseDate.setOnClickListener(v1 -> {
                 final Calendar today = Calendar.getInstance();

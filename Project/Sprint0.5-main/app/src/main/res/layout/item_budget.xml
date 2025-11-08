@@ -103,5 +103,44 @@
             android:layout_height="wrap_content"
             android:textColor="#357DED"/>
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#FFFFFF"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+    <LinearLayout
+        android:id="@+id/groupBudgetBlock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="8dp">
+
+        <TextView
+            android:id="@+id/textGroupTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Group Budget Details"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/textGroupGoal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Goal: $0.00"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/textGroupProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total Contributions: $0.00"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+    </LinearLayout>
 
 </LinearLayout>
