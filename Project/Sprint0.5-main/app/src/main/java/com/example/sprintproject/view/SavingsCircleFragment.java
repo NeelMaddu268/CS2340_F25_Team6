@@ -73,7 +73,7 @@ public class SavingsCircleFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
-            intent.putExtra("groupEmail", savings.getCreatorEmail());
+            intent.putStringArrayListExtra("groupEmails", new ArrayList<>(savings.getMemberEmails()));
             intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());

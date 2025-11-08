@@ -12,6 +12,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SavingsCircleDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,12 +22,13 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         // get the group creation details from the intent
         String groupName = getIntent().getStringExtra("groupName");
-        String groupEmail = getIntent().getStringExtra("groupEmail");
+        ArrayList<String> groupEmails = getIntent().getStringArrayListExtra("groupEmails");
         String groupInvite = getIntent().getStringExtra("groupInvite");
         String groupChallengeTitle = getIntent().getStringExtra("groupChallengeTitle");
         double groupChallengeGoal = getIntent().getDoubleExtra("groupChallengeGoal", 0.0);
         String groupFrequency = getIntent().getStringExtra("groupFrequency");
         String groupNotes = getIntent().getStringExtra("groupNotes");
+        String creationDate = getIntent().getStringExtra("creationDate");
 
         // update the UI with the provided details
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
@@ -33,13 +37,15 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
+        TextView groupCreationTextView = findViewById(R.id.groupCreationTextView);
 
         groupNameTextView.setText(groupName);
-        groupEmailTextView.setText(groupEmail);
+        groupEmailTextView.setText(String.join(", ", groupEmails));
         groupChallengeTitleTextView.setText(groupChallengeTitle);
         groupChallengeGoalTextView.setText("$" + groupChallengeGoal);
         groupFrequencyTextView.setText(groupFrequency);
         groupNotesTextView.setText(groupNotes);
+        groupCreationTextView.setText(creationDate);
 
         EditText inviteEmailInput = findViewById(R.id.inviteEmailInput);
         Button inviteButton = findViewById(R.id.inviteButton);

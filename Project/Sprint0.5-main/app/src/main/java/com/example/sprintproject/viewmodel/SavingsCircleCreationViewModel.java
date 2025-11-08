@@ -60,6 +60,7 @@ public class SavingsCircleCreationViewModel extends ViewModel {
         circle.setFrequency(frequency);
         circle.setNotes(notes);
         circle.setMemberIds(Collections.singletonList(uid));
+        circle.setMemberEmails(Collections.singletonList(email));
         circle.setContributions(Collections.singletonMap(uid, 0.0));
         circle.setInvite("active");
         circle.setSpent(0.0);

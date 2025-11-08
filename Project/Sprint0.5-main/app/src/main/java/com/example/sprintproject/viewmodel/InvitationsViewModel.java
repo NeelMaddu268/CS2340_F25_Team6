@@ -108,12 +108,12 @@ public class InvitationsViewModel extends ViewModel {
                                 .update(
                                         "memberIds", FieldValue.arrayUnion(currentUid),
                                         "contributions." + currentUid, 0.0
-//                                        "datesJoined." + currentUid, joinDate.toIso()
                                 )
                                 .addOnSuccessListener(aVoid2 -> {
                                     db.collection("savingsCircles")
                                             .document(circleId)
-                                            .update("datesJoined." + currentUid, joinDate.toIso())
+                                            .update("datesJoined." + currentUid, joinDate.toIso(),
+                                                    "memberEmails", FieldValue.arrayUnion(doc.getString("toEmail")))
                                             .addOnSuccessListener(aVoid3 ->
                                                     System.out.println("[respondToInvite] datesJoined added successfully")
                                             )

@@ -1,4 +1,5 @@
 package com.example.sprintproject.model;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ public class SavingsCircle {
     private AppDate creatorDateJoined;
     private Map<String, String> datesJoined;
     private List<String> memberIds;
+    private List<String> memberEmails;
     private Map<String, Double> contributions;
     private double spent;
     private String invite;
@@ -70,6 +72,12 @@ public class SavingsCircle {
     public void setMemberIds(List<String> memberIds) {
         this.memberIds = memberIds;
     }
+
+    public List<String> getMemberEmails() {
+        return memberEmails; }
+
+    public void setMemberEmails(List<String> memberEmails) {
+        this.memberEmails = memberEmails; }
 
     public Map<String, Double> getContributions() {
         return contributions;
