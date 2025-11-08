@@ -43,6 +43,10 @@ public class InvitationsViewModel extends ViewModel {
                     for (DocumentSnapshot doc : qs.getDocuments()) {
                         Map<String, Object> data = doc.getData();
                         if (data != null) {
+                            String status = (String) data.get("status");
+                            if (status != null && !status.equals("pending")) {
+                                continue;
+                            }
                             data.put("id", doc.getId());
                             invites.add(data);
                         }

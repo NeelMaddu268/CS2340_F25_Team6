@@ -14,8 +14,8 @@ public class SavingsCircle {
     private List<String> memberEmails;
     private Map<String, Double> contributions;
     private double spent;
-    private String invite;
     private String title;
+    private String invite;
     private double goal;
     private String frequency;
     private String notes;
@@ -47,7 +47,6 @@ public class SavingsCircle {
     public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
     }
-
 
     public String getCreatorEmail() {
         return creatorEmail;
@@ -99,14 +98,6 @@ public class SavingsCircle {
         return title;
     }
 
-    public void setInvite(String invite) {
-        this.invite = invite;
-    }
-
-    public String getInvite() {
-        return invite;
-    }
-
     public void setTitle(String title) {
         this.title = title;
     }
@@ -133,5 +124,13 @@ public class SavingsCircle {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getInvite() {
+        return invite;
+    }
+
+    public void setInvite(String invite) {
+        this.invite = invite;
     }
 }

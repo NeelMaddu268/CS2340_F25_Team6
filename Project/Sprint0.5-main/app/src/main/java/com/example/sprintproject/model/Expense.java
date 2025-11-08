@@ -12,6 +12,7 @@ public class Expense {
     private String notes;
 
     private long timestamp;
+    private boolean contributesToGroupSavings;
 
     public Expense() {
 
@@ -94,5 +95,13 @@ public class Expense {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean contributesToGroupSavings() {
+        return contributesToGroupSavings;
+    }
+
+    public void setContributesToGroupSavings(boolean contributesToGroupSavings) {
+        this.contributesToGroupSavings = contributesToGroupSavings;
     }
 }

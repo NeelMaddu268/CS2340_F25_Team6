@@ -1,5 +1,6 @@
 package com.example.sprintproject.view;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -7,6 +8,7 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
+import com.google.firebase.auth.FirebaseAuth;
 
 import android.os.Bundle;
 import android.view.View;
@@ -32,18 +34,18 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         // get the group creation details from the intent
         String groupName = getIntent().getStringExtra("groupName");
         ArrayList<String> groupEmails = getIntent().getStringArrayListExtra("groupEmails");
-        String groupInvite = getIntent().getStringExtra("groupInvite");
         String groupChallengeTitle = getIntent().getStringExtra("groupChallengeTitle");
         double groupChallengeGoal = getIntent().getDoubleExtra("groupChallengeGoal", 0.0);
         String groupFrequency = getIntent().getStringExtra("groupFrequency");
         String groupNotes = getIntent().getStringExtra("groupNotes");
+
         String creationDate = getIntent().getStringExtra("creationDate");
         HashMap<String, String> datesJoined = (HashMap<String, String>) getIntent().getSerializableExtra("datesJoined");
         HashMap<String, Double> contributions = (HashMap<String, Double>) getIntent().getSerializableExtra("contributions");
+        String circleId = getIntent().getStringExtra("circleId");
 
         // update the UI with the provided details
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
-        TextView groupEmailTextView = findViewById(R.id.groupEmailTextView);
         TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
@@ -53,6 +55,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         TextView groupContributionsTextView = findViewById(R.id.groupContributionsTextView);
         TextView goalComplete = findViewById(R.id.goalComplete);
         TextView groupEndingTextView = findViewById(R.id.groupEndingTextView);
+        TextView groupEmailTextView = findViewById(R.id.groupEmailTextView);
 
         StringBuilder sb = new StringBuilder();
         for (String email : groupEmails) {
@@ -67,6 +70,10 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         groupNameTextView.setText(groupName);
         groupEmailTextView.setText(String.join(", ", groupEmails));
+        Button deleteCircleButton = findViewById(R.id.deleteCircleButton);
+
+
+        groupNameTextView.setText(groupName);
         groupChallengeTitleTextView.setText(groupChallengeTitle);
         groupChallengeGoalTextView.setText("$" + groupChallengeGoal);
         groupFrequencyTextView.setText(groupFrequency);
@@ -88,7 +95,37 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         EditText inviteEmailInput = findViewById(R.id.inviteEmailInput);
         Button inviteButton = findViewById(R.id.inviteButton);
 
-        String circleId = getIntent().getStringExtra("circleId");
+        String creatorId = getIntent().getStringExtra("creatorId");
+
+        if (creatorId == null || !creatorId.equals(currentUid)) {
+            inviteEmailInput.setVisibility(View.GONE);
+            inviteButton.setVisibility(View.GONE);
+            deleteCircleButton.setVisibility(View.GONE);
+        } else {
+            deleteCircleButton.setVisibility(View.VISIBLE);
+
+            deleteCircleButton.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("Delete Savings Circle")
+                        .setMessage("Are you sure you want to delete this savings circle?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            FirestoreManager.getInstance()
+                                    .deleteSavingsCircle(circleId, currentUid)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(this, "Circle deleted successfully",
+                                                Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(this, "Failed to delete: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
+        }
+
         String circleName = groupName;
 
         SavingsCircleDetailsViewModel detailsViewModel =

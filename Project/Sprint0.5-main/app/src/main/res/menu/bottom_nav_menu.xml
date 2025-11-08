@@ -28,7 +28,8 @@
 
     <item
         android:id="@+id/Invites"
-        android:title="Invites" />
+        android:title="Invites"
+        android:icon="@drawable/baseline_mail_outline_24"/>
 
 
 </menu>

@@ -33,7 +33,7 @@ public class SavingsCircleCreationViewModel extends ViewModel {
         return text;
     }
 
-    public void createUserSavingsCircle(String name, String email,
+    public void createUserSavingsCircle(String name,
             String title, String goalString, String frequency, String notes, AppDate dateJoined) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -51,7 +51,6 @@ public class SavingsCircleCreationViewModel extends ViewModel {
 
         SavingsCircle circle = new SavingsCircle();
         circle.setName(name);
-        circle.setCreatorEmail(email);
         circle.setCreatorId(uid);
         circle.setDatesJoined(Collections.singletonMap(uid, dateJoined.toIso()));
         circle.setCreatorDateJoined(dateJoined);
@@ -60,7 +59,8 @@ public class SavingsCircleCreationViewModel extends ViewModel {
         circle.setFrequency(frequency);
         circle.setNotes(notes);
         circle.setMemberIds(Collections.singletonList(uid));
-        circle.setMemberEmails(Collections.singletonList(email));
+        String currentUserEmail = FirestoreManager.getInstance().getCurrentUserEmail();
+        circle.setMemberEmails(Collections.singletonList(currentUserEmail));
         circle.setContributions(Collections.singletonMap(uid, 0.0));
         circle.setInvite("active");
         circle.setSpent(0.0);

@@ -47,51 +47,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:textColor="@color/white"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
-        android:text="Creator Email"
-        android:textSize="20dp" />
-
-    <EditText
-        android:id="@+id/GroupEmail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="24dp"
-        android:layout_marginLeft="24dp"
-        android:padding="10dp"
-        android:textSize="20dp"
-        android:background="@color/white"
-        android:inputType="textEmailAddress"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
-        android:paddingTop="12dp"
-        android:textSize="20dp"
-        android:text="Invite Option"
-        android:textColor="@color/white"/>
-
-    <EditText
-        android:id="@+id/GroupInvite"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="24dp"
-        android:layout_marginLeft="24dp"
-        android:inputType="textMultiLine"
-        android:padding="10dp"
-        android:textSize="20dp"
-        android:background="@color/white"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:paddingLeft="24dp"
         android:paddingRight="24dp"
         android:paddingTop="5dp"

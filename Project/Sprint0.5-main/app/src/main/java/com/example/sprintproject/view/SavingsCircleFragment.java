@@ -84,6 +84,7 @@ public class SavingsCircleFragment extends Fragment {
             intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
             intent.putExtra("datesJoined", (Serializable) savings.getDatesJoined());
             intent.putExtra("contributions", (Serializable) savings.getContributions());
+            intent.putExtra("creatorId", savings.getCreatorId());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
@@ -107,8 +108,6 @@ public class SavingsCircleFragment extends Fragment {
                     .setView(popupView)
                     .create();
             EditText groupName = popupView.findViewById(R.id.GroupName);
-            EditText groupEmail = popupView.findViewById(R.id.GroupEmail);
-            EditText groupInvite = popupView.findViewById(R.id.GroupInvite);
             EditText groupChallengeTitle = popupView.findViewById(R.id.GroupChallengeTitle);
             EditText groupChallengeGoal = popupView.findViewById(R.id.GroupChallengeGoal);
             EditText groupNotes = popupView.findViewById(R.id.GroupNotes);
@@ -127,8 +126,6 @@ public class SavingsCircleFragment extends Fragment {
 
             createBtn.setOnClickListener(view1 -> {
                 String name = groupName.getText().toString().trim();
-                String email = groupEmail.getText().toString().trim();
-                String invite = groupInvite.getText().toString().trim();
                 String title = groupChallengeTitle.getText().toString().trim();
                 String goal = groupChallengeGoal.getText().toString().trim();
                 String frequency = groupFrequency.getSelectedItem().toString();
@@ -141,14 +138,6 @@ public class SavingsCircleFragment extends Fragment {
                 }
                 if (name.isEmpty()) {
                     groupName.setError("Please enter a name");
-                    return;
-                }
-                if (email.isEmpty()) {
-                    groupEmail.setError("Please enter an email");
-                    return;
-                }
-                if (invite.isEmpty()) {
-                    groupInvite.setError("Please enter an invite");
                     return;
                 }
                 if (title.isEmpty()) {
@@ -170,11 +159,10 @@ public class SavingsCircleFragment extends Fragment {
                     groupChallengeGoal.setError("Invalid number");
                     return;
                 }
-
                 dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
                     if (appDate == null) return;
                     savingsCircleCreationViewModel.createUserSavingsCircle(
-                            name, email, title, goal, frequency, notes, appDate
+                            name, title, goal, frequency, notes, appDate
                     );
                 });
 

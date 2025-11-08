@@ -4,7 +4,10 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -31,6 +34,10 @@ public class FirestoreManager {
 
     public FirebaseFirestore getDb() {
         return db;
+    }
+
+    public CollectionReference savingsCircleReference(String uid) {
+        return db.collection("users").document(uid).collection("savingsCircles");
     }
 
     public CollectionReference budgetsReference(String uid) {
@@ -72,6 +79,66 @@ public class FirestoreManager {
         } else {
             return null; // or throw an exception if you prefer
         }
+    }
+
+    public String getCurrentUserEmail() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            return user.getEmail();
+        }
+        throw new IllegalStateException("User not logged in");
+    }
+
+    public Task<Void> deleteSavingsCircle(String circleId, String currentUserId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
+
+        return circleRef.get().continueWithTask(task -> {
+            if (!task.isSuccessful() || task.getResult() == null) {
+                throw new Exception("Can't find circle");
+            }
+
+            DocumentSnapshot doc = task.getResult();
+            if (!doc.exists()) {
+                throw new Exception("Can't find circle");
+            }
+
+            String creatorId = doc.getString("creatorId");
+            if (creatorId == null || !creatorId.equals(currentUserId)) {
+                throw new Exception("Only creator can delete this circle");
+            }
+
+            return circleRef.delete().addOnSuccessListener(aVoid -> {
+                System.out.println("Circle deleted: " + circleId);
+
+                db.collection("invitations")
+                        .whereEqualTo("circleId", circleId)
+                        .get()
+                        .addOnSuccessListener(qs -> {
+                            for (DocumentSnapshot d : qs.getDocuments()) {
+                                d.getReference().delete();
+                            }
+                        });
+
+                db.collection("users")
+                        .get()
+                        .addOnSuccessListener(users -> {
+                            for (DocumentSnapshot userDoc : users) {
+                                userDoc.getReference()
+                                        .collection("userSavingsCirclePointers")
+                                        .whereEqualTo("circleId", circleId)
+                                        .get()
+                                        .addOnSuccessListener(pointerDocs -> {
+                                            for (DocumentSnapshot pointer
+                                                    : pointerDocs.getDocuments()) {
+                                                pointer.getReference().delete();
+                                            }
+                                        });
+                            }
+                        });
+
+            });
+        });
     }
 
 

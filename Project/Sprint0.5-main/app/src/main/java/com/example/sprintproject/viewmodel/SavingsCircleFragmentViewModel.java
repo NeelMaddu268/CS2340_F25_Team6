@@ -72,4 +72,16 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                     }
                 });
     }
+
+    //    public void deleteCircle(String circleId) {
+    //        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    //
+    //        FirestoreManager.getInstance()
+    //                .deleteSavingsCircle(circleId, currentUid)
+    //                .addOnSuccessListener(aVoid ->
+    //                        System.out.println("Circle deleted successfully"))
+    //                .addOnFailureListener(e ->
+    //                        System.err.println("Delete failed: " + e.getMessage()));
+    //    }
+
 }

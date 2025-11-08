@@ -22,14 +22,12 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
                 @Override
                 public boolean areItemsTheSame(@NonNull SavingsCircle oldItem,
                                                @NonNull SavingsCircle newItem) {
-                    return oldItem.getName().equals(newItem.getName())
-                            && oldItem.getCreatorEmail().equals(newItem.getCreatorEmail());
+                    return oldItem.getName().equals(newItem.getName());
                 }
 
                 public boolean areContentsTheSame(
                         @NonNull SavingsCircle oldItem, @NonNull SavingsCircle newItem) {
                     return oldItem.getName().equals(newItem.getName())
-                            && oldItem.getCreatorEmail().equals(newItem.getCreatorEmail())
                             && oldItem.getTitle().equals(newItem.getTitle())
                             && oldItem.getGoal() == (newItem.getGoal())
                             && oldItem.getFrequency().equals(newItem.getFrequency())
