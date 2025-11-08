@@ -2,6 +2,8 @@ package com.example.sprintproject.viewmodel;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -61,6 +63,15 @@ public class FirestoreManager {
 
     public Query invitationsForUser(String uid) {
         return invitationsReference().whereEqualTo("toUid", uid);
+    }
+
+    public String getCurrentUserId() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            return user.getUid();
+        } else {
+            return null; // or throw an exception if you prefer
+        }
     }
 
 

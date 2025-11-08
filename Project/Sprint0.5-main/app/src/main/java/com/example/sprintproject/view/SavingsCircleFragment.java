@@ -28,8 +28,10 @@ import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleCreationViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
+import java.io.Serializable;
 import java.net.HttpCookie;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SavingsCircleFragment extends Fragment {
@@ -80,17 +82,8 @@ public class SavingsCircleFragment extends Fragment {
             intent.putExtra("groupFrequency", savings.getFrequency());
             intent.putExtra("groupNotes", savings.getNotes());
             intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
-            int i = 1;
-            for (Map.Entry<String, String> date : savings.getDatesJoined().entrySet()) {
-                intent.putExtra("date" + i, date.getValue());
-                i++;
-            }
-            int j = 1;
-            for (Map.Entry<String, Double> contribution : savings.getContributions().entrySet()) {
-                intent.putExtra("contribution" + j, contribution.getValue());
-                j++;
-            }
-            intent.putExtra("memberCount", savings.getMemberIds().size());
+            intent.putExtra("datesJoined", (Serializable) savings.getDatesJoined());
+            intent.putExtra("contributions", (Serializable) savings.getContributions());
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
