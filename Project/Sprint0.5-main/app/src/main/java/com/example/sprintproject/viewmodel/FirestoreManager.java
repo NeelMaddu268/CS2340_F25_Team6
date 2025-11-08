@@ -34,6 +34,10 @@ public class FirestoreManager {
         return db;
     }
 
+    public CollectionReference savingsCircleReference(String uid) {
+        return db.collection("users").document(uid).collection("savingsCircles");
+    }
+
     public CollectionReference budgetsReference(String uid) {
         return db.collection("users").document(uid).collection("budgets");
     }

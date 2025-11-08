@@ -64,6 +64,17 @@ public class ExpenseCreationViewModel extends ViewModel {
     public void createExpense(
             String name, String date, String amountString,
             String category, String notes, Runnable onBudgetUpdated) {
+        createExpense(name, date, amountString, category, notes, false, onBudgetUpdated);
+    }
+
+    public void createExpense(
+            String name,
+            String date,
+            String amountString,
+            String category,
+            String notes,
+            boolean contributesToGroupSavings,   // <-- new flag
+            Runnable onBudgetUpdated) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -81,9 +92,11 @@ public class ExpenseCreationViewModel extends ViewModel {
         long timestamp = parseDateToMillis(date);
         Expense expense = new Expense(name, amount, normalizedCategory, date, notes);
         expense.setTimestamp(timestamp);
+        expense.setContributesToGroupSavings(contributesToGroupSavings); // <-- save new field
 
         System.out.println("[createExpense] Starting for category=" + category
-                + ", amount=" + amount + ", date=" + date);
+                + ", amount=" + amount + ", date=" + date
+                + ", contributesToGroupSavings=" + contributesToGroupSavings);
 
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
@@ -92,6 +105,10 @@ public class ExpenseCreationViewModel extends ViewModel {
                             + docRef.getId());
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
+
+                    if (contributesToGroupSavings) {
+                        updateGroupSavings(uid, amount);
+                    }
                 })
                 .addOnFailureListener(e -> {
                     System.err.println("[createExpense] Failed to add expense: "
@@ -99,6 +116,7 @@ public class ExpenseCreationViewModel extends ViewModel {
                     e.printStackTrace();
                 });
     }
+
 
     private String normalizeCategory(String category) {
         return category == null ? "" : category.trim().toLowerCase(Locale.US);
@@ -189,6 +207,26 @@ public class ExpenseCreationViewModel extends ViewModel {
                         System.err.println("[handleBudgetUpdate] Budget fetch failed: "
                                 + e.getMessage()));
     }
+
+    private void updateGroupSavings(String uid, double amount) {
+        FirestoreManager.getInstance().savingsCircleReference(uid)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        DocumentSnapshot circleDoc = query.getDocuments().get(0);
+                        circleDoc.getReference().update("spent",
+                                FieldValue.increment(amount));
+                        System.out.println("[updateGroupSavings] Added " + amount
+                                + " to group savings total.");
+                    } else {
+                        System.out.println("[updateGroupSavings] No group savings circle found.");
+                    }
+                })
+                .addOnFailureListener(e ->
+                        System.err.println("[updateGroupSavings] Failed: " + e.getMessage()));
+    }
+
 
     private long calcBudgetEnd(long start, String freq) {
         if ("Weekly".equalsIgnoreCase(freq)) {
