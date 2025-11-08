@@ -84,10 +84,13 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         detailsViewModel.getContributions().observe(this, contributionss -> {
             Map<String, String> members = detailsViewModel.getMembers().getValue();
+            Map<String, String> memberUids = detailsViewModel.getMemberUids().getValue();
             if (contributionss != null && members != null) {
                 StringBuilder mb = new StringBuilder();
-                for (String email : members.values()) {
-                    Double contribution = contributionss.get(email);
+                for (Map.Entry<String, String> email : members.entrySet()) {
+                    String index = email.getKey();
+                    String uid = memberUids.get(index);
+                    Double contribution = contributionss.get(uid);
                     mb.append(email).append(": $").append(contribution != null ? contribution : 0);
                     mb.append("\n");
                 }

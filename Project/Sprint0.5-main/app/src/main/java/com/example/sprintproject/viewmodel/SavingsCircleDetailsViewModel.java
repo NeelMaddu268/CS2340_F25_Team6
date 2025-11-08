@@ -18,6 +18,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
     private ListenerRegistration listener;
     private final MutableLiveData<Map<String, Double>> contributionsLiveData = new MutableLiveData<>();
     private final MutableLiveData<Map<String, String>> membersLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Map<String, String>> memberUidLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> statusMessage = new MutableLiveData<>();
 
     public LiveData<Map<String, Double>> getContributions() {
@@ -27,6 +28,11 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
     public LiveData<Map<String, String>> getMembers() {
         return membersLiveData;
     }
+
+    public LiveData<Map<String, String>> getMemberUids() {
+        return memberUidLiveData;
+    }
+
     public LiveData<String> getStatusMessage() {
         return statusMessage;
     }
@@ -50,6 +56,18 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                     if (email != null) emailMap.put(String.valueOf(i), email.toString());
                 }
                 membersLiveData.setValue(emailMap);
+            }
+
+            Object rawMembersUids = snapshot.get("members");
+            if (rawMembersUids instanceof Map) {
+                memberUidLiveData.setValue((Map<String, String>) rawMembersUids);
+            } else if (rawMembersUids instanceof java.util.List) {
+                Map<String, String> uidMap = new HashMap<>();
+                for (int i = 0; i < ((java.util.List<?>) rawMembersUids).size(); i++) {
+                    Object uid = ((java.util.List<?>) rawMembersUids).get(i);
+                    if (uid != null) uidMap.put(String.valueOf(i), uid.toString());
+                }
+                membersLiveData.setValue(uidMap);
             }
         });
     }
