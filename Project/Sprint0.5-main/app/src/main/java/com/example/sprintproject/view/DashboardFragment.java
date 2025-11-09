@@ -23,12 +23,38 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.AuthenticationViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 
+// --- PIE CHART ---
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.utils.ColorTemplate;
+
+// --- BAR CHART (Totals: Spent vs Budget) ---
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.Query;
+import com.example.sprintproject.viewmodel.FirestoreManager;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
 
@@ -43,6 +69,12 @@ public class DashboardFragment extends Fragment {
     private Button logoutButton;
     private RecyclerView budgetRecycler;
     private DashboardBudgetAdapter budgetAdapter;
+
+    // --- PIE CHART ---
+    private PieChart pieChart;
+
+    // --- BAR CHART: 2 bars (Spent vs Budget) ---
+    private BarChart barChartTotals;
 
     public DashboardFragment() {
         super(R.layout.fragment_dashboard);
@@ -72,6 +104,14 @@ public class DashboardFragment extends Fragment {
         totalRemainingText = view.findViewById(R.id.textTotalRemaining);
         budgetRecycler = view.findViewById(R.id.recyclerRemainingBudgets);
 
+        // --- PIE CHART ---
+        pieChart = view.findViewById(R.id.pieChart);
+        setupPieChart();
+
+        // --- BAR CHART (Totals) ---
+        barChartTotals = view.findViewById(R.id.barChartTotals);
+        setupTotalsBarChart();
+
         headerText.setText("Dashboard");
 
         // Edge-to-edge insets
@@ -90,7 +130,12 @@ public class DashboardFragment extends Fragment {
         budgetRecycler.setAdapter(budgetAdapter);
 
         // Observers
-        dashboardVM.getBudgetsList().observe(getViewLifecycleOwner(), budgetAdapter::updateData);
+        dashboardVM.getBudgetsList().observe(getViewLifecycleOwner(), budgets -> {
+            // keep original recycler behavior
+            budgetAdapter.updateData(budgets);
+            // update the two-bar totals using the same current-cycle numbers as the cards
+            renderTotalsBarChart(budgets);
+        });
 
         dashboardVM.getTotalSpentAllTime().observe(getViewLifecycleOwner(), total ->
                 totalSpentText.setText(String.format(Locale.US,
@@ -103,9 +148,10 @@ public class DashboardFragment extends Fragment {
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             if (date != null) {
                 dashboardVM.loadDataFor(date);
+                // --- PIE CHART ---
+                loadPieFor(date);
             }
         });
-
 
         // Calendar picker
         if (btnCalendar != null) {
@@ -123,6 +169,11 @@ public class DashboardFragment extends Fragment {
 
         // Initial load
         dashboardVM.loadData();
+        // --- PIE CHART ---
+        AppDate now = dateVM.getCurrentDate().getValue();
+        if (now != null) {
+            loadPieFor(now);
+        }
 
         return view;
     }
@@ -154,7 +205,164 @@ public class DashboardFragment extends Fragment {
         AppDate currentDate = dateVM.getCurrentDate().getValue();
         if (currentDate != null) {
             dashboardVM.loadDataFor(currentDate);
+            // --- PIE CHART ---
+            loadPieFor(currentDate);
         }
     }
 
+    // =========================
+    // --- PIE CHART: helpers ---
+    // =========================
+    private void setupPieChart() {
+        if (pieChart == null) return;
+        pieChart.setUsePercentValues(true);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleRadius(45f);
+        pieChart.setTransparentCircleRadius(50f);
+        pieChart.setCenterText("Spending by Category");
+        pieChart.setCenterTextSize(14f);
+        pieChart.getLegend().setEnabled(true);
+        pieChart.setEntryLabelTextSize(12f);
+    }
+
+    /**
+     * Loads expenses for the **month containing the given AppDate**, aggregates by category,
+     * and renders % slices.
+     */
+    private void loadPieFor(@NonNull AppDate date) {
+        if (pieChart == null) return;
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            renderPie(new HashMap<>());
+            return;
+        }
+        String uid = auth.getCurrentUser().getUid();
+
+        // Build [startOfMonth, startOfNextMonth) from the selected date
+        Calendar start = Calendar.getInstance();
+        start.set(date.getYear(), date.getMonth() - 1, 1, 0, 0, 0);
+        start.set(Calendar.MILLISECOND, 0);
+        long startMs = start.getTimeInMillis();
+
+        Calendar end = (Calendar) start.clone();
+        end.add(Calendar.MONTH, 1);
+        long endMs = end.getTimeInMillis();
+
+        FirestoreManager.getInstance()
+                .expensesReference(uid)
+                .whereGreaterThanOrEqualTo("timestamp", startMs)
+                .whereLessThan("timestamp", endMs)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    Map<String, Double> totals = new HashMap<>();
+                    for (DocumentSnapshot d : qs.getDocuments()) {
+                        Double amt = d.getDouble("amount");
+                        String cat = d.getString("category");
+                        if (amt == null || cat == null) continue;
+                        String key = cat.trim().toLowerCase(Locale.US);
+                        totals.put(key, totals.getOrDefault(key, 0.0) + amt);
+                    }
+                    renderPie(totals);
+                })
+                .addOnFailureListener(e -> renderPie(new HashMap<>()));
+    }
+
+    private void renderPie(Map<String, Double> totals) {
+        if (pieChart == null) return;
+
+        double grand = 0.0;
+        for (double v : totals.values()) grand += v;
+
+        if (grand <= 0.0001) {
+            pieChart.clear();
+            pieChart.setCenterText("No spending");
+            pieChart.invalidate();
+            return;
+        }
+
+        List<PieEntry> entries = new ArrayList<>();
+        for (Map.Entry<String, Double> e : totals.entrySet()) {
+            float pct = (float) (e.getValue() / grand * 100.0);
+            if (pct <= 0f) continue;
+            entries.add(new PieEntry(pct, pretty(e.getKey())));
+        }
+
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        dataSet.setColors(ColorTemplate.MATERIAL_COLORS);
+        dataSet.setSliceSpace(2f);
+        dataSet.setValueTextSize(12f);
+        dataSet.setValueFormatter(new PercentFormatter(pieChart));
+
+        PieData data = new PieData(dataSet);
+        pieChart.setData(data);
+        pieChart.highlightValues(null);
+        pieChart.invalidate();
+    }
+
+    private String pretty(String raw) {
+        if (raw == null) return "";
+        String t = raw.trim();
+        return t.isEmpty() ? "" : t.substring(0, 1).toUpperCase() + t.substring(1);
+    }
+
+    // ==========================================
+    // --- TOTALS BAR CHART (Spent vs Budget) ---
+    // ==========================================
+    private void setupTotalsBarChart() {
+        if (barChartTotals == null) return;
+        barChartTotals.getDescription().setEnabled(false);
+        barChartTotals.getAxisRight().setEnabled(false);
+        barChartTotals.getLegend().setEnabled(false);
+        barChartTotals.setNoDataText("No chart data available.");
+
+        // Y axis starts at 0
+        barChartTotals.getAxisLeft().setAxisMinimum(0f);
+
+        // Bottom X labels: “Spent”, “Budget”
+        XAxis x = barChartTotals.getXAxis();
+        x.setPosition(XAxis.XAxisPosition.BOTTOM);
+        x.setDrawGridLines(false);
+        x.setGranularity(1f);
+        x.setValueFormatter(new IndexAxisValueFormatter(new String[]{"Spent", "Budget"}));
+        x.setAxisMinimum(-0.5f);
+        x.setAxisMaximum(1.5f);
+    }
+
+    private void renderTotalsBarChart(@Nullable List<Budget> budgets) {
+        if (barChartTotals == null) return;
+
+        if (budgets == null || budgets.isEmpty()) {
+            barChartTotals.clear();
+            barChartTotals.invalidate();
+            return;
+        }
+
+        double sumSpent = 0.0;
+        double sumBudget = 0.0;
+
+        // DashboardVM already computes each Budget's spentToDate for the CURRENT cycle (weekly/monthly).
+        for (Budget b : budgets) {
+            if (b == null) continue;
+            sumSpent  += Math.max(0, b.getSpentToDate());
+            sumBudget += Math.max(0, b.getAmount());
+        }
+
+        List<BarEntry> entries = new ArrayList<>(2);
+        entries.add(new BarEntry(0f, (float) sumSpent));
+        entries.add(new BarEntry(1f, (float) sumBudget));
+
+        BarDataSet set = new BarDataSet(entries, "");
+        // leave default colors (distinct by MPAndroidChart)
+        set.setValueTextSize(12f);
+
+        BarData data = new BarData(set);
+        data.setBarWidth(0.5f); // nice, readable bars
+
+        barChartTotals.setData(data);
+        barChartTotals.animateY(450);
+        barChartTotals.invalidate();
+    }
 }

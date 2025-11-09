@@ -105,4 +105,19 @@
         tools:itemCount="3"
         tools:listitem="@layout/item_remaining_budget" />
 
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pieChart"
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        android:layout_margin="16dp"/>
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/barChartTotals"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"/>
+
+
 </LinearLayout>
