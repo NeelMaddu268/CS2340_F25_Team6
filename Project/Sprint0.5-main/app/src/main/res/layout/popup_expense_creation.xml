@@ -139,6 +139,26 @@
         android:padding="6dp"
         android:spinnerMode="dropdown" />
 
+    <TextView
+        android:id="@+id/chooseCircle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Savings Circle"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/chooseCircleSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@color/white"
+        android:spinnerMode="dropdown"
+        android:padding="6dp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/createExpenseButton"
