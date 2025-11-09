@@ -87,6 +87,7 @@
         android:layout_marginBottom="12dp"
         tools:text="Remaining This Cycle: $560.00" />
 
+
     <!-- RecyclerView for Remaining Budgets -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerRemainingBudgets"
@@ -118,6 +119,5 @@
         android:layout_marginTop="12dp"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"/>
-
 
 </LinearLayout>
