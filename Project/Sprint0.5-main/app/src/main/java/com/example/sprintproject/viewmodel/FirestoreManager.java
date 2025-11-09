@@ -64,6 +64,10 @@ public class FirestoreManager {
         return db.collection("savingsCircles");
     }
 
+    public DocumentReference savingsCircleDoc(String circleId) {
+        return db.collection("savingsCircles").document(circleId);
+    }
+
     public CollectionReference userSavingsCirclePointers(String uid) {
         return db.collection("users").document(uid).collection("savingsCirclePointers");
     }
