@@ -55,7 +55,8 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
         SavingsCircle circle = getItem(position);
         holder.groupName.setText(circle.getName());
         holder.groupTitle.setText(circle.getTitle());
-        holder.groupGoal.setText("$" + circle.getGoal());
+        holder.groupGoal.setText("Goal: $" + circle.getGoal());
+        holder.groupContribution.setText("Group Contribution: $" + circle.getSpent());
         holder.groupFrequency.setText(circle.getFrequency());
 
         holder.itemView.setOnClickListener(v ->
@@ -66,6 +67,7 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
         private TextView groupName;
         private TextView groupTitle;
         private TextView groupGoal;
+        private TextView groupContribution;
         private TextView groupFrequency;
 
         public SavingsCircleViewHolder(View itemView) {
@@ -73,6 +75,7 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
             groupName = itemView.findViewById(R.id.textGroupName);
             groupTitle = itemView.findViewById(R.id.textGroupTitle);
             groupGoal = itemView.findViewById(R.id.textGroupGoal);
+            groupContribution = itemView.findViewById(R.id.textGroupContribution);
             groupFrequency = itemView.findViewById(R.id.textGroupFrequency);
         }
     }
