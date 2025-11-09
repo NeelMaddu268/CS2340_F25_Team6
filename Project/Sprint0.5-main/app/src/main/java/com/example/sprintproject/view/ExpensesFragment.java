@@ -118,7 +118,9 @@ public class ExpensesFragment extends Fragment {
                     new ViewModelProvider(requireActivity()).get(ExpenseCreationViewModel.class);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
-            Spinner groupSavingsContributionSpinner = popupView.findViewById(R.id.groupSavingsSpinner);
+
+            Spinner groupSavingsContributionSpinner =
+                    popupView.findViewById(R.id.groupSavingsSpinner);
             TextView chooseCircle = popupView.findViewById(R.id.chooseCircle);
             Spinner chooseCircleSpinner = popupView.findViewById(R.id.chooseCircleSpinner);
 
@@ -127,7 +129,8 @@ public class ExpensesFragment extends Fragment {
                     android.R.layout.simple_spinner_dropdown_item,
                     new String[]{"No", "Yes"}
             );
-            groupSavingsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            groupSavingsAdapter
+                    .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSavingsContributionSpinner.setAdapter(groupSavingsAdapter);
 
             groupSavingsContributionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -223,6 +226,7 @@ public class ExpensesFragment extends Fragment {
 
                 if (isValid) {
                     boolean contributesToGroupSavings =
+
                             groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
 
                     String circleId = null;
