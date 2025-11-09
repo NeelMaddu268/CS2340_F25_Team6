@@ -117,7 +117,6 @@ public class ExpensesFragment extends Fragment {
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
             Spinner groupSavingsContributionSpinner = popupView.findViewById(
                     R.id.groupSavingsSpinner);
-            Spinner groupSavingsContributionSpinner = popupView.findViewById(R.id.groupSavingsSpinner);
             TextView chooseCircle = popupView.findViewById(R.id.chooseCircle);
             Spinner chooseCircleSpinner = popupView.findViewById(R.id.chooseCircleSpinner);
 
