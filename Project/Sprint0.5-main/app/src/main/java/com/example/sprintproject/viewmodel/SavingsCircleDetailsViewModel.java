@@ -67,7 +67,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                 }
                 membersLiveData.setValue(emailMap);
             }
-            Object rawMembersUids = snapshot.get("members");
+            Object rawMembersUids = snapshot.get("memberIds");
             if (rawMembersUids instanceof Map) {
                 memberUidLiveData.setValue((Map<String, String>) rawMembersUids);
             } else if (rawMembersUids instanceof java.util.List) {

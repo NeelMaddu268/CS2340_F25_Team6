@@ -2,6 +2,7 @@ package com.example.sprintproject.view;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
@@ -133,35 +134,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         detailsViewModel.listenToSavingsCircle(circleId);
 
-        detailsViewModel.getContributions().observe(this, contributionss -> {
-            Map<String, String> members = detailsViewModel.getMembers().getValue();
-            Map<String, String> memberUids = detailsViewModel.getMemberUids().getValue();
-            if (contributionss == null || members == null || memberUids == null) return;
-
-            Double myContribution = contributionss.get(currentUid);
-            if (myContribution != null) {
-                int memberCount = members.size();
-                if (myContribution / memberCount >= groupChallengeGoal) {
-                    goalComplete.setVisibility(View.VISIBLE);
-                }
-            }
-
-            StringBuilder mb = new StringBuilder();
-            for (Map.Entry<String, String> email : members.entrySet()) {
-                String index = email.getKey();
-                String uid = memberUids.get(index);
-                Double contribution = contributionss.get(uid);
-                mb.append(email.getValue()).append(": $").append(contribution != null ? contribution : 0);
-                mb.append("\n");
-            }
-            groupContributionsTextView.setText(mb.toString());
-        });
-
-        detailsViewModel.getMembers().observe(this, members -> {
-            if (members != null) {
-                groupEmailTextView.setText(String.join(", ", members.values()));
-            }
-        });
+        Observer<Object> observer = ignored ->
+                updateUI(detailsViewModel, currentUid, groupChallengeGoal,
+                        goalComplete, groupContributionsTextView, groupEmailTextView);
+        detailsViewModel.getContributions().observe(this, observer);
+        detailsViewModel.getMembers().observe(this, observer);
+        detailsViewModel.getMemberUids().observe(this, observer);
 
         detailsViewModel.getStatusMessage().observe(this, message -> {
             if (message != null && !message.isEmpty()) {
@@ -219,12 +197,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         // Update goal complete
         Double myContribution = contributions.get(currentUid);
-        if (myContribution != null && myContribution / members.size() >= groupChallengeGoal) {
+        int people = Math.max(1, members.size());
+        double myTarget = groupChallengeGoal / people;
+        if (myContribution != null && myContribution >= myTarget) {
             goalComplete.setVisibility(View.VISIBLE);
         } else {
             goalComplete.setVisibility(View.GONE);
         }
     }
-
-
 }
