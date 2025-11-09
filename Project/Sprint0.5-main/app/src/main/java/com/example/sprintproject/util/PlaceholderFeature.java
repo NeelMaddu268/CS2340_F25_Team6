@@ -1,15 +1,6 @@
 // com.example.sprintproject.util.PlaceholderFeature.java
 package com.example.sprintproject.util;
 
-/**
- * PlaceholderFeature
- *
- * This class exists purely as a scaffold for future features or experiments.
- * It does NOT interact with any part of the current dashboard,
- * Firestore, or existing business logic.
- *
- * Safe to include in pull requests without affecting functionality.
- */
 
 public class PlaceholderFeature {
 
