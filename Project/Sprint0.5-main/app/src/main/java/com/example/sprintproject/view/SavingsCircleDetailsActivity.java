@@ -136,21 +136,25 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         detailsViewModel.getContributions().observe(this, contributionss -> {
             Map<String, String> members = detailsViewModel.getMembers().getValue();
             Map<String, String> memberUids = detailsViewModel.getMemberUids().getValue();
-            if (contributionss != null && members != null) {
-                StringBuilder mb = new StringBuilder();
-                for (Map.Entry<String, String> email : members.entrySet()) {
-                    String index = email.getKey();
-                    String uid = memberUids.get(index);
-                    Double contribution = contributionss.get(uid);
-                    int memberCount = members.size();
-                    if (uid.equals(currentUid) && contribution / memberCount >= groupChallengeGoal) {
-                        goalComplete.setVisibility(View.VISIBLE);
-                    }
-                    mb.append(email).append(": $").append(contribution != null ? contribution : 0);
-                    mb.append("\n");
+            if (contributionss == null || members == null || memberUids == null) return;
+
+            Double myContribution = contributionss.get(currentUid);
+            if (myContribution != null) {
+                int memberCount = members.size();
+                if (myContribution / memberCount >= groupChallengeGoal) {
+                    goalComplete.setVisibility(View.VISIBLE);
                 }
-                groupContributionsTextView.setText(mb.toString());
             }
+
+            StringBuilder mb = new StringBuilder();
+            for (Map.Entry<String, String> email : members.entrySet()) {
+                String index = email.getKey();
+                String uid = memberUids.get(index);
+                Double contribution = contributionss.get(uid);
+                mb.append(email.getValue()).append(": $").append(contribution != null ? contribution : 0);
+                mb.append("\n");
+            }
+            groupContributionsTextView.setText(mb.toString());
         });
 
         detailsViewModel.getMembers().observe(this, members -> {
@@ -186,4 +190,41 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(view -> finish());
     }
+    private void updateUI(SavingsCircleDetailsViewModel vm, String currentUid,
+                          double groupChallengeGoal, TextView goalComplete,
+                          TextView groupContributionsTextView, TextView groupEmailTextView) {
+
+        Map<String, Double> contributions = vm.getContributions().getValue();
+        Map<String, String> members = vm.getMembers().getValue();
+        Map<String, String> memberUids = vm.getMemberUids().getValue();
+
+        // Only update when both contributions and members are loaded
+        if (contributions == null || members == null || memberUids == null) return;
+
+        // Update contributions text
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : members.entrySet()) {
+            String index = entry.getKey();
+            String uid = memberUids.get(index);
+            Double contribution = contributions.get(uid);
+            sb.append(entry.getValue())
+                    .append(": $")
+                    .append(contribution != null ? contribution : 0)
+                    .append("\n");
+        }
+        groupContributionsTextView.setText(sb.toString());
+
+        // Update members emails
+        groupEmailTextView.setText(String.join(", ", members.values()));
+
+        // Update goal complete
+        Double myContribution = contributions.get(currentUid);
+        if (myContribution != null && myContribution / members.size() >= groupChallengeGoal) {
+            goalComplete.setVisibility(View.VISIBLE);
+        } else {
+            goalComplete.setVisibility(View.GONE);
+        }
+    }
+
+
 }
