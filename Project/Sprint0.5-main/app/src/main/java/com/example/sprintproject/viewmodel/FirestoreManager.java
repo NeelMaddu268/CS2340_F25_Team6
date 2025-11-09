@@ -2,6 +2,8 @@ package com.example.sprintproject.viewmodel;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -70,6 +72,23 @@ public class FirestoreManager {
         return invitationsReference().whereEqualTo("toUid", uid);
     }
 
+    public String getCurrentUserId() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            return user.getUid();
+        } else {
+            return null; // or throw an exception if you prefer
+        }
+    }
+
+    public String getCurrentUserEmail() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            return user.getEmail();
+        }
+        throw new IllegalStateException("User not logged in");
+    }
+
     public Task<Void> deleteSavingsCircle(String circleId, String currentUserId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
@@ -121,7 +140,6 @@ public class FirestoreManager {
             });
         });
     }
-
 
 
     public void addBudget(String uid, Budget budget) {

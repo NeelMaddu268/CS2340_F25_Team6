@@ -1,4 +1,5 @@
 package com.example.sprintproject.model;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -6,11 +7,15 @@ public class SavingsCircle {
     private String id;
     private String name;
     private String creatorId;
+    private String creatorEmail;
+    private AppDate creatorDateJoined;
+    private Map<String, String> datesJoined;
     private List<String> memberIds;
+    private List<String> memberEmails;
     private Map<String, Double> contributions;
     private double spent;
-    private String title;
     private String invite;
+    private String title;
     private double goal;
     private String frequency;
     private String notes;
@@ -43,6 +48,22 @@ public class SavingsCircle {
         this.creatorId = creatorId;
     }
 
+    public String getCreatorEmail() {
+        return creatorEmail;
+    }
+
+    public void setCreatorEmail(String creatorEmail) {
+        this.creatorEmail = creatorEmail;
+    }
+
+    public AppDate getCreatorDateJoined() { return creatorDateJoined; }
+
+    public void setCreatorDateJoined(AppDate creatorDateJoined) { this.creatorDateJoined = creatorDateJoined; }
+
+    public Map<String, String> getDatesJoined() { return datesJoined; }
+
+    public void setDatesJoined(Map<String, String> datesJoined) { this.datesJoined = datesJoined; }
+
     public List<String> getMemberIds() {
         return memberIds;
     }
@@ -50,6 +71,12 @@ public class SavingsCircle {
     public void setMemberIds(List<String> memberIds) {
         this.memberIds = memberIds;
     }
+
+    public List<String> getMemberEmails() {
+        return memberEmails; }
+
+    public void setMemberEmails(List<String> memberEmails) {
+        this.memberEmails = memberEmails; }
 
     public Map<String, Double> getContributions() {
         return contributions;

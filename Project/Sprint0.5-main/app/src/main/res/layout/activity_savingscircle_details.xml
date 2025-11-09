@@ -1,174 +1,266 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#357DED"
-    tools:ignore="ContentDescription">
+    android:background="#357DED">
 
-    <!-- Root vertical container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Group name -->
-        <TextView
-            android:id="@+id/groupNameTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="45sp"
-            android:fontFamily="@font/montserrat_regular"
-            android:textStyle="bold"
-            tools:text="Group Name" />
-
-        <!-- Challenge title + goal row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+            <TextView
+                android:id="@+id/groupNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="45sp"
+                android:fontFamily="@font/montserrat_regular"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_marginBottom="2dp"/>
+            <TextView
+                android:id="@+id/goalComplete"
+                android:layout_width="wrap_content"
+                android:text="GOAL COMPLETE"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:fontFamily="@font/montserrat_regular"
+                android:textStyle="bold"
+                android:textColor="#3db85d"
+                android:visibility="gone"
+                android:layout_marginBottom="2dp"/>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
             <TextView
                 android:id="@+id/groupChallengeTitleTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:layout_weight="1"
-                android:textColor="@color/white"
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:textStyle="bold"
-                tools:text="Challenge Title" />
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:layout_marginBottom="2dp" />
 
             <TextView
                 android:id="@+id/groupChallengeGoalTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginBottom="24dp"
-                android:textColor="@color/white"
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:textStyle="bold"
-                tools:text="Goal" />
+                android:textColor="@color/white"
+                android:layout_marginBottom="2dp"
+                android:layout_gravity="end"/>
         </LinearLayout>
 
-        <!-- Group members row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-
             <TextView
-                android:id="@+id/groupEmailTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Group Members: "
+                android:id="@+id/groupCreationTitle"
+                android:text="Created on: "
                 android:textColor="@color/white"
-                android:textSize="22sp"
-                android:fontFamily="@font/montserrat_regular" />
-
-            <TextView
-                android:id="@+id/groupEmailTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textColor="@color/white"
-                android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
-                tools:text="member1@example.com, member2@example.com" />
+                android:layout_width="wrap_content"
+                android:textStyle="italic"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_marginBottom="2dp" />
+            <TextView
+                android:id="@+id/groupCreationTextView"
+                android:layout_width="wrap_content"
+                android:textColor="@color/white"
+                android:textStyle="italic"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_marginBottom="2dp" />
         </LinearLayout>
 
-        <!-- Frequency row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+            <TextView
+                android:id="@+id/groupJoinedTitle"
+                android:text="Joined on: "
+                android:textStyle="italic"
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_marginBottom="2dp" />
+            <TextView
+                android:id="@+id/groupJoinedTextView"
+                android:layout_width="wrap_content"
+                android:textColor="@color/white"
+                android:textStyle="italic"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_marginBottom="2dp" />
+        </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/groupEndingTitle"
+                android:text="Ending on: "
+                android:textStyle="italic"
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_marginBottom="10dp" />
+            <TextView
+                android:id="@+id/groupEndingTextView"
+                android:layout_width="wrap_content"
+                android:textColor="@color/white"
+                android:textStyle="italic"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_marginBottom="10dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
             <TextView
                 android:id="@+id/groupFrequencyTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:text="Frequency: "
                 android:textColor="@color/white"
-                android:textSize="22sp"
-                android:fontFamily="@font/montserrat_regular" />
-
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
             <TextView
                 android:id="@+id/groupFrequencyTextView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:textColor="@color/white"
-                android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
-                tools:text="Weekly" />
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
 
-        <!-- Notes -->
         <TextView
             android:id="@+id/groupNotesTextView"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:textColor="@color/white"
-            android:textSize="22sp"
             android:fontFamily="@font/montserrat_regular"
-            tools:text="Additional notes about this group challenge go here." />
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
 
-        <!-- Invite input -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/groupEmailTitle"
+                android:text="Group Members: "
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+            <TextView
+                android:id="@+id/groupEmailTextView"
+                android:layout_width="wrap_content"
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/groupContributionsTitle"
+                android:text="Contributions: "
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+            <TextView
+                android:id="@+id/groupContributionsTextView"
+                android:layout_width="wrap_content"
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
         <EditText
             android:id="@+id/inviteEmailInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="250dp"
+            android:fontFamily="@font/montserrat_regular"
+            android:textColorHint="@color/white"
             android:hint="Enter email to invite"
             android:inputType="textEmailAddress"
-            android:textColorHint="@color/white"
-            android:textSize="18sp"
-            android:fontFamily="@font/montserrat_regular"
-            tools:text="test@example.com" />
+            android:layout_marginTop="250dp"
+            android:textSize="18sp" />
 
-        <!-- Send invite button -->
         <Button
             android:id="@+id/inviteButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:textColor="#357DED"
+            android:fontFamily="@font/montserrat_regular"
             android:backgroundTint="@color/white"
             android:text="Send Invite"
-            android:textColor="#357DED"
-            android:fontFamily="@font/montserrat_regular" />
+            android:layout_marginTop="8dp" />
 
-        <!-- Back button -->
+
         <Button
-            android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:id="@+id/backButton"
             android:text="Back"
+            android:fontFamily="@font/montserrat_regular"
             android:textColor="#357DED"
             android:backgroundTint="@color/white"
-            android:fontFamily="@font/montserrat_regular" />
+            android:layout_marginBottom="16dp"/>
 
-        <!-- Delete circle button (initially hidden) -->
         <Button
             android:id="@+id/deleteCircleButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="24dp"
-            android:layout_marginTop="12dp"
             android:text="Delete Circle"
             android:textColor="@color/white"
             android:backgroundTint="#E53935"
             android:fontFamily="@font/montserrat_regular"
-            android:visibility="gone" />
+            android:layout_marginTop="12dp"
+            android:layout_marginHorizontal="24dp"
+            android:visibility="gone"/>
+
 
     </LinearLayout>
 </ScrollView>
-
