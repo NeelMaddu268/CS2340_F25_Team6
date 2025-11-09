@@ -16,7 +16,6 @@ public class SavingsCircle {
     private double spent;
     private String invite;
     private String title;
-    private String invite;
     private double goal;
     private String frequency;
     private String notes;
