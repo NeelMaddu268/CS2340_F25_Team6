@@ -2,6 +2,7 @@ package com.example.sprintproject.view;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.R;
@@ -133,31 +134,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         detailsViewModel.listenToSavingsCircle(circleId);
 
-        detailsViewModel.getContributions().observe(this, contributionss -> {
-            Map<String, String> members = detailsViewModel.getMembers().getValue();
-            Map<String, String> memberUids = detailsViewModel.getMemberUids().getValue();
-            if (contributionss != null && members != null) {
-                StringBuilder mb = new StringBuilder();
-                for (Map.Entry<String, String> email : members.entrySet()) {
-                    String index = email.getKey();
-                    String uid = memberUids.get(index);
-                    Double contribution = contributionss.get(uid);
-                    int memberCount = members.size();
-                    if (uid.equals(currentUid) && contribution / memberCount >= groupChallengeGoal) {
-                        goalComplete.setVisibility(View.VISIBLE);
-                    }
-                    mb.append(email).append(": $").append(contribution != null ? contribution : 0);
-                    mb.append("\n");
-                }
-                groupContributionsTextView.setText(mb.toString());
-            }
-        });
-
-        detailsViewModel.getMembers().observe(this, members -> {
-            if (members != null) {
-                groupEmailTextView.setText(String.join(", ", members.values()));
-            }
-        });
+        Observer<Object> observer = ignored ->
+                updateUI(detailsViewModel, currentUid, groupChallengeGoal,
+                        goalComplete, groupContributionsTextView, groupEmailTextView);
+        detailsViewModel.getContributions().observe(this, observer);
+        detailsViewModel.getMembers().observe(this, observer);
+        detailsViewModel.getMemberUids().observe(this, observer);
 
         detailsViewModel.getStatusMessage().observe(this, message -> {
             if (message != null && !message.isEmpty()) {
@@ -185,5 +167,42 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(view -> finish());
+    }
+    private void updateUI(SavingsCircleDetailsViewModel vm, String currentUid,
+                          double groupChallengeGoal, TextView goalComplete,
+                          TextView groupContributionsTextView, TextView groupEmailTextView) {
+
+        Map<String, Double> contributions = vm.getContributions().getValue();
+        Map<String, String> members = vm.getMembers().getValue();
+        Map<String, String> memberUids = vm.getMemberUids().getValue();
+
+        // Only update when both contributions and members are loaded
+        if (contributions == null || members == null || memberUids == null) return;
+
+        // Update contributions text
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : members.entrySet()) {
+            String index = entry.getKey();
+            String uid = memberUids.get(index);
+            Double contribution = contributions.get(uid);
+            sb.append(entry.getValue())
+                    .append(": $")
+                    .append(contribution != null ? contribution : 0)
+                    .append("\n");
+        }
+        groupContributionsTextView.setText(sb.toString());
+
+        // Update members emails
+        groupEmailTextView.setText(String.join(", ", members.values()));
+
+        // Update goal complete
+        Double myContribution = contributions.get(currentUid);
+        int people = Math.max(1, members.size());
+        double myTarget = groupChallengeGoal / people;
+        if (myContribution != null && myContribution >= myTarget) {
+            goalComplete.setVisibility(View.VISIBLE);
+        } else {
+            goalComplete.setVisibility(View.GONE);
+        }
     }
 }

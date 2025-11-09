@@ -49,7 +49,9 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
             if (e != null || snapshot == null || !snapshot.exists()) return;
 
             Map<String, Double> contributions = (Map<String, Double>) snapshot.get("contributions");
-            if (contributions != null) contributionsLiveData.setValue(contributions);
+            if (contributions != null) {
+                contributionsLiveData.setValue(contributions);
+            }
 
             Map<String, String> datesJoined = (Map<String, String>) snapshot.get("datesJoined");
             if (datesJoined != null) memberJoinDatesLiveData.setValue(datesJoined);
@@ -65,8 +67,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                 }
                 membersLiveData.setValue(emailMap);
             }
-
-            Object rawMembersUids = snapshot.get("members");
+            Object rawMembersUids = snapshot.get("memberIds");
             if (rawMembersUids instanceof Map) {
                 memberUidLiveData.setValue((Map<String, String>) rawMembersUids);
             } else if (rawMembersUids instanceof java.util.List) {
@@ -75,7 +76,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                     Object uid = ((java.util.List<?>) rawMembersUids).get(i);
                     if (uid != null) uidMap.put(String.valueOf(i), uid.toString());
                 }
-                membersLiveData.setValue(uidMap);
+                memberUidLiveData.setValue(uidMap);
             }
         });
     }

@@ -45,16 +45,15 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         activeListener = FirestoreManager.getInstance()
                 .userSavingsCirclePointers(uid)
                 .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
-                    if (e != null || qs == null) {
-                        savingsCircleLiveData.postValue(new ArrayList<>());
+                    if (e != null) {
                         return;
                     }
-                    List<SavingsCircle> list = new ArrayList<>();
+                    if (qs == null) return;
+
+                    List<SavingsCircle> newList = new ArrayList<>();
                     for (DocumentSnapshot pointerDoc : qs.getDocuments()) {
                         String circleId = pointerDoc.getString("circleId");
-                        if (circleId == null) {
-                            continue;
-                        }
+                        if (circleId == null) continue;
 
                         FirestoreManager.getInstance()
                                 .savingsCirclesGlobalReference()
@@ -64,14 +63,17 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                                     SavingsCircle circle = circleSnap.toObject(SavingsCircle.class);
                                     if (circle != null) {
                                         circle.setId(circleSnap.getId());
-                                        list.add(circle);
-
-                                        savingsCircleLiveData.postValue(new ArrayList<>(list));
+                                        newList.add(circle);
+                                        if (newList.size() == qs.size()) {
+                                            savingsCircleLiveData.postValue(new ArrayList<>(newList));
+                                        }
                                     }
                                 });
                     }
                 });
     }
+
+
 
     //    public void deleteCircle(String circleId) {
     //        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
