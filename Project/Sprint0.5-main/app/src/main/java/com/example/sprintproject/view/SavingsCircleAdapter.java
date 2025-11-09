@@ -54,9 +54,9 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
     public void onBindViewHolder(@NonNull SavingsCircleViewHolder holder, int position) {
         SavingsCircle circle = getItem(position);
         holder.groupName.setText(circle.getName());
-        holder.groupTitle.setText("Challenge Title: " + circle.getTitle());
-        holder.groupGoal.setText("Goal: " + circle.getGoal());
-        holder.groupFrequency.setText("Frequency: " + circle.getFrequency());
+        holder.groupTitle.setText(circle.getTitle());
+        holder.groupGoal.setText("$" + circle.getGoal());
+        holder.groupFrequency.setText(circle.getFrequency());
 
         holder.itemView.setOnClickListener(v ->
                 onSavingsCircleClickListener.onSavingsCircleClick(circle));

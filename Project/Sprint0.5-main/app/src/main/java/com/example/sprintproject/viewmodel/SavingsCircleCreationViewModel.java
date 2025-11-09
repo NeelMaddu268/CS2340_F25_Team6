@@ -3,7 +3,9 @@ package com.example.sprintproject.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.SavingsCircle;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,7 +34,7 @@ public class SavingsCircleCreationViewModel extends ViewModel {
     }
 
     public void createUserSavingsCircle(String name,
-            String title, String goalString, String frequency, String notes) {
+            String title, String goalString, String frequency, String notes, AppDate dateJoined) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -50,11 +52,15 @@ public class SavingsCircleCreationViewModel extends ViewModel {
         SavingsCircle circle = new SavingsCircle();
         circle.setName(name);
         circle.setCreatorId(uid);
+        circle.setDatesJoined(Collections.singletonMap(uid, dateJoined.toIso()));
+        circle.setCreatorDateJoined(dateJoined);
         circle.setTitle(title);
         circle.setGoal(goal);
         circle.setFrequency(frequency);
         circle.setNotes(notes);
         circle.setMemberIds(Collections.singletonList(uid));
+        String currentUserEmail = FirestoreManager.getInstance().getCurrentUserEmail();
+        circle.setMemberEmails(Collections.singletonList(currentUserEmail));
         circle.setContributions(Collections.singletonMap(uid, 0.0));
         circle.setInvite("active");
         circle.setSpent(0.0);

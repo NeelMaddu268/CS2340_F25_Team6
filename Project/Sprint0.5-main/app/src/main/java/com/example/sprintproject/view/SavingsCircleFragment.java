@@ -17,15 +17,22 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleCreationViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
+import java.io.Serializable;
+import java.net.HttpCookie;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SavingsCircleFragment extends Fragment {
 
@@ -33,6 +40,7 @@ public class SavingsCircleFragment extends Fragment {
     private SavingsCircleAdapter adapter;
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private SavingsCircleCreationViewModel savingsCircleCreationViewModel;
+    private DateViewModel dateViewModel;
 
     public SavingsCircleFragment() {
         super(R.layout.fragment_savingscircle);
@@ -67,10 +75,15 @@ public class SavingsCircleFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
+            intent.putStringArrayListExtra("groupEmails", new ArrayList<>(savings.getMemberEmails()));
+            intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());
             intent.putExtra("groupFrequency", savings.getFrequency());
             intent.putExtra("groupNotes", savings.getNotes());
+            intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
+            intent.putExtra("datesJoined", (Serializable) savings.getDatesJoined());
+            intent.putExtra("contributions", (Serializable) savings.getContributions());
             intent.putExtra("creatorId", savings.getCreatorId());
             startActivity(intent);
         });
@@ -81,6 +94,8 @@ public class SavingsCircleFragment extends Fragment {
         savingsCircleFragmentViewModel.loadSavingsCircle();
         savingsCircleCreationViewModel = new ViewModelProvider(this)
                 .get(SavingsCircleCreationViewModel.class);
+        dateViewModel = new ViewModelProvider(this)
+                .get(DateViewModel.class);
         Button addGroup = view.findViewById(R.id.addGroup);
         savingsCircleFragmentViewModel.getSavingsCircle().observe(
                 getViewLifecycleOwner(),
@@ -144,10 +159,12 @@ public class SavingsCircleFragment extends Fragment {
                     groupChallengeGoal.setError("Invalid number");
                     return;
                 }
-
-                savingsCircleCreationViewModel.createUserSavingsCircle(
-                        name, title, goal, frequency, notes
-                );
+                dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                    if (appDate == null) return;
+                    savingsCircleCreationViewModel.createUserSavingsCircle(
+                            name, title, goal, frequency, notes, appDate
+                    );
+                });
 
                 savingsCircleCreationViewModel.getText()
                         .observe(getViewLifecycleOwner(), message -> {

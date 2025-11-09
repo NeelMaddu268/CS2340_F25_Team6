@@ -1,5 +1,6 @@
 package com.example.sprintproject.view;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,9 +9,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.InvitationsViewModel;
 
 import java.util.List;
@@ -20,11 +23,19 @@ public class InvitationsAdapter extends RecyclerView.Adapter<InvitationsAdapter.
 
     private List<Map<String, Object>> invites;
     private final InvitationsViewModel invitationsViewModel;
+    private final DateViewModel dateViewModel;
+    private final Context context;
+    private final LifecycleOwner lifecycleOwner;
 
     public InvitationsAdapter(List<Map<String, Object>> invites,
-                              InvitationsViewModel invitationsViewModel) {
+                              InvitationsViewModel invitationsViewModel,
+                              DateViewModel dateViewModel, Context context,
+                              LifecycleOwner lifecycleOwner) {
         this.invites = invites;
         this.invitationsViewModel = invitationsViewModel;
+        this.dateViewModel = dateViewModel;
+        this.context = context;
+        this.lifecycleOwner = lifecycleOwner;
     }
 
     public void updateInvites(List<Map<String, Object>> newInvites) {
@@ -51,13 +62,19 @@ public class InvitationsAdapter extends RecyclerView.Adapter<InvitationsAdapter.
         holder.fromEmail.setText("Invited by: " + fromEmail);
 
         holder.acceptBtn.setOnClickListener(v -> {
-            invitationsViewModel.respondToInvite(inviteId, true);
-            Toast.makeText(v.getContext(), "Joined " + circleName + "!", Toast.LENGTH_SHORT).show();
+            dateViewModel.getCurrentDate().observe(lifecycleOwner, appDate -> {
+                if (appDate == null) return;
+                invitationsViewModel.respondToInvite(inviteId, true, appDate);
+                Toast.makeText(context, "Joined " + circleName + "!", Toast.LENGTH_SHORT).show();
+            });
         });
 
         holder.declineBtn.setOnClickListener(v -> {
-            invitationsViewModel.respondToInvite(inviteId, false);
-            Toast.makeText(v.getContext(), "Declined invite.", Toast.LENGTH_SHORT).show();
+            dateViewModel.getCurrentDate().observe(lifecycleOwner, appDate -> {
+                if (appDate == null) return;
+                invitationsViewModel.respondToInvite(inviteId, false, appDate);
+                Toast.makeText(context, "Declined invite.", Toast.LENGTH_SHORT).show();
+            });
         });
     }
 
