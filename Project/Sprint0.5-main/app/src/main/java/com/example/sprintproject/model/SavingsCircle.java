@@ -14,6 +14,7 @@ public class SavingsCircle {
     private List<String> memberEmails;
     private Map<String, Double> contributions;
     private double spent;
+    private String invite;
     private String title;
     private String invite;
     private double goal;
