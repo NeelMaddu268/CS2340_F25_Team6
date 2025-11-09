@@ -114,13 +114,15 @@ public class ExpensesFragment extends Fragment {
             Button createBtn = popupView.findViewById(R.id.createExpenseButton);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
-            Spinner groupSavingsContributionSpinner = popupView.findViewById(R.id.groupSavingsSpinner);
+            Spinner groupSavingsContributionSpinner =
+                    popupView.findViewById(R.id.groupSavingsSpinner);
             ArrayAdapter<String> groupSavingsAdapter = new ArrayAdapter<>(
                     requireContext(),
                     android.R.layout.simple_spinner_dropdown_item,
                     new String[]{"No", "Yes"}
             );
-            groupSavingsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            groupSavingsAdapter
+                    .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSavingsContributionSpinner.setAdapter(groupSavingsAdapter);
 
             ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
@@ -175,7 +177,9 @@ public class ExpensesFragment extends Fragment {
                 }
 
                 if (isValid) {
-                    boolean contributesToGroupSavings = groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
+                    boolean contributesToGroupSavings =
+                            groupSavingsContributionSpinner.getSelectedItem()
+                                    .toString().equals("Yes");
                     expenseCreationViewModel.createExpense(
                             name,
                             date,

@@ -17,22 +17,17 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleCreationViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
 import java.io.Serializable;
-import java.net.HttpCookie;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SavingsCircleFragment extends Fragment {
 
@@ -75,7 +70,8 @@ public class SavingsCircleFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
-            intent.putStringArrayListExtra("groupEmails", new ArrayList<>(savings.getMemberEmails()));
+            intent.putStringArrayListExtra("groupEmails",
+                    new ArrayList<>(savings.getMemberEmails()));
             intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());
@@ -160,7 +156,9 @@ public class SavingsCircleFragment extends Fragment {
                     return;
                 }
                 dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
-                    if (appDate == null) return;
+                    if (appDate == null) {
+                        return;
+                    }
                     savingsCircleCreationViewModel.createUserSavingsCircle(
                             name, title, goal, frequency, notes, appDate
                     );
