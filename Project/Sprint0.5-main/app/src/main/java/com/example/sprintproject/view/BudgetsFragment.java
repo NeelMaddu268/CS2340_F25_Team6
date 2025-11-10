@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class BudgetsFragment extends Fragment {
 
@@ -203,36 +204,82 @@ public class BudgetsFragment extends Fragment {
         setupFrequencySpinner(popupView, budgetFrequencyEntry, budgetDateEntry);
 
         // Date picker setup
-        budgetDateEntry.setOnClickListener(m -> {
-            String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
-            final Calendar today = Calendar.getInstance();
-            int year = today.get(Calendar.YEAR);
-            int month = today.get(Calendar.MONTH);
-            int day = today.get(Calendar.DAY_OF_MONTH);
+//        budgetDateEntry.setOnClickListener(m -> {
+//            String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
+//            final Calendar today = Calendar.getInstance();
+//            int year = today.get(Calendar.YEAR);
+//            int month = today.get(Calendar.MONTH);
+//            int day = today.get(Calendar.DAY_OF_MONTH);
+//
+//            DatePickerDialog datePickerDialog = new DatePickerDialog(
+//                    requireContext(),
+//                    (view1, y, mZero, dd) -> {
+//                        Calendar selectedDate = Calendar.getInstance();
+//                        selectedDate.set(y, mZero, dd);
+//                        if ("Monthly".equals(selectedFrequency)) {
+//                            selectedDate.set(Calendar.DAY_OF_MONTH, 1);
+//                            if (selectedDate.before(today)) {
+//                                selectedDate.add(Calendar.MONTH, 1);
+//                            }
+//                        }
+//                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+//                        budgetDateEntry.setText(sdf.format(selectedDate.getTime()));
+//                    },
+//                    year, month, day
+//            );
+//            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+//            datePickerDialog.show();
+//        });
+        budgetDateEntry.setOnClickListener(v -> {
+            DateViewModel dateViewModel = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
 
-            DatePickerDialog datePickerDialog = new DatePickerDialog(
-                    requireContext(),
-                    (view1, y, mZero, dd) -> {
-                        Calendar selectedDate = Calendar.getInstance();
-                        selectedDate.set(y, mZero, dd);
-                        if ("Monthly".equals(selectedFrequency)) {
-                            selectedDate.set(Calendar.DAY_OF_MONTH, 1);
-                            if (selectedDate.before(today)) {
-                                selectedDate.add(Calendar.MONTH, 1);
+            dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                if (appDate == null) return;
+
+                Calendar minCalendar = Calendar.getInstance();
+                minCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
+                minCalendar.set(Calendar.MILLISECOND, 0);
+
+                final Calendar today = Calendar.getInstance();
+                int year = today.get(Calendar.YEAR);
+                int month = today.get(Calendar.MONTH);
+                int day = today.get(Calendar.DAY_OF_MONTH);
+
+                String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
+
+                DatePickerDialog picker = new DatePickerDialog(
+                        requireContext(),
+                        (view, y, mZero, dd) -> {
+
+                            int displayMonth = mZero + 1;
+                            int displayDay = dd;
+                            int displayYear = y;
+
+                            if ("Monthly".equals(selectedFrequency)) {
+                                displayDay = 1;
+                                Calendar sel = Calendar.getInstance();
+                                sel.set(y, mZero, 1, 0, 0, 0);
+                                sel.set(Calendar.MILLISECOND, 0);
+                                if (sel.before(today)) {
+                                    sel.add(Calendar.MONTH, 1);
+                                    displayMonth = sel.get(Calendar.MONTH) + 1;
+                                    displayYear = sel.get(Calendar.YEAR);
+                                }
                             }
-                        }
-                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-                        budgetDateEntry.setText(sdf.format(selectedDate.getTime()));
-                    },
-                    year, month, day
-            );
-            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-            datePickerDialog.show();
+
+                            String dateString = String.format(Locale.US, "%02d/%02d/%04d", displayMonth, displayDay, displayYear);
+                            budgetDateEntry.setText(dateString);
+                        },
+                        year, month, day
+                );
+
+                picker.getDatePicker().setMinDate(minCalendar.getTimeInMillis());
+                picker.show();
+            });
         });
 
         cancelButton.setOnClickListener(x -> dialog.dismiss());
 
-        // Create Budget button logic
         createBudgetButton.setOnClickListener(x -> {
             String name = budgetNameEntry.getText().toString();
             String date = budgetDateEntry.getText().toString();
@@ -272,7 +319,15 @@ public class BudgetsFragment extends Fragment {
             }
 
             if (isValid) {
-                long timestamp = System.currentTimeMillis();
+                long timestamp;
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+                    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    timestamp = sdf.parse(date).getTime();
+                } catch (Exception e) {
+                    timestamp = System.currentTimeMillis(); // fallback
+                }
+
                 budgetCreationViewModel.createBudget(
                         name, date, amount, category, frequency, timestamp, () -> {
                             AppDate appDate = dateVM.getCurrentDate().getValue();
