@@ -2,6 +2,8 @@ package com.example.sprintproject.viewmodel;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.android.gms.tasks.Task;
@@ -10,8 +12,14 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class FirestoreManager {
     private static volatile FirestoreManager instance;
@@ -81,7 +89,7 @@ public class FirestoreManager {
         if (user != null) {
             return user.getUid();
         } else {
-            return null; // or throw an exception if you prefer
+            return null;
         }
     }
 
@@ -93,58 +101,79 @@ public class FirestoreManager {
         throw new IllegalStateException("User not logged in");
     }
 
-    public Task<Void> deleteSavingsCircle(String circleId, String currentUserId) {
+    public Task<Void> deleteSavingsCircle(String circleId, String requesterUid) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
 
-        return circleRef.get().continueWithTask(task -> {
-            if (!task.isSuccessful() || task.getResult() == null) {
-                throw new Exception("Can't find circle");
+        TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
+
+        circleRef.get().addOnSuccessListener(snapshot -> {
+            if (!snapshot.exists()) {
+                tcs.setException(new IllegalStateException("Circle not found"));
+                return;
             }
 
-            DocumentSnapshot doc = task.getResult();
-            if (!doc.exists()) {
-                throw new Exception("Can't find circle");
+            String creatorId = snapshot.getString("creatorId");
+            if (creatorId == null || !creatorId.equals(requesterUid)) {
+                tcs.setException(new SecurityException("Only the creator can delete this circle"));
+                return;
             }
 
-            String creatorId = doc.getString("creatorId");
-            if (creatorId == null || !creatorId.equals(currentUserId)) {
-                throw new Exception("Only creator can delete this circle");
+            List<String> memberIds = (List<String>) snapshot.get("memberIds");
+            Set<String> allUids = new HashSet<>();
+            allUids.add(creatorId);
+            if (memberIds != null) {
+                allUids.addAll(memberIds);
             }
 
-            return circleRef.delete().addOnSuccessListener(aVoid -> {
-                System.out.println("Circle deleted: " + circleId);
+            // Fetch invites and all pointer docs first
+            List<Task<QuerySnapshot>> fetches = new ArrayList<>();
+            Task<QuerySnapshot> invitesTask = db.collection("invitations")
+                    .whereEqualTo("circleId", circleId)
+                    .get();
+            fetches.add(invitesTask);
 
-                db.collection("invitations")
-                        .whereEqualTo("circleId", circleId)
-                        .get()
-                        .addOnSuccessListener(qs -> {
-                            for (DocumentSnapshot d : qs.getDocuments()) {
-                                d.getReference().delete();
-                            }
-                        });
+            for (String uid : allUids) {
+                fetches.add(
+                        db.collection("users")
+                                .document(uid)
+                                .collection("savingsCirclePointers")
+                                .whereEqualTo("circleId", circleId)
+                                .get()
+                );
+            }
 
-                db.collection("users")
-                        .get()
-                        .addOnSuccessListener(users -> {
-                            for (DocumentSnapshot userDoc : users) {
-                                userDoc.getReference()
-                                        .collection("userSavingsCirclePointers")
-                                        .whereEqualTo("circleId", circleId)
-                                        .get()
-                                        .addOnSuccessListener(pointerDocs -> {
-                                            for (DocumentSnapshot pointer
-                                                    : pointerDocs.getDocuments()) {
-                                                pointer.getReference().delete();
-                                            }
-                                        });
-                            }
-                        });
+            Tasks.whenAllSuccess(fetches).addOnSuccessListener(results -> {
+                WriteBatch batch = db.batch();
 
-            });
-        });
+                // delete the circle doc itself
+                batch.delete(circleRef);
+
+                int idx = 0;
+                // invitations
+                QuerySnapshot invitesSnap = (QuerySnapshot) results.get(idx++);
+                for (DocumentSnapshot d : invitesSnap.getDocuments()) {
+                    batch.delete(d.getReference());
+                }
+
+                // user pointers
+                for (; idx < results.size(); idx++) {
+                    QuerySnapshot snap = (QuerySnapshot) results.get(idx);
+                    for (DocumentSnapshot d : snap.getDocuments()) {
+                        batch.delete(d.getReference());
+                    }
+                }
+
+                batch.commit()
+                        .addOnSuccessListener(aVoid -> tcs.setResult(null))
+                        .addOnFailureListener(tcs::setException);
+
+            }).addOnFailureListener(tcs::setException);
+
+        }).addOnFailureListener(tcs::setException);
+
+        return tcs.getTask();
     }
-
 
     public void addBudget(String uid, Budget budget) {
         budgetsReference(uid).add(budget);
@@ -153,5 +182,4 @@ public class FirestoreManager {
     public void addExpense(String uid, Expense expense) {
         expensesReference(uid).add(expense);
     }
-
 }

@@ -51,10 +51,7 @@ public class ExpensesFragment extends Fragment {
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater,
-            ViewGroup container,
-            Bundle savedInstanceState
-    ) {
+            LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
@@ -226,7 +223,6 @@ public class ExpensesFragment extends Fragment {
 
                 if (isValid) {
                     boolean contributesToGroupSavings =
-
                             groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
 
                     String circleId = null;

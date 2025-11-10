@@ -1,5 +1,7 @@
 package com.example.sprintproject.viewmodel;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -170,6 +172,7 @@ public class ExpenseCreationViewModel extends ViewModel {
         }
 
         String uid = auth.getCurrentUser().getUid();
+        Log.d("EXP", "Writing expense for uid=" + uid);
         String normalizedCategory = normalizeCategory(category);
         Double amount = parseAmount(amountString);
         if (amount == null) {
@@ -190,6 +193,9 @@ public class ExpenseCreationViewModel extends ViewModel {
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
                 .addOnSuccessListener(docRef -> {
+                    System.out.println("[createExpense] Expense added successfully! ID="
+                            + docRef.getId());
+                    Log.d("EXP", "WROTE: " + docRef.getPath());
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
@@ -198,6 +204,9 @@ public class ExpenseCreationViewModel extends ViewModel {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    System.err.println("[createExpense] Failed to add expense: "
+                            + e.getMessage());
+                    Log.e("EXP", "Write failed", e);
                     System.err.println("[createExpense] unable to add expense: " + e.getMessage());
                     e.printStackTrace();
                 });
