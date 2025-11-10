@@ -48,12 +48,16 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                     if (e != null) {
                         return;
                     }
-                    if (qs == null) return;
+                    if (qs == null) {
+                        return;
+                    }
 
                     List<SavingsCircle> newList = new ArrayList<>();
                     for (DocumentSnapshot pointerDoc : qs.getDocuments()) {
                         String circleId = pointerDoc.getString("circleId");
-                        if (circleId == null) continue;
+                        if (circleId == null) {
+                            continue;
+                        }
 
                         FirestoreManager.getInstance()
                                 .savingsCirclesGlobalReference()
@@ -65,7 +69,8 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                                         circle.setId(circleSnap.getId());
                                         newList.add(circle);
                                         if (newList.size() == qs.size()) {
-                                            savingsCircleLiveData.postValue(new ArrayList<>(newList));
+                                            savingsCircleLiveData.
+                                                    postValue(new ArrayList<>(newList));
                                         }
                                     }
                                 });
