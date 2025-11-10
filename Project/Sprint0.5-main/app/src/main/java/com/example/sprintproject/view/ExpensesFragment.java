@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -112,10 +114,16 @@ public class ExpensesFragment extends Fragment {
             EditText expenseDate = popupView.findViewById(R.id.ExpenseDate);
             EditText expenseNotes = popupView.findViewById(R.id.ExpenseNotes);
             Button createBtn = popupView.findViewById(R.id.createExpenseButton);
+            ExpenseCreationViewModel expenseCreationViewModel =
+                    new ViewModelProvider(requireActivity()).get(ExpenseCreationViewModel.class);
             Button closeButton = popupView.findViewById(R.id.closeButton);
             Spinner categorySpinner = popupView.findViewById(R.id.expenseCategorySpinner);
+
             Spinner groupSavingsContributionSpinner =
                     popupView.findViewById(R.id.groupSavingsSpinner);
+            TextView chooseCircle = popupView.findViewById(R.id.chooseCircle);
+            Spinner chooseCircleSpinner = popupView.findViewById(R.id.chooseCircleSpinner);
+
             ArrayAdapter<String> groupSavingsAdapter = new ArrayAdapter<>(
                     requireContext(),
                     android.R.layout.simple_spinner_dropdown_item,
@@ -125,7 +133,22 @@ public class ExpensesFragment extends Fragment {
                     .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSavingsContributionSpinner.setAdapter(groupSavingsAdapter);
 
-            ExpenseCreationViewModel expenseCreationViewModel = new ExpenseCreationViewModel();
+            groupSavingsContributionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    String choice = parent.getItemAtPosition(position).toString();
+                    boolean isYes = choice.equalsIgnoreCase("Yes");
+                    chooseCircle.setVisibility(isYes ? View.VISIBLE : View.GONE);
+                    chooseCircleSpinner.setVisibility(isYes ? View.VISIBLE : View.GONE);
+
+                    if (isYes) {
+                        expenseCreationViewModel.loadUserCircles();
+                    }
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
@@ -142,6 +165,31 @@ public class ExpensesFragment extends Fragment {
                         );
                         categorySpinner.setAdapter(adapter);
                     });
+
+            expenseCreationViewModel.getCircleNames().observe(
+                    getViewLifecycleOwner(),
+                    circles -> {
+                        if (circles == null || circles.isEmpty()) {
+                            chooseCircleSpinner.setAdapter(
+                                    new ArrayAdapter<>(
+                                            requireContext(),
+                                            android.R.layout.simple_spinner_dropdown_item,
+                                            new String[]{"No circles found"}
+                                    )
+                            );
+                        } else {
+                            List<String> allCircles = new ArrayList<>();
+                            allCircles.add("Select a Circle");
+                            allCircles.addAll(circles);
+                            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                    requireContext(),
+                                    android.R.layout.simple_spinner_dropdown_item,
+                                    allCircles
+                            );
+                            chooseCircleSpinner.setAdapter(adapter);
+                        }
+                    }
+            );
 
             expenseCreationViewModel.loadCategories();
 
@@ -178,8 +226,22 @@ public class ExpensesFragment extends Fragment {
 
                 if (isValid) {
                     boolean contributesToGroupSavings =
-                            groupSavingsContributionSpinner.getSelectedItem()
-                                    .toString().equals("Yes");
+
+                            groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
+
+                    String circleId = null;
+                    if (contributesToGroupSavings) {
+                        String selectedCircleName = (String) chooseCircleSpinner.getSelectedItem();
+                        if (selectedCircleName != null
+                                && !"No circles found".equals(selectedCircleName)
+                                && !"Select a Circle".equals(selectedCircleName)) {
+                            circleId = expenseCreationViewModel.getCircleIdForName(selectedCircleName);
+                        } else {
+                            Toast.makeText(requireContext(), "Please choose a circle", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
+
                     expenseCreationViewModel.createExpense(
                             name,
                             date,
@@ -187,6 +249,7 @@ public class ExpensesFragment extends Fragment {
                             category,
                             notes,
                             contributesToGroupSavings,
+                            circleId,
                             () -> budgetsFragmentViewModel.loadBudgets()
                     );
 
