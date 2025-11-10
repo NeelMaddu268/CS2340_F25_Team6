@@ -17,6 +17,12 @@ public class AppUnitTests {
     }
 
     @Test
+    public void testComputeSurplusZero() {
+        double surplus = BudgetCalculator.computeSurplus(500, 500);
+        assertEquals(0, surplus, 0.001);
+    }
+
+    @Test
     public void testComputePercentUsed() {
         int percent = BudgetCalculator.computePercentUsed(1000, 250);
         assertEquals(25, percent);
