@@ -1,8 +1,11 @@
 package com.example.sprintproject;
 
 import org.junit.Test;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -216,6 +219,36 @@ public class AppUnitTests {
                 100, "daily"));
     }
 
+    @Test
+    public void testAddAndRemoveBudget() {
+        User user = new User("john@example.com", "John Doe", "password123",
+                new ArrayList<>(), new ArrayList<>());
+        Budget budget1 = new Budget("Food Budget");
+        Budget budget2 = new Budget("Travel Budget");
+
+        user.addBudget(budget1);
+        user.addBudget(budget2);
+
+        assertEquals(2, user.getBudgets().size());
+        assertTrue(user.getBudgets().contains(budget1));
+
+        user.removeBudget(budget1);
+        assertEquals(1, user.getBudgets().size());
+        assertFalse(user.getBudgets().contains(budget1));
+    }
+
+    @Test
+    public void testAddAndRemoveExpense() {
+        User user = new User("john@example.com", "John Doe", "password123",
+                new ArrayList<>(), new ArrayList<>());
+        Expense expense1 = new Expense("Dinner");
+        user.addExpense(expense1);
+        assertEquals(1, user.getExpenses().size());
+
+        user.removeExpense(expense1);
+        assertTrue(user.getExpenses().isEmpty());
+    }
+
     public static class BudgetCalculator {
         public static double computeSurplus(double total, double spent) {
             return total - spent;
@@ -226,6 +259,65 @@ public class AppUnitTests {
             }
             return (int) ((spent / total) * 100);
         }
+    }
+
+    public class User {
+        private String email;
+        private String name;
+        private String password;
+        private List<Budget> budgets;
+        private List<Expense> expenses;
+
+        public User(String email, String name, String password, List<Budget> budgets, List<Expense> expenses) {
+            this.email = email;
+            this.name = name;
+            this.password = password;
+            this.budgets = budgets;
+            this.expenses = expenses;
+        }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+
+        public List<Budget> getBudgets() { return budgets; }
+        public List<Expense> getExpenses() { return expenses; }
+
+        public void addBudget(Budget budget) {
+            if (budget != null) {
+                budgets.add(budget);
+            }
+        }
+
+        public void removeBudget(Budget budget) {
+            budgets.remove(budget);
+        }
+
+        public void addExpense(Expense expense) {
+            if (expense != null) {
+                expenses.add(expense);
+            }
+        }
+
+        public void removeExpense(Expense expense) {
+            expenses.remove(expense);
+        }
+    }
+
+    public class Budget {
+        private String name;
+        public Budget(String name) { this.name = name; }
+        public String getName() { return name; }
+    }
+
+    public class Expense {
+        private String name;
+        public Expense(String name) { this.name = name; }
+        public String getName() { return name; }
     }
 
     public class SavingsCircle {
