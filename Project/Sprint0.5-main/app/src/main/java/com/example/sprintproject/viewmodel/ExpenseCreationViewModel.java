@@ -1,7 +1,5 @@
 package com.example.sprintproject.viewmodel;
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -30,9 +28,6 @@ public class ExpenseCreationViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<String>> categoriesLiveData =
             new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<String>> circleNamesLive =
-            new MutableLiveData<>(new ArrayList<>());
-    private final Map<String, String> circleNameToId = new HashMap<>();
 
     public ExpenseCreationViewModel() {
         // Just sets a sample value (not used for logic)
@@ -45,14 +40,6 @@ public class ExpenseCreationViewModel extends ViewModel {
 
     public LiveData<List<String>> getCategories() {
         return categoriesLiveData;
-    }
-
-    public LiveData<List<String>> getCircleNames() {
-        return circleNamesLive;
-    }
-
-    public String getCircleIdForName(String name) {
-        return circleNameToId.get(name);
     }
 
     public void loadCategories() {
@@ -74,87 +61,11 @@ public class ExpenseCreationViewModel extends ViewModel {
                 });
     }
 
-    public void loadUserCircles() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
-            circleNamesLive.setValue(new ArrayList<>());
-            circleNameToId.clear();
-            return;
-        }
-
-        String uid = auth.getCurrentUser().getUid();
-
-        FirestoreManager.getInstance()
-                .userSavingsCirclePointers(uid) // read pointers under the user
-                .get()
-                .addOnSuccessListener(qs -> {
-                    List<String> names = new ArrayList<>();
-                    circleNameToId.clear();
-
-                    if (qs == null || qs.isEmpty()) {
-                        circleNamesLive.setValue(names);
-                        return;
-                    }
-
-                    final int[] pending = {0};
-
-                    for (DocumentSnapshot doc : qs.getDocuments()) {
-                        String circleId = doc.getString("circleId");
-                        // Most pointer docs store "name" (not "circleName")
-                        String pointerName = doc.getString("name");
-
-                        if (circleId == null || circleId.trim().isEmpty()) {
-                            continue;
-                        }
-
-                        if (pointerName != null && !pointerName.trim().isEmpty()) {
-                            // Fast path: pointer already has a name
-                            circleNameToId.put(pointerName, circleId);
-                            names.add(pointerName);
-                        } else {
-                            // Fallback: fetch the name from the global circle doc
-                            pending[0]++;
-                            FirestoreManager.getInstance()
-                                    .savingsCircleDoc(circleId)
-                                    .get()
-                                    .addOnSuccessListener(globalDoc -> {
-                                        String fetched = globalDoc.getString("name");
-                                        if (fetched != null && !fetched.trim().isEmpty()) {
-                                            circleNameToId.put(fetched, circleId);
-                                            names.add(fetched);
-                                        }
-                                    })
-                                    .addOnCompleteListener(task -> {
-                                        // decrement regardless of success/failure
-                                        pending[0]--;
-                                        if (pending[0] == 0) {
-                                            circleNamesLive.setValue(new ArrayList<>(names));
-                                        }
-                                    });
-                        }
-                    }
-
-                    // If there were no fallbacks, publish immediately
-                    if (pending[0] == 0) {
-                        circleNamesLive.setValue(names);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    System.err.println("[loadUserCircles] Failed: " + e.getMessage());
-                    circleNameToId.clear();
-                    circleNamesLive.setValue(new ArrayList<>());
-                });
-    }
-
     public void createExpense(
             String name, String date, String amountString,
             String category, String notes, Runnable onBudgetUpdated) {
-
-        // default: not contributing, no circle
-        createExpense(name, date, amountString, category, notes,
-                false, null, onBudgetUpdated);
+        createExpense(name, date, amountString, category, notes, false, onBudgetUpdated);
     }
-
 
     public void createExpense(
             String name,
@@ -162,8 +73,7 @@ public class ExpenseCreationViewModel extends ViewModel {
             String amountString,
             String category,
             String notes,
-            boolean contributesToGroupSavings,
-            String circleId,                 // <-- NEW
+            boolean contributesToGroupSavings,   // <-- new flag
             Runnable onBudgetUpdated) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -173,7 +83,6 @@ public class ExpenseCreationViewModel extends ViewModel {
         }
 
         String uid = auth.getCurrentUser().getUid();
-        Log.d("EXP", "Writing expense for uid=" + uid);
         String normalizedCategory = normalizeCategory(category);
         Double amount = parseAmount(amountString);
         if (amount == null) {
@@ -183,56 +92,31 @@ public class ExpenseCreationViewModel extends ViewModel {
         long timestamp = parseDateToMillis(date);
         Expense expense = new Expense(name, amount, normalizedCategory, date, notes);
         expense.setTimestamp(timestamp);
-        expense.setContributesToGroupSavings(contributesToGroupSavings);
+        expense.setContributesToGroupSavings(contributesToGroupSavings); // <-- save new field
 
-        System.out.println("[createExpense] category =" + category
-                + ", amount=" + amount
-                + ", date=" + date
-                + ", contributes=" + contributesToGroupSavings
-                + ", circleId=" + circleId);
+        System.out.println("[createExpense] Starting for category=" + category
+                + ", amount=" + amount + ", date=" + date
+                + ", contributesToGroupSavings=" + contributesToGroupSavings);
 
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
                 .addOnSuccessListener(docRef -> {
                     System.out.println("[createExpense] Expense added successfully! ID="
                             + docRef.getId());
-                    Log.d("EXP", "WROTE: " + docRef.getPath());
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
-                    if (contributesToGroupSavings && circleId != null && !circleId.isEmpty()) {
-                        updateGroupSavingsByCircleId(circleId, uid, amount);
+                    if (contributesToGroupSavings) {
+                        updateGroupSavings(uid, amount);
                     }
                 })
                 .addOnFailureListener(e -> {
                     System.err.println("[createExpense] Failed to add expense: "
                             + e.getMessage());
-                    Log.e("EXP", "Write failed", e);
-                    System.err.println("[createExpense] unable to add expense: " + e.getMessage());
                     e.printStackTrace();
                 });
     }
 
-    private void updateGroupSavingsByCircleId(String circleId, String uid, double amount) {
-        FirestoreManager.getInstance()
-                .savingsCircleDoc(circleId)
-                .update("spent", FieldValue.increment(amount))
-                .addOnSuccessListener(a ->
-                        System.out.println("[updateGroupSavingsByCircleId] +"
-                                + amount + " to circle " + circleId))
-                .addOnFailureListener(e ->
-                        System.err.println("[updateGroupSavingsByCircleId] unable to update "
-                                + "'spent': " + e.getMessage()));
-        FirestoreManager.getInstance()
-                .savingsCircleDoc(circleId)
-                .update("contributions." + uid, FieldValue.increment(amount))
-                .addOnSuccessListener(a ->
-                        System.out.println("[updateGroupSavingsByCircleId] +"
-                                + amount + " to contributions[" + uid + "]"))
-                .addOnFailureListener(e ->
-                        System.err.println("[updateGroupSavingsByCircleId] unable to "
-                                + "update 'contributions': " + e.getMessage()));
-    }
 
     private String normalizeCategory(String category) {
         return category == null ? "" : category.trim().toLowerCase(Locale.US);
@@ -323,6 +207,26 @@ public class ExpenseCreationViewModel extends ViewModel {
                         System.err.println("[handleBudgetUpdate] Budget fetch failed: "
                                 + e.getMessage()));
     }
+
+    private void updateGroupSavings(String uid, double amount) {
+        FirestoreManager.getInstance().savingsCircleReference(uid)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        DocumentSnapshot circleDoc = query.getDocuments().get(0);
+                        circleDoc.getReference().update("spent",
+                                FieldValue.increment(amount));
+                        System.out.println("[updateGroupSavings] Added " + amount
+                                + " to group savings total.");
+                    } else {
+                        System.out.println("[updateGroupSavings] No group savings circle found.");
+                    }
+                })
+                .addOnFailureListener(e ->
+                        System.err.println("[updateGroupSavings] Failed: " + e.getMessage()));
+    }
+
 
     private long calcBudgetEnd(long start, String freq) {
         if ("Weekly".equalsIgnoreCase(freq)) {

@@ -16,8 +16,6 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.viewmodel.BudgetDetailsViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 
-import java.util.Locale;
-
 public class BudgetDetailsActivity extends AppCompatActivity {
 
     private TextView budgetSurplusText;
@@ -56,7 +54,7 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         TextView budgetStartDateTextView = findViewById(R.id.budgetStartDateTextView);
 
         budgetNameTextView.setText(budgetName);
-        budgetAmountTextView.setText(String.format((Locale.US), "$%.2f", budgetAmount));
+        budgetAmountTextView.setText(String.valueOf(budgetAmount));
         budgetCategoryTextView.setText(budgetCategory);
         budgetFrequencyTextView.setText(budgetFrequency);
         budgetStartDateTextView.setText(budgetStartDate);

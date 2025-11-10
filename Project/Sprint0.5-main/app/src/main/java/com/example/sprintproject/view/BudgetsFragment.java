@@ -30,26 +30,20 @@ import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
-import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 public class BudgetsFragment extends Fragment {
 
     private Button addBudget;
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
-    private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private DateViewModel dateVM;
-    private RecyclerView budgetRecyclerView;
-    private RecyclerView savingsCircleRecyclerView;
-    private BudgetAdapter budgetAdapter;
-    private SavingsCircleAdapter savingsCircleAdapter;
+    private RecyclerView recyclerView;
+    private BudgetAdapter adapter;
 
     public BudgetsFragment() {
         super(R.layout.fragment_budgets);
@@ -74,7 +68,7 @@ public class BudgetsFragment extends Fragment {
                     return insets;
                 });
 
-        setupBudgetRecyclerView(view);
+        setupRecyclerView(view);
 
         budgetsFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(BudgetsFragmentViewModel.class);
@@ -83,16 +77,7 @@ public class BudgetsFragment extends Fragment {
 
         budgetsFragmentViewModel.getBudgets().observe(
                 getViewLifecycleOwner(),
-                list -> budgetAdapter.submitList(list == null ? null : new ArrayList<>(list))
-        );
-
-        setupSavingsCircleRecyclerView(view);
-        savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
-                .get(SavingsCircleFragmentViewModel.class);
-        savingsCircleFragmentViewModel.loadSavingsCircle();
-        savingsCircleFragmentViewModel.getSavingsCircle().observe(
-                getViewLifecycleOwner(),
-                list -> savingsCircleAdapter.submitList(list == null ? null : new ArrayList<>(list))
+                list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
         );
 
         AppDate seed = dateVM.getCurrentDate().getValue();
@@ -139,10 +124,10 @@ public class BudgetsFragment extends Fragment {
         return d.getYear() == y && d.getMonth() == m && d.getDay() == day;
     }
 
-    private void setupBudgetRecyclerView(View view) {
-        budgetRecyclerView = view.findViewById(R.id.budgetsRecyclerView);
-        budgetRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        budgetAdapter = new BudgetAdapter(budget -> {
+    private void setupRecyclerView(View view) {
+        recyclerView = view.findViewById(R.id.budgetsRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new BudgetAdapter(budget -> {
             Intent intent = new Intent(requireContext(), BudgetDetailsActivity.class);
             intent.putExtra("budgetId", budget.getId());
             intent.putExtra("budgetName", budget.getName());
@@ -152,32 +137,7 @@ public class BudgetsFragment extends Fragment {
             intent.putExtra("budgetStartDate", budget.getStartDate());
             startActivity(intent);
         });
-        budgetRecyclerView.setAdapter(budgetAdapter);
-    }
-
-    private void setupSavingsCircleRecyclerView(View view) {
-        savingsCircleRecyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
-        savingsCircleRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
-                .get(SavingsCircleFragmentViewModel.class);
-        savingsCircleAdapter = new SavingsCircleAdapter(savings -> {
-            Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
-            intent.putExtra("circleId", savings.getId());
-            intent.putExtra("groupName", savings.getName());
-            intent.putStringArrayListExtra("groupEmails",
-                    new ArrayList<>(savings.getMemberEmails()));
-            intent.putExtra("groupInvite", savings.getInvite());
-            intent.putExtra("groupChallengeTitle", savings.getTitle());
-            intent.putExtra("groupChallengeGoal", savings.getGoal());
-            intent.putExtra("groupFrequency", savings.getFrequency());
-            intent.putExtra("groupNotes", savings.getNotes());
-            intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
-            intent.putExtra("datesJoined", (Serializable) savings.getDatesJoined());
-            intent.putExtra("contributions", (Serializable) savings.getContributions());
-            intent.putExtra("creatorId", savings.getCreatorId());
-            startActivity(intent);
-        });
-        savingsCircleRecyclerView.setAdapter(savingsCircleAdapter);
+        recyclerView.setAdapter(adapter);
     }
 
     private void setupAddBudgetDialog() {
@@ -204,86 +164,36 @@ public class BudgetsFragment extends Fragment {
         setupFrequencySpinner(popupView, budgetFrequencyEntry, budgetDateEntry);
 
         // Date picker setup
-    //        budgetDateEntry.setOnClickListener(m -> {
-    //            String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
-    //            final Calendar today = Calendar.getInstance();
-    //            int year = today.get(Calendar.YEAR);
-    //            int month = today.get(Calendar.MONTH);
-    //            int day = today.get(Calendar.DAY_OF_MONTH);
-    //
-    //            DatePickerDialog datePickerDialog = new DatePickerDialog(
-    //                    requireContext(),
-    //                    (view1, y, mZero, dd) -> {
-    //                        Calendar selectedDate = Calendar.getInstance();
-    //                        selectedDate.set(y, mZero, dd);
-    //                        if ("Monthly".equals(selectedFrequency)) {
-    //                            selectedDate.set(Calendar.DAY_OF_MONTH, 1);
-    //                            if (selectedDate.before(today)) {
-    //                                selectedDate.add(Calendar.MONTH, 1);
-    //                            }
-    //                        }
-    //                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-    //                        budgetDateEntry.setText(sdf.format(selectedDate.getTime()));
-    //                    },
-    //                    year, month, day
-    //            );
-    //            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-    //            datePickerDialog.show();
-    //        });
-        budgetDateEntry.setOnClickListener(v -> {
-            DateViewModel dateViewModel = new ViewModelProvider(requireActivity())
-                    .get(DateViewModel.class);
+        budgetDateEntry.setOnClickListener(m -> {
+            String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
+            final Calendar today = Calendar.getInstance();
+            int year = today.get(Calendar.YEAR);
+            int month = today.get(Calendar.MONTH);
+            int day = today.get(Calendar.DAY_OF_MONTH);
 
-            dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
-                if (appDate == null) {
-                    return;
-                }
-
-                Calendar minCalendar = Calendar.getInstance();
-                minCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
-                minCalendar.set(Calendar.MILLISECOND, 0);
-
-                final Calendar today = Calendar.getInstance();
-                int year = today.get(Calendar.YEAR);
-                int month = today.get(Calendar.MONTH);
-                int day = today.get(Calendar.DAY_OF_MONTH);
-
-                String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
-
-                DatePickerDialog picker = new DatePickerDialog(
-                        requireContext(),
-                        (view, y, mZero, dd) -> {
-
-                            int displayMonth = mZero + 1;
-                            int displayDay = dd;
-                            int displayYear = y;
-
-                            if ("Monthly".equals(selectedFrequency)) {
-                                displayDay = 1;
-                                Calendar sel = Calendar.getInstance();
-                                sel.set(y, mZero, 1, 0, 0, 0);
-                                sel.set(Calendar.MILLISECOND, 0);
-                                if (sel.before(today)) {
-                                    sel.add(Calendar.MONTH, 1);
-                                    displayMonth = sel.get(Calendar.MONTH) + 1;
-                                    displayYear = sel.get(Calendar.YEAR);
-                                }
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    requireContext(),
+                    (view1, y, mZero, dd) -> {
+                        Calendar selectedDate = Calendar.getInstance();
+                        selectedDate.set(y, mZero, dd);
+                        if ("Monthly".equals(selectedFrequency)) {
+                            selectedDate.set(Calendar.DAY_OF_MONTH, 1);
+                            if (selectedDate.before(today)) {
+                                selectedDate.add(Calendar.MONTH, 1);
                             }
-
-                            String dateString = String.format(Locale.US, "%02d/%02d/%04d",
-                                    displayMonth, displayDay, displayYear);
-                            budgetDateEntry.setText(dateString);
-                        },
-                        year, month, day
-                );
-
-                picker.getDatePicker().setMinDate(minCalendar.getTimeInMillis());
-                picker.show();
-            });
+                        }
+                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                        budgetDateEntry.setText(sdf.format(selectedDate.getTime()));
+                    },
+                    year, month, day
+            );
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+            datePickerDialog.show();
         });
 
         cancelButton.setOnClickListener(x -> dialog.dismiss());
 
+        // Create Budget button logic
         createBudgetButton.setOnClickListener(x -> {
             String name = budgetNameEntry.getText().toString();
             String date = budgetDateEntry.getText().toString();
@@ -323,15 +233,7 @@ public class BudgetsFragment extends Fragment {
             }
 
             if (isValid) {
-                long timestamp;
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
-                    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    timestamp = sdf.parse(date).getTime();
-                } catch (Exception e) {
-                    timestamp = System.currentTimeMillis(); // fallback
-                }
-
+                long timestamp = System.currentTimeMillis();
                 budgetCreationViewModel.createBudget(
                         name, date, amount, category, frequency, timestamp, () -> {
                             AppDate appDate = dateVM.getCurrentDate().getValue();
