@@ -259,23 +259,47 @@ public class ExpensesFragment extends Fragment {
             });
 
 
+//            expenseDate.setOnClickListener(v1 -> {
+//                final Calendar today = Calendar.getInstance();
+//                int year = today.get(Calendar.YEAR);
+//                int month = today.get(Calendar.MONTH);
+//                int day = today.get(Calendar.DAY_OF_MONTH);
+//                DatePickerDialog picker = new DatePickerDialog(
+//                        requireContext(),
+//                        (view1, y, mZero, dd) -> {
+//                            Calendar sel = Calendar.getInstance();
+//                            sel.set(y, mZero, dd);
+//                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+//                            expenseDate.setText(sdf.format(sel.getTime()));
+//                        },
+//                        year, month, day
+//                );
+//                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
+//                picker.show();
+//            });
+
             expenseDate.setOnClickListener(v1 -> {
-                final Calendar today = Calendar.getInstance();
-                int year = today.get(Calendar.YEAR);
-                int month = today.get(Calendar.MONTH);
-                int day = today.get(Calendar.DAY_OF_MONTH);
-                DatePickerDialog picker = new DatePickerDialog(
-                        requireContext(),
-                        (view1, y, mZero, dd) -> {
-                            Calendar sel = Calendar.getInstance();
-                            sel.set(y, mZero, dd);
-                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-                            expenseDate.setText(sdf.format(sel.getTime()));
-                        },
-                        year, month, day
-                );
-                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
-                picker.show();
+                dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                    if (appDate == null) return;
+                    Calendar maxCalendar = Calendar.getInstance();
+                    maxCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay());
+                    final Calendar today = Calendar.getInstance();
+                    int year = today.get(Calendar.YEAR);
+                    int month = today.get(Calendar.MONTH);
+                    int day = today.get(Calendar.DAY_OF_MONTH);
+                    DatePickerDialog picker = new DatePickerDialog(
+                            requireContext(),
+                            (view1, y, mZero, dd) -> {
+                                Calendar sel = Calendar.getInstance();
+                                sel.set(y, mZero, dd);
+                                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                                expenseDate.setText(sdf.format(sel.getTime()));
+                            },
+                            year, month, day
+                    );
+                    picker.getDatePicker().setMaxDate(maxCalendar.getTimeInMillis());
+                    picker.show();
+                });
             });
 
             dialog.show();

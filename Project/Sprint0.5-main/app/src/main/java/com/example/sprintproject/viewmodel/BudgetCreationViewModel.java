@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class BudgetCreationViewModel extends ViewModel {
 
@@ -86,6 +87,7 @@ public class BudgetCreationViewModel extends ViewModel {
                 });
     }
 
+
     private void addBudgetToFirestore(String uid, BudgetData budgetData, Runnable onComplete) {
         String category = budgetData.getCategory().trim().toLowerCase(Locale.US);
 
@@ -95,6 +97,14 @@ public class BudgetCreationViewModel extends ViewModel {
                 .addOnSuccessListener(expenseQuery -> {
                     double spentToDate = 0.0;
                     long start = budgetData.getStartDateTimestamp();
+
+                    Calendar normalized = Calendar.getInstance();
+                    normalized.setTimeInMillis(start);
+                    normalized.set(Calendar.HOUR_OF_DAY, 0);
+                    normalized.set(Calendar.MINUTE, 0);
+                    normalized.set(Calendar.SECOND, 0);
+                    normalized.set(Calendar.MILLISECOND, 0);
+                    start = normalized.getTimeInMillis();
 
                     for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
                         Expense e = doc.toObject(Expense.class);
@@ -219,6 +229,8 @@ public class BudgetCreationViewModel extends ViewModel {
 
     private long parseDateToMillis(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        sdf.setTimeZone(java.util.TimeZone.getDefault());
+
         try {
             Date date = sdf.parse(dateString);
             if (date != null) {
