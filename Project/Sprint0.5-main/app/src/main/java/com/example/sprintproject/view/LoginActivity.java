@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton.setOnClickListener(v -> {
             email = "abc123@gmail.com"; //emailInput.getText().toString();
-            password = "abc123";//passwordInput.getText().toString();
+            password = "abc123"; //passwordInput.getText().toString();
             authenticationViewModel.login(email, password);
         });
 

@@ -133,9 +133,11 @@ public class ExpensesFragment extends Fragment {
                     .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSavingsContributionSpinner.setAdapter(groupSavingsAdapter);
 
-            groupSavingsContributionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            groupSavingsContributionSpinner
+                    .setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                public void onItemSelected(AdapterView<?> parent,
+                                           View view, int position, long id) {
                     String choice = parent.getItemAtPosition(position).toString();
                     boolean isYes = choice.equalsIgnoreCase("Yes");
                     chooseCircle.setVisibility(isYes ? View.VISIBLE : View.GONE);
@@ -227,7 +229,8 @@ public class ExpensesFragment extends Fragment {
                 if (isValid) {
                     boolean contributesToGroupSavings =
 
-                            groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
+                            groupSavingsContributionSpinner.getSelectedItem()
+                                    .toString().equals("Yes");
 
                     String circleId = null;
                     if (contributesToGroupSavings) {
@@ -235,9 +238,11 @@ public class ExpensesFragment extends Fragment {
                         if (selectedCircleName != null
                                 && !"No circles found".equals(selectedCircleName)
                                 && !"Select a Circle".equals(selectedCircleName)) {
-                            circleId = expenseCreationViewModel.getCircleIdForName(selectedCircleName);
+                            circleId = expenseCreationViewModel
+                                    .getCircleIdForName(selectedCircleName);
                         } else {
-                            Toast.makeText(requireContext(), "Please choose a circle", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(),
+                                    "Please choose a circle", Toast.LENGTH_SHORT).show();
                             return;
                         }
                     }
@@ -263,28 +268,31 @@ public class ExpensesFragment extends Fragment {
             });
 
 
-//            expenseDate.setOnClickListener(v1 -> {
-//                final Calendar today = Calendar.getInstance();
-//                int year = today.get(Calendar.YEAR);
-//                int month = today.get(Calendar.MONTH);
-//                int day = today.get(Calendar.DAY_OF_MONTH);
-//                DatePickerDialog picker = new DatePickerDialog(
-//                        requireContext(),
-//                        (view1, y, mZero, dd) -> {
-//                            Calendar sel = Calendar.getInstance();
-//                            sel.set(y, mZero, dd);
-//                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-//                            expenseDate.setText(sdf.format(sel.getTime()));
-//                        },
-//                        year, month, day
-//                );
-//                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
-//                picker.show();
-//            });
+    //            expenseDate.setOnClickListener(v1 -> {
+    //                final Calendar today = Calendar.getInstance();
+    //                int year = today.get(Calendar.YEAR);
+    //                int month = today.get(Calendar.MONTH);
+    //                int day = today.get(Calendar.DAY_OF_MONTH);
+    //                DatePickerDialog picker = new DatePickerDialog(
+    //                        requireContext(),
+    //                        (view1, y, mZero, dd) -> {
+    //                            Calendar sel = Calendar.getInstance();
+    //                            sel.set(y, mZero, dd);
+    //                            SimpleDateFormat sdf =
+            //                            new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+    //                            expenseDate.setText(sdf.format(sel.getTime()));
+    //                        },
+    //                        year, month, day
+    //                );
+    //                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
+    //                picker.show();
+    //            });
 
             expenseDate.setOnClickListener(v1 -> {
                 dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
-                    if (appDate == null) return;
+                    if (appDate == null) {
+                        return;
+                    }
                     Calendar maxCalendar = Calendar.getInstance();
                     maxCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay());
                     final Calendar today = Calendar.getInstance();
@@ -296,7 +304,8 @@ public class ExpensesFragment extends Fragment {
                             (view1, y, mZero, dd) -> {
                                 Calendar sel = Calendar.getInstance();
                                 sel.set(y, mZero, dd);
-                                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                                SimpleDateFormat sdf =
+                                        new SimpleDateFormat("MMM dd, yyyy", Locale.US);
                                 expenseDate.setText(sdf.format(sel.getTime()));
                             },
                             year, month, day
