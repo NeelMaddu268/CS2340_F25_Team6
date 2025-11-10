@@ -76,6 +76,11 @@ import java.util.Map;
 //    }
 //}
 
+/**
+ * Central app date controller (shared across fragments/activities).
+ * Keeps an AppDate persisted, allows advancing by days,
+ * and notifies observers whenever it changes.
+ */
 public class DateViewModel extends AndroidViewModel {
 
     private final MutableLiveData<AppDate> currentDate = new MutableLiveData<>();
@@ -97,15 +102,52 @@ public class DateViewModel extends AndroidViewModel {
     }
 
     public void setDate(AppDate date, int day) {
+        if (date == null) return;
         currentDate.setValue(date);
         currentDay.setValue(day);
         saveDateToFirestore(date, day);
     }
 
+    /** Re-emit same date (forces UI recomputation). */
+    public void reemit() {
+        AppDate d = currentDate.getValue();
+        if (d != null) {
+            currentDate.setValue(new AppDate(d.getYear(), d.getMonth(), d.getDay()));
+        }
+    }
+
+    /** Step the app date by N days (±). */
+    public void nudgeDays(int delta) {
+        AppDate d = currentDate.getValue();
+        if (d == null) {
+            resetToToday();
+            return;
+        }
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, d.getYear());
+        cal.set(Calendar.MONTH, d.getMonth() - 1);
+        cal.set(Calendar.DAY_OF_MONTH, d.getDay());
+        cal.add(Calendar.DAY_OF_YEAR, delta);
+
+        AppDate next = new AppDate(
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.DAY_OF_MONTH)
+        );
+        setDate(next, next.getDay());
+    }
+
+    public void nextDay() { nudgeDays(1); }
+    public void prevDay() { nudgeDays(-1); }
+
+    /** Reset to real-world today. */
     public void resetToToday() {
         Calendar c = Calendar.getInstance();
-        AppDate today = new AppDate(c.get(Calendar.YEAR),
-                c.get(Calendar.MONTH) + 1, c.get(Calendar.DAY_OF_MONTH));
+        AppDate today = new AppDate(
+                c.get(Calendar.YEAR),
+                c.get(Calendar.MONTH) + 1,
+                c.get(Calendar.DAY_OF_MONTH)
+        );
         setDate(today, today.getDay());
     }
 
@@ -152,5 +194,6 @@ public class DateViewModel extends AndroidViewModel {
         docRef.set(updateMap, com.google.firebase.firestore.SetOptions.merge());
     }
 }
+
 
 
