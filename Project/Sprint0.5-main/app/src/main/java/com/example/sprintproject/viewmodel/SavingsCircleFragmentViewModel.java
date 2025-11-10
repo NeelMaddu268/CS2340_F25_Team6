@@ -57,104 +57,104 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                         return;
                     }
 
-                        List<SavingsCircle> newList = new ArrayList<>();
-                        for (DocumentSnapshot pointerDoc : qs.getDocuments()) {
-                            String circleId = pointerDoc.getString("circleId");
-                            if (circleId == null) {
-                                continue;
-                            }
-
-                            FirestoreManager.getInstance()
-                                    .savingsCirclesGlobalReference()
-                                    .document(circleId)
-                                    .get()
-                                    .addOnSuccessListener(circleSnap -> {
-                                        SavingsCircle circle = circleSnap.toObject(SavingsCircle.class);
-                                        if (circle != null) {
-                                            circle.setId(circleSnap.getId());
-                                            newList.add(circle);
-                                            if (newList.size() == qs.size()) {
-                                                savingsCircleLiveData.
-                                                        postValue(new ArrayList<>(newList));
-                                            }
-                                        }
-                                    });
+                    List<SavingsCircle> newList = new ArrayList<>();
+                    for (DocumentSnapshot pointerDoc : qs.getDocuments()) {
+                        String circleId = pointerDoc.getString("circleId");
+                        if (circleId == null) {
+                            continue;
                         }
 
-                        // Collect circle IDs from pointers
-                        List<String> circleIds = new ArrayList<>();
-                        qs.getDocuments().forEach(d -> {
-                            String id = d.getString("circleId");
-                            if (id != null) {
-                                circleIds.add(id);
-                            }
-                        });
-
-                        fetchCirclesByIds(uid, circleIds);
-                    });
-                }
-
-        private void fetchCirclesByIds(String uid, List<String> ids) {
-            if (ids == null || ids.isEmpty()) {
-                savingsCircleLiveData.postValue(new ArrayList<>());
-                return;
-            }
-
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            List<Task<QuerySnapshot>> tasks = new ArrayList<>();
-            for (int i = 0; i < ids.size(); i += 10) {
-                List<String> chunk = ids.subList(i, Math.min(i + 10, ids.size()));
-                tasks.add(
-                        db.collection("savingsCircles")
-                                .whereIn(FieldPath.documentId(), chunk)
+                        FirestoreManager.getInstance()
+                                .savingsCirclesGlobalReference()
+                                .document(circleId)
                                 .get()
-                );
-            }
+                                .addOnSuccessListener(circleSnap -> {
+                                    SavingsCircle circle = circleSnap.toObject(SavingsCircle.class);
+                                    if (circle != null) {
+                                        circle.setId(circleSnap.getId());
+                                        newList.add(circle);
+                                        if (newList.size() == qs.size()) {
+                                            savingsCircleLiveData.
+                                                    postValue(new ArrayList<>(newList));
+                                        }
+                                    }
+                                });
+                    }
 
-            Tasks.whenAllSuccess(tasks)
-                    .addOnSuccessListener(results -> {
-                        List<SavingsCircle> list = new ArrayList<>();
-                        // track which IDs we found
-                        java.util.Set<String> found = new java.util.HashSet<>();
-
-                        for (Object obj : results) {
-                            QuerySnapshot snapshot = (QuerySnapshot) obj;
-                            snapshot.getDocuments().forEach(doc -> {
-                                SavingsCircle circle = doc.toObject(SavingsCircle.class);
-                                if (circle != null) {
-                                    circle.setId(doc.getId());
-                                    list.add(circle);
-                                    found.add(doc.getId());
-                                }
-                            });
+                    // Collect circle IDs from pointers
+                    List<String> circleIds = new ArrayList<>();
+                    qs.getDocuments().forEach(d -> {
+                        String id = d.getString("circleId");
+                        if (id != null) {
+                            circleIds.add(id);
                         }
-
-                        java.util.Set<String> randoms = new java.util.HashSet<>(ids);
-                        randoms.removeAll(found);
-                        if (!randoms.isEmpty()) {
-                            cleanupRandomPointers(uid, randoms);
-                        }
-                        savingsCircleLiveData.postValue(list);
-                    })
-                    .addOnFailureListener(err -> {
-                        savingsCircleLiveData.postValue(new ArrayList<>());
                     });
+
+                    fetchCirclesByIds(uid, circleIds);
+                });
+    }
+
+    private void fetchCirclesByIds(String uid, List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            savingsCircleLiveData.postValue(new ArrayList<>());
+            return;
         }
 
-        private void cleanupRandomPointers(String uid, java.util.Set<String> random) {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            List<String> toDelete = new ArrayList<>(random);
-            for (int i = 0; i < toDelete.size(); i += 10) {
-                List<String> chunk = toDelete.subList(i, Math.min(i + 10, toDelete.size()));
-                db.collection("users")
-                        .document(uid)
-                        .collection("savingsCirclePointers")
-                        .whereIn("circleId", chunk)
-                        .get()
-                        .addOnSuccessListener(qs -> {
-                            qs.getDocuments().forEach(d -> d.getReference().delete());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        List<Task<QuerySnapshot>> tasks = new ArrayList<>();
+        for (int i = 0; i < ids.size(); i += 10) {
+            List<String> chunk = ids.subList(i, Math.min(i + 10, ids.size()));
+            tasks.add(
+                    db.collection("savingsCircles")
+                            .whereIn(FieldPath.documentId(), chunk)
+                            .get()
+            );
+        }
+
+        Tasks.whenAllSuccess(tasks)
+                .addOnSuccessListener(results -> {
+                    List<SavingsCircle> list = new ArrayList<>();
+                    // track which IDs we found
+                    java.util.Set<String> found = new java.util.HashSet<>();
+
+                    for (Object obj : results) {
+                        QuerySnapshot snapshot = (QuerySnapshot) obj;
+                        snapshot.getDocuments().forEach(doc -> {
+                            SavingsCircle circle = doc.toObject(SavingsCircle.class);
+                            if (circle != null) {
+                                circle.setId(doc.getId());
+                                list.add(circle);
+                                found.add(doc.getId());
+                            }
                         });
-            }
+                    }
+
+                    java.util.Set<String> randoms = new java.util.HashSet<>(ids);
+                    randoms.removeAll(found);
+                    if (!randoms.isEmpty()) {
+                        cleanupRandomPointers(uid, randoms);
+                    }
+                    savingsCircleLiveData.postValue(list);
+                })
+                .addOnFailureListener(err -> {
+                    savingsCircleLiveData.postValue(new ArrayList<>());
+                });
+    }
+
+    private void cleanupRandomPointers(String uid, java.util.Set<String> random) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        List<String> toDelete = new ArrayList<>(random);
+        for (int i = 0; i < toDelete.size(); i += 10) {
+            List<String> chunk = toDelete.subList(i, Math.min(i + 10, toDelete.size()));
+            db.collection("users")
+                    .document(uid)
+                    .collection("savingsCirclePointers")
+                    .whereIn("circleId", chunk)
+                    .get()
+                    .addOnSuccessListener(qs -> {
+                        qs.getDocuments().forEach(d -> d.getReference().delete());
+                    });
         }
     }
+}
