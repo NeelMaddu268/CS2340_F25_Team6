@@ -9,7 +9,6 @@ import com.example.sprintproject.R;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
-import com.google.firebase.auth.FirebaseAuth;
 
 import android.os.Bundle;
 import android.view.View;
@@ -18,13 +17,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SavingsCircleDetailsActivity extends AppCompatActivity {
@@ -41,13 +35,17 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         String groupNotes = getIntent().getStringExtra("groupNotes");
 
         String creationDate = getIntent().getStringExtra("creationDate");
-        HashMap<String, String> datesJoined = (HashMap<String, String>) getIntent().getSerializableExtra("datesJoined");
-        HashMap<String, Double> contributions = (HashMap<String, Double>) getIntent().getSerializableExtra("contributions");
+        HashMap<String, String> datesJoined = (HashMap<String, String>)
+                getIntent().getSerializableExtra("datesJoined");
+        HashMap<String, Double> contributions = (HashMap<String, Double>)
+                getIntent().getSerializableExtra("contributions");
         String circleId = getIntent().getStringExtra("circleId");
 
         // update the UI with the provided details
-        TextView groupNameTextView = findViewById(R.id.groupNameTextView);
-        TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
+        TextView groupNameTextView =
+                findViewById(R.id.groupNameTextView);
+        TextView groupChallengeTitleTextView =
+                findViewById(R.id.groupChallengeTitleTextView);
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
@@ -177,7 +175,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         Map<String, String> memberUids = vm.getMemberUids().getValue();
 
         // Only update when both contributions and members are loaded
-        if (contributions == null || members == null || memberUids == null) return;
+        if (contributions == null || members == null || memberUids == null) {
+            return;
+        }
 
         // Update contributions text
         StringBuilder sb = new StringBuilder();
