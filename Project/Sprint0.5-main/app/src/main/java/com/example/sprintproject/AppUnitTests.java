@@ -88,6 +88,22 @@ public class AppUnitTests {
         assertFalse(AuthValidator.isValidInput("user@", "password"));
     }
 
+    @Test
+    public void testAcceptValidSavingsCircleInputs() {
+        assertTrue(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+                500, "monthly"));
+    }
+
+    @Test
+    public void testRejectInvalidSavingsCircleInputs() {
+        assertFalse(SavingsCircleValidator.isValidInput("", "Challenge Title",
+                100, "monthly"));
+        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+                -50, "weekly"));
+        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+                100, "daily"));
+    }
+
     public static class BudgetCalculator {
         public static double computeSurplus(double total, double spent) {
             return total - spent;
@@ -126,6 +142,25 @@ public class AppUnitTests {
                 return false;
             }
             return !expenseDate.after(currentDate);
+        }
+    }
+
+    public static class SavingsCircleValidator {
+        public static boolean isValidInput(String groupName, String challengeTitle,
+                                           double goalAmount, String frequency) {
+            if (groupName == null || groupName.trim().isEmpty()) {
+                return false;
+            }
+            if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
+                return false;
+            }
+            if (goalAmount < 0) {
+                return false;
+            }
+            if (frequency == null || !frequency.equals("weekly") && !frequency.equals("monthly")) {
+                return false;
+            }
+            return true;
         }
     }
 }
