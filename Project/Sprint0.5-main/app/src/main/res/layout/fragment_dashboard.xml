@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/dashboard_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#357DED"
-    android:fillViewport="true"
+    android:clipToPadding="true"
+    android:clipChildren="true"
     tools:context=".view.DashboardFragment">
 
     <!-- Header Bar -->
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:clipToPadding="true">
+        android:layout_height="56dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:foregroundGravity="center_vertical">
 
         <TextView
             android:id="@+id/dashboardTitle"
@@ -40,87 +43,66 @@
             android:scaleType="centerInside"
             android:focusable="true"
             android:clickable="true" />
+    </FrameLayout>
 
-        <!-- Logout Button -->
-        <Button
-            android:id="@+id/logout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Logout"
-            android:backgroundTint="@color/white"
-            android:textColor="#357DED"
-            android:fontFamily="@font/montserrat_regular"
-            android:layout_marginHorizontal="30dp"
-            android:layout_marginTop="8dp"
-            android:paddingVertical="8dp"
-            android:minHeight="0dp" />
+    <!-- Logout Button -->
+    <Button
+        android:id="@+id/logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:backgroundTint="@color/white"
+        android:textColor="#357DED"
+        android:fontFamily="@font/montserrat_regular"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="8dp"
+        android:paddingVertical="8dp"
+        android:minHeight="0dp" />
 
-        <!-- Total Spent Label -->
-        <TextView
-            android:id="@+id/textTotalSpent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Total Spent (All Time): $0.00"
-            android:fontFamily="@font/montserrat_regular"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:textColor="@android:color/white"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="4dp"
-            tools:text="Total Spent: $126.75" />
+    <!-- Total Spent Label -->
+    <TextView
+        android:id="@+id/textTotalSpent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Spent (All Time): $0.00"
+        android:fontFamily="@font/montserrat_regular"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"
+        tools:text="Total Spent: $126.75" />
 
-        <!-- Total Remaining Label -->
-        <TextView
-            android:id="@+id/textTotalRemaining"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Remaining This Cycle: $0.00"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:textColor="@android:color/white"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="12dp"
-            tools:text="Remaining This Cycle: $560.00" />
+    <!-- Total Remaining Label -->
+    <TextView
+        android:id="@+id/textTotalRemaining"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Remaining This Cycle: $0.00"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        tools:text="Remaining This Cycle: $560.00" />
 
-        <com.github.mikephil.charting.charts.PieChart
-            android:id="@+id/pieChart"
-            android:layout_width="match_parent"
-            android:layout_height="260dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp" />
+    <!-- RecyclerView for Remaining Budgets -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRemainingBudgets"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_weight="1"
+        android:background="@color/white"
+        android:fontFamily="@font/montserrat_regular"
+        android:clipToPadding="false"
+        android:elevation="2dp"
+        android:overScrollMode="never"
+        android:padding="8dp"
+        android:scrollbarStyle="insideOverlay"
+        tools:itemCount="3"
+        tools:listitem="@layout/item_remaining_budget" />
 
-        <com.github.mikephil.charting.charts.BarChart
-            android:id="@+id/barChartTotals"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp" />
-
-        <!-- RecyclerView for Remaining Budgets -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="24dp"
-            android:layout_marginTop="8dp"
-            android:elevation="6dp">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerRemainingBudgets"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="12dp"
-                android:clipToPadding="false"
-                android:overScrollMode="never"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="3"
-                tools:listitem="@layout/item_remaining_budget" />
-        </androidx.cardview.widget.CardView>
-
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>

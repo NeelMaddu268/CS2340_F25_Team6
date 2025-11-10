@@ -2,6 +2,7 @@ package com.example.sprintproject.view;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -34,9 +35,8 @@ public class InvitationsFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.invitationsRecyclerView);
         noInvitesText = view.findViewById(R.id.noInvitesText);
         invitationsViewModel = new InvitationsViewModel();
-        adapter = new InvitationsAdapter(new ArrayList<>(), invitationsViewModel,
-                new ViewModelProvider(this).get(DateViewModel.class),
-                requireContext(), getViewLifecycleOwner());
+        adapter = new InvitationsAdapter(new ArrayList<>(), invitationsViewModel, new ViewModelProvider(this)
+                .get(DateViewModel.class), requireContext(), getViewLifecycleOwner());
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
