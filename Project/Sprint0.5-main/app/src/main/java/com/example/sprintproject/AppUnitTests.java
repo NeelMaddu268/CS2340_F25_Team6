@@ -2,6 +2,9 @@ package com.example.sprintproject;
 
 import org.junit.Test;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.*;
 import java.util.*;
 
@@ -176,6 +179,35 @@ public class AppUnitTests {
         }
         assertEquals(285.75, budgetSum, 1e-6);
         assertTrue(budgetSum > spent);
+    @Test
+    public void testAddContribution() {
+        SavingsCircle circle = new SavingsCircle("My Circle");
+        circle.addContribution("Alice", 100);
+        assertEquals(100, circle.getContributions().get("Alice"), 0.001);
+    }
+
+    @Test
+    public void testTotalContributions() {
+        SavingsCircle circle = new SavingsCircle("My Circle");
+        circle.addContribution("Alice", 100);
+        circle.addContribution("Bob", 50);
+        assertEquals(150, circle.totalContributions(), 0.001);
+    }
+      
+    @Test
+    public void testAcceptValidSavingsCircleInputs() {
+        assertTrue(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+                500, "monthly"));
+    }
+
+    @Test
+    public void testRejectInvalidSavingsCircleInputs() {
+        assertFalse(SavingsCircleValidator.isValidInput("", "Challenge Title",
+                100, "monthly"));
+        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+                -50, "weekly"));
+        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+                100, "daily"));
     }
 
     public static class BudgetCalculator {
@@ -187,6 +219,32 @@ public class AppUnitTests {
                 return 0;
             }
             return (int) ((spent / total) * 100);
+        }
+    }
+
+    public class SavingsCircle {
+        private String name;
+        private Map<String, Double> contributions;
+
+        public SavingsCircle(String name) {
+            this.name = name;
+            this.contributions = new HashMap<>();
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Map<String, Double> getContributions() {
+            return contributions;
+        }
+
+        public void addContribution(String member, double amount) {
+            contributions.put(member, contributions.getOrDefault(member, 0.0) + amount);
+        }
+
+        public double totalContributions() {
+            return contributions.values().stream().mapToDouble(Double::doubleValue).sum();
         }
     }
 
@@ -211,6 +269,25 @@ public class AppUnitTests {
                 return false;
             }
             return !expenseDate.after(currentDate);
+        }
+    }
+
+    public static class SavingsCircleValidator {
+        public static boolean isValidInput(String groupName, String challengeTitle,
+                                           double goalAmount, String frequency) {
+            if (groupName == null || groupName.trim().isEmpty()) {
+                return false;
+            }
+            if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
+                return false;
+            }
+            if (goalAmount < 0) {
+                return false;
+            }
+            if (frequency == null || !frequency.equals("weekly") && !frequency.equals("monthly")) {
+                return false;
+            }
+            return true;
         }
     }
 }

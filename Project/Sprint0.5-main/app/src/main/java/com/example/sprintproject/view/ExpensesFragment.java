@@ -223,6 +223,7 @@ public class ExpensesFragment extends Fragment {
 
                 if (isValid) {
                     boolean contributesToGroupSavings =
+
                             groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
 
                     String circleId = null;
