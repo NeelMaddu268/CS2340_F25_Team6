@@ -104,6 +104,7 @@ public class AppUnitTests {
         circle.addContribution("Alice", 100);
         circle.addContribution("Bob", 50);
         assertEquals(150, circle.totalContributions(), 0.001);
+    }
       
     @Test
     public void testAcceptValidSavingsCircleInputs() {
