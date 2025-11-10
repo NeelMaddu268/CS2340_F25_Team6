@@ -45,23 +45,32 @@ public class SavingsCircleAdapter extends RecyclerView.Adapter<SavingsCircleAdap
     }
 
     @Override
-    public void onBindViewHolder(@NonNull VH h, int position) {
-        SavingsCircle c = items.get(position);
+    public void onBindViewHolder(@NonNull SavingsCircleViewHolder holder, int position) {
+        SavingsCircle circle = getItem(position);
+        holder.groupName.setText(circle.getName());
+        holder.groupTitle.setText(circle.getTitle());
+        holder.groupGoal.setText("Goal: $" + circle.getGoal());
+        holder.groupContribution.setText("Group Contribution: $" + circle.getSpent());
+        holder.groupFrequency.setText(circle.getFrequency());
 
-        // Bind text fields (null-safe)
-        h.name.setText(c.getName() == null ? "" : c.getName());
-        h.title.setText(c.getTitle() == null ? "" : c.getTitle());
-        h.goal.setText(String.format(Locale.US, "$%.1f", c.getGoal()));
-        h.frequency.setText(c.getFrequency() == null ? "" : c.getFrequency());
+        holder.itemView.setOnClickListener(v ->
+                onSavingsCircleClickListener.onSavingsCircleClick(circle));
+    }
 
-        // Background color logic (matches your rollover palette)
-        int colorRes;
-        if (c.isGoalMet()) {
-            colorRes = R.color.green;     // #3DB85D
-        } else if (c.isCompleted()) {
-            colorRes = R.color.red;       // #E53935
-        } else {
-            colorRes = R.color.blue;      // #357DED
+    static class SavingsCircleViewHolder extends RecyclerView.ViewHolder {
+        private TextView groupName;
+        private TextView groupTitle;
+        private TextView groupGoal;
+        private TextView groupContribution;
+        private TextView groupFrequency;
+
+        public SavingsCircleViewHolder(View itemView) {
+            super(itemView);
+            groupName = itemView.findViewById(R.id.textGroupName);
+            groupTitle = itemView.findViewById(R.id.textGroupTitle);
+            groupGoal = itemView.findViewById(R.id.textGroupGoal);
+            groupContribution = itemView.findViewById(R.id.textGroupContribution);
+            groupFrequency = itemView.findViewById(R.id.textGroupFrequency);
         }
         h.itemView.setBackgroundColor(ContextCompat.getColor(h.itemView.getContext(), colorRes));
 

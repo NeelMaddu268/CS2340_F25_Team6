@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleCreationViewModel;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
@@ -75,12 +74,8 @@ public class SavingsCircleFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
-            intent.putStringArrayListExtra(
-                    "groupEmails",
-                    savings.getMemberEmails() == null
-                            ? new ArrayList<>()
-                            : new ArrayList<>(savings.getMemberEmails())
-            );
+            intent.putStringArrayListExtra("groupEmails",
+                    new ArrayList<>(savings.getMemberEmails()));
             intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());
@@ -173,16 +168,14 @@ public class SavingsCircleFragment extends Fragment {
                     groupChallengeGoal.setError("Invalid number");
                     return;
                 }
-
-                AppDate appDate = dateViewModel.getCurrentDate().getValue();
-                if (appDate == null) {
-                    Toast.makeText(requireContext(), "Date not ready. Try again.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                savingsCircleCreationViewModel.createUserSavingsCircle(
-                        name, title, goal, frequency, notes, appDate
-                );
+                dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+                    if (appDate == null) {
+                        return;
+                    }
+                    savingsCircleCreationViewModel.createUserSavingsCircle(
+                            name, title, goal, frequency, notes, appDate
+                    );
+                });
 
                 savingsCircleCreationViewModel.getText()
                         .observe(getViewLifecycleOwner(), message -> {

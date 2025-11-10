@@ -117,13 +117,17 @@ public class InvitationsViewModel extends ViewModel {
                                     db.collection("savingsCircles")
                                             .document(circleId)
                                             .update("datesJoined." + currentUid, joinDate.toIso(),
-                                                    "memberEmails", FieldValue.arrayUnion(doc.getString("toEmail")))
+                                                    "memberEmails",
+                                                    FieldValue.arrayUnion(doc.getString("toEmail")))
                                             .addOnSuccessListener(aVoid3 ->
-                                                    System.out.println("[respondToInvite] datesJoined added successfully")
+                                                    System.out.println("[respondToInvite] "
+                                                           + "datesJoined added successfully")
                                             )
                                             .addOnFailureListener(e ->
-                                                    System.err.println("[respondToInvite] Failed to add datesJoined: " + e.getMessage())
-                                            );
+                                                    System.err.println("[respondToInvite] Failed "
+                                                            + "to add datesJoined: "
+                                                            + e.getMessage())
+                                        );
                                     System.out.println("[respondToInvite] User"
                                             + " added to circle successfully");
 
