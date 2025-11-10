@@ -30,8 +30,8 @@ public class ExpenseCreationViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<String>> categoriesLiveData =
             new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<String>> circleNamesLive
-            = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<String>> circleNamesLive =
+            new MutableLiveData<>(new ArrayList<>());
     private final Map<String, String> circleNameToId = new HashMap<>();
 
     public ExpenseCreationViewModel() {
@@ -163,7 +163,7 @@ public class ExpenseCreationViewModel extends ViewModel {
             String category,
             String notes,
             boolean contributesToGroupSavings,
-            String circleId,
+            String circleId,                 // <-- NEW
             Runnable onBudgetUpdated) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -221,9 +221,8 @@ public class ExpenseCreationViewModel extends ViewModel {
                         System.out.println("[updateGroupSavingsByCircleId] +"
                                 + amount + " to circle " + circleId))
                 .addOnFailureListener(e ->
-                        System.err.println("[updateGroupSavingsByCircleId]"
-                                + " unable to update 'spent': "
-                                + e.getMessage()));
+                        System.err.println("[updateGroupSavingsByCircleId] unable to update "
+                                + "'spent': " + e.getMessage()));
         FirestoreManager.getInstance()
                 .savingsCircleDoc(circleId)
                 .update("contributions." + uid, FieldValue.increment(amount))
@@ -231,9 +230,8 @@ public class ExpenseCreationViewModel extends ViewModel {
                         System.out.println("[updateGroupSavingsByCircleId] +"
                                 + amount + " to contributions[" + uid + "]"))
                 .addOnFailureListener(e ->
-                        System.err.println("[updateGroupSavingsByCircleId] unable"
-                                + " to update 'contributions': "
-                                + e.getMessage()));
+                        System.err.println("[updateGroupSavingsByCircleId] unable to "
+                                + "update 'contributions': " + e.getMessage()));
     }
 
     private String normalizeCategory(String category) {
