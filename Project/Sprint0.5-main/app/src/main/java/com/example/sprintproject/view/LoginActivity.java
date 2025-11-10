@@ -38,8 +38,8 @@ public class LoginActivity extends AppCompatActivity {
         authenticationViewModel = new AuthenticationViewModel();
 
         loginButton.setOnClickListener(v -> {
-            email = "abc123@gmail.com"; //emailInput.getText().toString();
-            password = "abc123"; //passwordInput.getText().toString();
+            email = emailInput.getText().toString();
+            password = passwordInput.getText().toString();
             authenticationViewModel.login(email, password);
         });
 
