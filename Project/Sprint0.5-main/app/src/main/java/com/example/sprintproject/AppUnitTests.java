@@ -2,6 +2,9 @@ package com.example.sprintproject;
 
 import org.junit.Test;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 /**
@@ -89,6 +92,21 @@ public class AppUnitTests {
     }
 
     @Test
+    public void testAddContribution() {
+        SavingsCircle circle = new SavingsCircle("My Circle");
+        circle.addContribution("Alice", 100);
+        assertEquals(100, circle.getContributions().get("Alice"), 0.001);
+    }
+
+    @Test
+    public void testTotalContributions() {
+        SavingsCircle circle = new SavingsCircle("My Circle");
+        circle.addContribution("Alice", 100);
+        circle.addContribution("Bob", 50);
+        assertEquals(150, circle.totalContributions(), 0.001);
+    }
+      
+    @Test
     public void testAcceptValidSavingsCircleInputs() {
         assertTrue(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
                 500, "monthly"));
@@ -114,6 +132,32 @@ public class AppUnitTests {
                 return 0;
             }
             return (int) ((spent / total) * 100);
+        }
+    }
+
+    public class SavingsCircle {
+        private String name;
+        private Map<String, Double> contributions;
+
+        public SavingsCircle(String name) {
+            this.name = name;
+            this.contributions = new HashMap<>();
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Map<String, Double> getContributions() {
+            return contributions;
+        }
+
+        public void addContribution(String member, double amount) {
+            contributions.put(member, contributions.getOrDefault(member, 0.0) + amount);
+        }
+
+        public double totalContributions() {
+            return contributions.values().stream().mapToDouble(Double::doubleValue).sum();
         }
     }
 
