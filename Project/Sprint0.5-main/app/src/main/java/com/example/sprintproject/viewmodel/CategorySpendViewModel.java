@@ -15,7 +15,8 @@ import java.util.Map;
 
 public class CategorySpendViewModel extends ViewModel {
 
-    private final MutableLiveData<Map<String, Double>> totalsLive = new MutableLiveData<>(new HashMap<>());
+    private final MutableLiveData<Map<String, Double>> totalsLive
+            = new MutableLiveData<>(new HashMap<>());
     public LiveData<Map<String, Double>> getCategoryTotals() {
         return totalsLive; }
 
@@ -51,7 +52,9 @@ public class CategorySpendViewModel extends ViewModel {
                     for (DocumentSnapshot d : qs.getDocuments()) {
                         Double amt = d.getDouble("amount");
                         String cat = d.getString("category");
-                        if (amt == null || cat == null) continue;
+                        if (amt == null || cat == null) {
+                            continue;
+                        }
                         String key = cat.trim().toLowerCase(Locale.US);
                         byCat.put(key, byCat.getOrDefault(key, 0.0) + amt);
                     }

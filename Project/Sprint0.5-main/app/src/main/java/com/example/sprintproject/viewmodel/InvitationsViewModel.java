@@ -127,7 +127,7 @@ public class InvitationsViewModel extends ViewModel {
                                                     System.err.println("[respondToInvite] Failed "
                                                             + "to add datesJoined: "
                                                             + e.getMessage())
-                                            );
+                                        );
                                     System.out.println("[respondToInvite] User"
                                             + " added to circle successfully");
 
