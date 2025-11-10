@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+
+import com.example.sprintproject.model.SavingsCircle;
+
 import java.util.*;
 
 public class AppUnitTests {
@@ -188,6 +191,8 @@ public class AppUnitTests {
         }
         assertEquals(285.75, budgetSum, 1e-6);
         assertTrue(budgetSum > spent);
+    }
+
     @Test
     public void testAddContribution() {
         SavingsCircle circle = new SavingsCircle("My Circle");
