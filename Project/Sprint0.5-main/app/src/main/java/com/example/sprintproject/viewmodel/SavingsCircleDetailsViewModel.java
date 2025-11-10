@@ -59,6 +59,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
             if (datesJoined != null) {
                 memberJoinDatesLiveData.setValue(datesJoined);
             }
+          
             Object rawMembers = snapshot.get("memberEmails");
             if (rawMembers instanceof Map) {
                 membersLiveData.setValue((Map<String, String>) rawMembers);
