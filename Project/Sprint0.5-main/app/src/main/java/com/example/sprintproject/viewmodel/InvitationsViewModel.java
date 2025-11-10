@@ -119,14 +119,15 @@ public class InvitationsViewModel extends ViewModel {
                                             .update("datesJoined." + currentUid, joinDate.toIso(),
                                                     "memberEmails",
                                                     FieldValue.arrayUnion(doc.getString("toEmail")))
-                                            .addOnSuccessListener(aVoid3 -> System.out.println(
-                                                    "[respondToInvite] datesJoined"
-                                                            + " added successfully")
+                                            .addOnSuccessListener(aVoid3 ->
+                                                    System.out.println("[respondToInvite] "
+                                                           + "datesJoined added successfully")
                                             )
-                                            .addOnFailureListener(e -> System.err.println(
-                                                    "[respondToInvite] Failed to add datesJoined: "
+                                            .addOnFailureListener(e ->
+                                                    System.err.println("[respondToInvite] Failed "
+                                                            + "to add datesJoined: "
                                                             + e.getMessage())
-                                        );
+                                            );
                                     System.out.println("[respondToInvite] User"
                                             + " added to circle successfully");
 

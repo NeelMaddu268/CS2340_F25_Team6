@@ -46,7 +46,6 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
 
     public void listenToSavingsCircle(String circleId) {
         DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
-
         listener = circleRef.addSnapshotListener((snapshot, e) -> {
             if (e != null || snapshot == null || !snapshot.exists()) {
                 return;
@@ -56,12 +55,11 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
             if (contributions != null) {
                 contributionsLiveData.setValue(contributions);
             }
-
             Map<String, String> datesJoined = (Map<String, String>) snapshot.get("datesJoined");
             if (datesJoined != null) {
                 memberJoinDatesLiveData.setValue(datesJoined);
             }
-
+          
             Object rawMembers = snapshot.get("memberEmails");
             if (rawMembers instanceof Map) {
                 membersLiveData.setValue((Map<String, String>) rawMembers);

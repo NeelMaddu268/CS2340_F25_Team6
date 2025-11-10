@@ -34,9 +34,9 @@ public class InvitationsFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.invitationsRecyclerView);
         noInvitesText = view.findViewById(R.id.noInvitesText);
         invitationsViewModel = new InvitationsViewModel();
-        adapter = new InvitationsAdapter(new ArrayList<>(),
-                invitationsViewModel, new ViewModelProvider(this)
-                .get(DateViewModel.class), requireContext(), getViewLifecycleOwner());
+        adapter = new InvitationsAdapter(new ArrayList<>(), invitationsViewModel,
+                new ViewModelProvider(this).get(DateViewModel.class),
+                requireContext(), getViewLifecycleOwner());
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 

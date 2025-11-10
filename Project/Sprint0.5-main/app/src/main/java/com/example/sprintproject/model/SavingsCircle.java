@@ -68,7 +68,8 @@ public class SavingsCircle {
     }
 
     public void setDatesJoined(Map<String, String> datesJoined) {
-        this.datesJoined = datesJoined; }
+        this.datesJoined = datesJoined;
+    }
 
     public List<String> getMemberIds() {
         return memberIds;

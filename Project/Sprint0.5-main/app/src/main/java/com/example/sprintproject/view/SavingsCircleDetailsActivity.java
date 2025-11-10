@@ -35,15 +35,17 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         String groupNotes = getIntent().getStringExtra("groupNotes");
 
         String creationDate = getIntent().getStringExtra("creationDate");
-        HashMap<String, String> datesJoined =
-                (HashMap<String, String>) getIntent().getSerializableExtra("datesJoined");
-        HashMap<String, Double> contributions =
-                (HashMap<String, Double>) getIntent().getSerializableExtra("contributions");
+        HashMap<String, String> datesJoined = (HashMap<String, String>)
+                getIntent().getSerializableExtra("datesJoined");
+        HashMap<String, Double> contributions = (HashMap<String, Double>)
+                getIntent().getSerializableExtra("contributions");
         String circleId = getIntent().getStringExtra("circleId");
 
         // update the UI with the provided details
-        TextView groupNameTextView = findViewById(R.id.groupNameTextView);
-        TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
+        TextView groupNameTextView =
+                findViewById(R.id.groupNameTextView);
+        TextView groupChallengeTitleTextView =
+                findViewById(R.id.groupChallengeTitleTextView);
         TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
