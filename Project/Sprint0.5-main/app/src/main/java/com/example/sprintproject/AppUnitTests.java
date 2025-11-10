@@ -6,15 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import java.util.*;
 
-/**
- * Combined Unit Tests for Sprint 1 & 2 requirements.
- * - Budget surplus and percent calculations
- * - Expense date validation
- * - Authentication input validation
- * - Edge cases for rollover logic and invalid inputs
- */
 public class AppUnitTests {
+
     @Test
     public void testComputeSurplusPositive() {
         double surplus = BudgetCalculator.computeSurplus(1000, 700);
@@ -91,6 +86,99 @@ public class AppUnitTests {
         assertFalse(AuthValidator.isValidInput("user@", "password"));
     }
 
+    // Mirrors your DashboardFragment.readDouble() behavior without Firebase.
+    private static Double readDoubleLikeHelper(Object o) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Double) {
+            return (Double) o;
+        }
+        if (o instanceof Long) {
+            return ((Long) o).doubleValue();
+        }
+        if (o instanceof Integer) {
+            return ((Integer) o).doubleValue();
+        }
+        if (o instanceof Float)   {
+            return ((Float) o).doubleValue();
+        }
+        if (o instanceof String) {
+            try {
+                return Double.parseDouble((String) o);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    @SafeVarargs
+    private static <T> T coalesce(T... vals) {
+        for (T v : vals) {
+            if (v != null) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    @Test
+    public void testReadDoubleLikeHelperparsesNumericsAndStrings() {
+        assertEquals(12.5, readDoubleLikeHelper(12.5d), 1e-9);
+        assertEquals(12.0, readDoubleLikeHelper(12L),   1e-9);
+        assertEquals(7.0,  readDoubleLikeHelper(7),     1e-9);
+        assertEquals(2.5,  readDoubleLikeHelper(2.5f),  1e-6);
+        assertEquals(99.75, readDoubleLikeHelper("99.75"), 1e-9);
+        assertEquals(42.0,  readDoubleLikeHelper("42"),    1e-9);
+        assertNull(readDoubleLikeHelper("hello"));
+        assertNull(readDoubleLikeHelper(null));
+    }
+
+    @Test
+    public void testAggregationtotalsForBarChartareCorrect() {
+        List<Object> expenseAmounts = Arrays.asList(10, 20L, 7.5f, 12.25d, "50.0", "bad");
+        double spent = 0.0;
+        for (Object a : expenseAmounts) {
+            Double v = readDoubleLikeHelper(a);
+            if (v != null) {
+                spent += v;
+            }
+        }
+        assertEquals(99.75, spent, 1e-6);
+
+        List<Map<String, Object>> budgets = new ArrayList<>();
+        Map<String, Object> b1 = new HashMap<>();
+        b1.put("total", 100);
+        budgets.add(b1);
+        Map<String, Object> b2 = new HashMap<>();
+        b2.put("amount", "150.5");
+        budgets.add(b2);
+        Map<String, Object> b3 = new HashMap<>();
+        b3.put("limit", 25L);
+        budgets.add(b3);
+        Map<String, Object> b4 = new HashMap<>();
+        b4.put("value", 10.25f);
+        budgets.add(b4);
+        Map<String, Object> b5 = new HashMap<>();
+        b5.put("budget", "bad");
+        budgets.add(b5);
+
+        double budgetSum = 0.0;
+        for (Map<String, Object> doc : budgets) {
+            Double t = coalesce(
+                    readDoubleLikeHelper(doc.get("total")),
+                    readDoubleLikeHelper(doc.get("amount")),
+                    readDoubleLikeHelper(doc.get("limit")),
+                    readDoubleLikeHelper(doc.get("value")),
+                    readDoubleLikeHelper(doc.get("budget"))
+            );
+            if (t != null) {
+                budgetSum += t;
+            }
+        }
+        assertEquals(285.75, budgetSum, 1e-6);
+        assertTrue(budgetSum > spent);
     @Test
     public void testAddContribution() {
         SavingsCircle circle = new SavingsCircle("My Circle");
@@ -126,7 +214,6 @@ public class AppUnitTests {
         public static double computeSurplus(double total, double spent) {
             return total - spent;
         }
-
         public static int computePercentUsed(double total, double spent) {
             if (total <= 0) {
                 return 0;
@@ -172,16 +259,12 @@ public class AppUnitTests {
             if (!email.contains("@") || !email.contains(".")) {
                 return false;
             }
-            if (password.length() < 3) {
-                return false;
-            }
-            return true;
+            return password.length() >= 3;
         }
     }
 
     public static class ExpenseValidator {
-        public static boolean isValidExpenseDate(
-                java.util.Date expenseDate, java.util.Date currentDate) {
+        public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
             if (expenseDate == null || currentDate == null) {
                 return false;
             }

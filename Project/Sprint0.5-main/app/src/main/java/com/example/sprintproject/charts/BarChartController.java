@@ -37,7 +37,9 @@ public class BarChartController {
     }
 
     public void render(double budgetAllTime, double spentAllTime) {
-        if (bar == null) return;
+        if (bar == null) {
+            return;
+        }
 
         List<BarEntry> entries = new ArrayList<>();
         entries.add(new BarEntry(0f, (float) budgetAllTime));
