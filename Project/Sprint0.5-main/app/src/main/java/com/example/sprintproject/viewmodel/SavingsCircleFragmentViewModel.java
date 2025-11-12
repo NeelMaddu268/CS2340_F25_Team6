@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.SavingsCircle;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -15,14 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 public class SavingsCircleFragmentViewModel extends ViewModel {
 
@@ -30,13 +23,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
             new MutableLiveData<>(new ArrayList<>());
 
     private ListenerRegistration activeListener;
-
-    // Cache to recompute against new AppDate without requerying
-    private final List<SavingsCircle> cache = new ArrayList<>();
-    private String currentUidCached = null;
-
-    // App-controlled date (NOT system time). If null, nothing is “ended”.
-    private AppDate currentAppDate = null;
 
     public LiveData<List<SavingsCircle>> getSavingsCircle() {
         return savingsCircleLiveData;
@@ -49,27 +35,13 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         }
     }
 
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        detachActiveListener();
-    }
-
-    /** Load without forcing an AppDate (keeps previous AppDate if set). */
     public void loadSavingsCircle() {
-        loadSavingsCircleFor(currentAppDate);
-    }
-
-    /** Load and evaluate circles for a specific AppDate. */
-    public void loadSavingsCircleFor(AppDate appDate) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            cache.clear();
             savingsCircleLiveData.postValue(new ArrayList<>());
             return;
         }
-        currentUidCached = auth.getCurrentUser().getUid();
-        currentAppDate = appDate;
+        String uid = auth.getCurrentUser().getUid();
 
         detachActiveListener();
 
@@ -85,7 +57,8 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                         return;
                     }
 
-                    for (DocumentSnapshot pointerDoc : docs) {
+                    List<SavingsCircle> newList = new ArrayList<>();
+                    for (DocumentSnapshot pointerDoc : qs.getDocuments()) {
                         String circleId = pointerDoc.getString("circleId");
                         if (circleId == null) {
                             continue;
@@ -104,24 +77,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                                             savingsCircleLiveData.
                                                     postValue(new ArrayList<>(newList));
                                         }
-
-                                        // Evaluate per-user goal status against AppDate (join + 7 days rule)
-                                        evaluatePersonalAgainstAppDate(circle, currentUidCached, currentAppDate);
-
-                                        acc.add(circle);
-                                    }
-
-                                    if (++seen[0] == expectedFinal) {
-                                        cache.clear();
-                                        cache.addAll(acc);
-                                        savingsCircleLiveData.postValue(new ArrayList<>(cache));
-                                    }
-                                })
-                                .addOnFailureListener(err -> {
-                                    if (++seen[0] == expectedFinal) {
-                                        cache.clear();
-                                        cache.addAll(acc);
-                                        savingsCircleLiveData.postValue(new ArrayList<>(cache));
                                     }
                                 });
                     }

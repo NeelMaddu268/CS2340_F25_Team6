@@ -9,8 +9,6 @@
     <string name="don_t_have_an_account">Don\'t have an account?</string>
     <string name="create_an_account">Create an Account</string>
     <string name="error_message_goes_here">Error Message Goes Here</string>
-    <string name="error">Error message</string>
-
     <string name="already_have_an_account">Already have an account?</string>
     <string name="login">Login</string>
     <string name="create_account">Create Account</string>
