@@ -1,5 +1,4 @@
 package com.example.sprintproject.model;
-import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -8,9 +7,9 @@ import java.util.Locale;
 
 
 public class AppDate {
-//    private final int year;
-//    private final int month;
-//    private final int day;
+    //    private final int year;
+    //    private final int month;
+    //    private final int day;
     private int year;
     private int month;
     private int day;
