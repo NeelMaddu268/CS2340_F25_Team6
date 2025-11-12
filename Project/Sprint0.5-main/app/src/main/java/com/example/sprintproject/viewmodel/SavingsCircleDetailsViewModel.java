@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.sprintproject.model.AppDate;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -97,8 +96,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         }
     }
 
-    public void sendInvite(String circleId, String circleName,
-                           String inviteeEmail, String appDateIso) {
+    public void sendInvite(String circleId, String circleName, String inviteeEmail) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             statusMessage.postValue("You must be logged in to send invites.");
@@ -113,132 +111,98 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
             statusMessage.postValue("Enter a valid email.");
             return;
         }
-        if (fromEmail != null && inviteeEmail.equalsIgnoreCase(fromEmail)) {
+        if (inviteeEmail.equalsIgnoreCase(fromEmail)) {
             statusMessage.postValue("You’re already in this circle.");
-            return;
-        }
-        if (appDateIso == null || appDateIso.isEmpty()) {
-            statusMessage.postValue("Internal error: app date unavailable.");
             return;
         }
 
         // Loads the circle
         final DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
         circleRef.get()
-            .addOnSuccessListener(circleSnap -> {
-                if (!circleSnap.exists()) {
-                    statusMessage.postValue("Circle not found.");
-                    return;
-                }
-
-                String frequency = circleSnap.getString("frequency");
-                String creatorId = circleSnap.getString("creatorId");
-
-                Map<String, String> datesJoined =
-                        (Map<String, String>) circleSnap.get("datesJoined");
-
-                if (creatorId != null && datesJoined != null) {
-                    String creatorJoinIso = datesJoined.get(creatorId);
-                    if (creatorJoinIso != null) {
-                        String creatorEndIso = "Weekly".equals(frequency)
-                                ? AppDate.addDays(creatorJoinIso, 7, 0)
-                                : AppDate.addDays(creatorJoinIso, 0, 1);
-                        if (appDateIso.compareTo(creatorEndIso) > 0) {
-                            statusMessage.postValue("Invites are closed for this circle.");
-                            return;
-                        }
+                .addOnSuccessListener(circleSnap -> {
+                    if (!circleSnap.exists()) {
+                        statusMessage.postValue("Circle not found.");
+                        return;
                     }
-                }
 
-                java.util.List<String> memberEmails =
-                        (java.util.List<String>) circleSnap.get("memberEmails");
-                java.util.List<String> memberIds =
-                        (java.util.List<String>) circleSnap.get("memberIds");
+                    java.util.List<String> memberEmails =
+                            (java.util.List<String>) circleSnap.get("memberEmails");
+                    java.util.List<String> memberIds =
+                            (java.util.List<String>) circleSnap.get("memberIds");
 
-                if (memberEmails != null) {
-                    for (String email : memberEmails) {
-                        if (email != null && email.equalsIgnoreCase(inviteeEmail)) {
-                            statusMessage.postValue("That user is already a member.");
-                            return;
-                        }
-                    }
-                }
-
-                // Check if there’s a pending invite from this creator to this email
-                db.collection("invitations")
-                        .whereEqualTo("circleId", circleId)
-                        .whereEqualTo("fromUid", fromUid)
-                        .whereEqualTo("toEmail", inviteeEmail)
-                        .whereEqualTo("status", "pending")
-                        .limit(1)
-                        .get()
-                        .addOnSuccessListener(invSnap -> {
-                            if (!invSnap.isEmpty()) {
-                                statusMessage.postValue(
-                                        "You already sent a pending invite to this user.");
+                    if (memberEmails != null) {
+                        for (String email : memberEmails) {
+                            if (email != null && email.equalsIgnoreCase(inviteeEmail)) {
+                                statusMessage.postValue("That user is already a member.");
                                 return;
                             }
+                        }
+                    }
 
-                            db.collection("users")
-                                    .whereEqualTo("email", inviteeEmail)
-                                    .limit(1)
-                                    .get()
-                                    .addOnSuccessListener(userSnap -> {
-                                        if (userSnap.isEmpty()) {
-                                            statusMessage.postValue(
-                                                    "No user found with that email.");
-                                            return;
-                                        }
+                    // Check if there’s a pending invite from this creator to this email
+                    db.collection("invitations")
+                            .whereEqualTo("circleId", circleId)
+                            .whereEqualTo("fromUid", fromUid)
+                            .whereEqualTo("toEmail", inviteeEmail)
+                            .whereEqualTo("status", "pending")
+                            .limit(1)
+                            .get()
+                            .addOnSuccessListener(invSnap -> {
+                                if (!invSnap.isEmpty()) {
+                                    statusMessage.postValue("You already sent a pending invite to this user.");
+                                    return;
+                                }
 
-                                        String toUid = userSnap.getDocuments().get(0).getId();
+                                db.collection("users")
+                                        .whereEqualTo("email", inviteeEmail)
+                                        .limit(1)
+                                        .get()
+                                        .addOnSuccessListener(userSnap -> {
+                                            if (userSnap.isEmpty()) {
+                                                statusMessage.postValue("No user found with that email.");
+                                                return;
+                                            }
 
-                                        if (memberIds != null && memberIds.contains(toUid)) {
-                                            statusMessage.postValue(
-                                                    "That user is already a member.");
-                                            return;
-                                        }
+                                            String toUid = userSnap.getDocuments().get(0).getId();
 
-                                        // Create the invite
-                                        Map<String, Object> invite = new HashMap<>();
-                                        invite.put("circleId", circleId);
-                                        invite.put("circleName", circleName);
-                                        invite.put("fromUid", fromUid);
-                                        invite.put("fromEmail", fromEmail);
-                                        invite.put("toUid", toUid);
-                                        invite.put("toEmail", inviteeEmail);
-                                        invite.put("status", "pending");
-                                        invite.put("appDateIso", appDateIso);
+                                            if (memberIds != null && memberIds.contains(toUid)) {
+                                                statusMessage.postValue("That user is already a member.");
+                                                return;
+                                            }
 
-                                        FirestoreManager.getInstance()
-                                                .invitationsReference()
-                                                .add(invite)
-                                                .addOnSuccessListener(ref -> {
-                                                    statusMessage.postValue(
-                                                            "Invite sent successfully!");
-                                                    System.out.println(
-                                                            "[sendInvite] Invite created: "
-                                                            + ref.getId());
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    statusMessage.postValue(
-                                                            "Failed to send invite: "
-                                                            + e.getMessage());
-                                                    System.err.println("[sendInvite] Failed: "
-                                                            + e.getMessage());
-                                                });
-                                    })
-                                    .addOnFailureListener(e ->
-                                            statusMessage.postValue("Error finding user: "
-                                                    + e.getMessage())
-                                );
-                        })
-                        .addOnFailureListener(e ->
-                                statusMessage.postValue("Error checking pending invites: "
-                                        + e.getMessage())
-                    );
-            })
-            .addOnFailureListener(e ->
-                    statusMessage.postValue("Error loading circle: " + e.getMessage())
-            );
+                                            // Create the invite
+                                            Map<String, Object> invite = new HashMap<>();
+                                            invite.put("circleId", circleId);
+                                            invite.put("circleName", circleName);
+                                            invite.put("fromUid", fromUid);
+                                            invite.put("fromEmail", fromEmail);
+                                            invite.put("toUid", toUid);
+                                            invite.put("toEmail", inviteeEmail);
+                                            invite.put("status", "pending");
+                                            invite.put("timestamp", System.currentTimeMillis());
+
+                                            FirestoreManager.getInstance()
+                                                    .invitationsReference()
+                                                    .add(invite)
+                                                    .addOnSuccessListener(ref -> {
+                                                        statusMessage.postValue("Invite sent successfully!");
+                                                        System.out.println("[sendInvite] Invite created: " + ref.getId());
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        statusMessage.postValue("Failed to send invite: " + e.getMessage());
+                                                        System.err.println("[sendInvite] Failed: " + e.getMessage());
+                                                    });
+                                        })
+                                        .addOnFailureListener(e ->
+                                                statusMessage.postValue("Error finding user: " + e.getMessage())
+                                        );
+                            })
+                            .addOnFailureListener(e ->
+                                    statusMessage.postValue("Error checking pending invites: " + e.getMessage())
+                            );
+                })
+                .addOnFailureListener(e ->
+                        statusMessage.postValue("Error loading circle: " + e.getMessage())
+                );
     }
 }

@@ -15,14 +15,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 
 public class SavingsCircleFragmentViewModel extends ViewModel {
 
@@ -30,12 +26,8 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
             new MutableLiveData<>(new ArrayList<>());
 
     private ListenerRegistration activeListener;
-
-    // Cache to recompute against new AppDate without requerying
     private final List<SavingsCircle> cache = new ArrayList<>();
     private String currentUidCached = null;
-
-    // App-controlled date (NOT system time). If null, nothing is “ended”.
     private AppDate currentAppDate = null;
 
     public LiveData<List<SavingsCircle>> getSavingsCircle() {
@@ -68,7 +60,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
             savingsCircleLiveData.postValue(new ArrayList<>());
             return;
         }
-        currentUidCached = auth.getCurrentUser().getUid();
+
+        String uid = auth.getCurrentUser().getUid();
+        currentUidCached = uid;
         currentAppDate = appDate;
 
         detachActiveListener();
@@ -76,64 +70,18 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         activeListener = FirestoreManager.getInstance()
                 .userSavingsCirclePointers(uid)
                 .addSnapshotListener((qs, e) -> {
-                    if (e != null || qs == null) {
-                        savingsCircleLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-                    if (qs.isEmpty()) {
+                    if (e != null || qs == null || qs.isEmpty()) {
                         savingsCircleLiveData.postValue(new ArrayList<>());
                         return;
                     }
 
-                    for (DocumentSnapshot pointerDoc : docs) {
-                        String circleId = pointerDoc.getString("circleId");
-                        if (circleId == null) {
-                            continue;
-                        }
-
-                        FirestoreManager.getInstance()
-                                .savingsCirclesGlobalReference()
-                                .document(circleId)
-                                .get()
-                                .addOnSuccessListener(circleSnap -> {
-                                    SavingsCircle circle = circleSnap.toObject(SavingsCircle.class);
-                                    if (circle != null) {
-                                        circle.setId(circleSnap.getId());
-                                        newList.add(circle);
-                                        if (newList.size() == qs.size()) {
-                                            savingsCircleLiveData.
-                                                    postValue(new ArrayList<>(newList));
-                                        }
-
-                                        // Evaluate per-user goal status against AppDate (join + 7 days rule)
-                                        evaluatePersonalAgainstAppDate(circle, currentUidCached, currentAppDate);
-
-                                        acc.add(circle);
-                                    }
-
-                                    if (++seen[0] == expectedFinal) {
-                                        cache.clear();
-                                        cache.addAll(acc);
-                                        savingsCircleLiveData.postValue(new ArrayList<>(cache));
-                                    }
-                                })
-                                .addOnFailureListener(err -> {
-                                    if (++seen[0] == expectedFinal) {
-                                        cache.clear();
-                                        cache.addAll(acc);
-                                        savingsCircleLiveData.postValue(new ArrayList<>(cache));
-                                    }
-                                });
-                    }
-
-                    // Collect circle IDs from pointers
                     List<String> circleIds = new ArrayList<>();
-                    qs.getDocuments().forEach(d -> {
+                    for (DocumentSnapshot d : qs.getDocuments()) {
                         String id = d.getString("circleId");
                         if (id != null) {
                             circleIds.add(id);
                         }
-                    });
+                    }
 
                     fetchCirclesByIds(uid, circleIds);
                 });
@@ -146,8 +94,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         }
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-
         List<Task<QuerySnapshot>> tasks = new ArrayList<>();
+
+        // Chunking by 10 for Firestore's whereIn limit
         for (int i = 0; i < ids.size(); i += 10) {
             List<String> chunk = ids.subList(i, Math.min(i + 10, ids.size()));
             tasks.add(
@@ -160,36 +109,41 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         Tasks.whenAllSuccess(tasks)
                 .addOnSuccessListener(results -> {
                     List<SavingsCircle> list = new ArrayList<>();
-                    // track which IDs we found
-                    java.util.Set<String> found = new java.util.HashSet<>();
+                    Set<String> found = new HashSet<>();
 
                     for (Object obj : results) {
                         QuerySnapshot snapshot = (QuerySnapshot) obj;
-                        snapshot.getDocuments().forEach(doc -> {
+                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
                             SavingsCircle circle = doc.toObject(SavingsCircle.class);
                             if (circle != null) {
                                 circle.setId(doc.getId());
                                 list.add(circle);
                                 found.add(doc.getId());
+
+                                // Optional: evaluate circle status
+                                evaluatePersonalAgainstAppDate(circle, uid, currentAppDate);
                             }
-                        });
+                        }
                     }
 
-                    java.util.Set<String> randoms = new java.util.HashSet<>(ids);
-                    randoms.removeAll(found);
-                    if (!randoms.isEmpty()) {
-                        cleanupRandomPointers(uid, randoms);
+                    // Clean up dangling pointers
+                    Set<String> missing = new HashSet<>(ids);
+                    missing.removeAll(found);
+                    if (!missing.isEmpty()) {
+                        cleanupRandomPointers(uid, missing);
                     }
+
+                    cache.clear();
+                    cache.addAll(list);
                     savingsCircleLiveData.postValue(list);
                 })
-                .addOnFailureListener(err -> {
-                    savingsCircleLiveData.postValue(new ArrayList<>());
-                });
+                .addOnFailureListener(err -> savingsCircleLiveData.postValue(new ArrayList<>()));
     }
 
-    private void cleanupRandomPointers(String uid, java.util.Set<String> random) {
+    private void cleanupRandomPointers(String uid, Set<String> random) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         List<String> toDelete = new ArrayList<>(random);
+
         for (int i = 0; i < toDelete.size(); i += 10) {
             List<String> chunk = toDelete.subList(i, Math.min(i + 10, toDelete.size()));
             db.collection("users")
@@ -197,9 +151,15 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                     .collection("savingsCirclePointers")
                     .whereIn("circleId", chunk)
                     .get()
-                    .addOnSuccessListener(qs -> {
-                        qs.getDocuments().forEach(d -> d.getReference().delete());
-                    });
+                    .addOnSuccessListener(qs ->
+                            qs.getDocuments().forEach(d -> d.getReference().delete())
+                    );
         }
+    }
+
+    /** Placeholder: evaluate circle status against AppDate (implement as needed). */
+    private void evaluatePersonalAgainstAppDate(SavingsCircle circle, String uid, AppDate appDate) {
+        // Implement any logic for “ended”, “joined”, or “goal reached” state checks here.
+        // Example: circle.setEnded(appDate != null && appDate.isAfter(circle.getEndDate()));
     }
 }
