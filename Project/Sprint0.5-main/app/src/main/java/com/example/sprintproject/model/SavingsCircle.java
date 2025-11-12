@@ -140,4 +140,15 @@ public class SavingsCircle {
     public void setInvite(String invite) {
         this.invite = invite;
     }
+
+
+    private transient boolean completed;
+    private transient boolean goalMet;
+
+    public boolean isCompleted() { return completed; }
+    public void setCompleted(boolean completed) { this.completed = completed; }
+
+    public boolean isGoalMet() { return goalMet; }
+    public void setGoalMet(boolean goalMet) { this.goalMet = goalMet; }
+
 }
