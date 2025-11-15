@@ -24,7 +24,9 @@ public abstract class ExpenseWindowStrategy {
                     for (DocumentSnapshot d : qs.getDocuments()) {
                         Double amt = readDouble(d, "amount");
                         String cat = d.getString("category");
-                        if (amt == null || cat == null) continue;
+                        if (amt == null || cat == null) {
+                            continue;
+                        }
                         String k = cat.trim().toLowerCase(Locale.US);
                         Double prev = totals.get(k);
                         totals.put(k, (prev == null ? 0.0 : prev) + amt);
@@ -41,7 +43,9 @@ public abstract class ExpenseWindowStrategy {
                     double spent = 0.0;
                     for (DocumentSnapshot d : expenseSnap.getDocuments()) {
                         Double amt = readDouble(d, "amount");
-                        if (amt != null) spent += amt;
+                        if (amt != null) {
+                            spent += amt;
+                        }
                     }
                     final double spentFinal = spent;
 
@@ -57,7 +61,9 @@ public abstract class ExpenseWindowStrategy {
                                             readDouble(b, "value"),
                                             readDouble(b, "budget")
                                     );
-                                    if (t != null) budgetSum += t;
+                                    if (t != null) {
+                                        budgetSum += t;
+                                    }
                                 }
                                 bar.render(budgetSum, spentFinal);
                             })
@@ -68,21 +74,38 @@ public abstract class ExpenseWindowStrategy {
 
     protected static Double readDouble(DocumentSnapshot d, String field) {
         Object o = d.get(field);
-        if (o == null) return null;
-        if (o instanceof Double) return (Double) o;
-        if (o instanceof Long)   return ((Long) o).doubleValue();
-        if (o instanceof Integer)return ((Integer) o).doubleValue();
-        if (o instanceof Float)  return ((Float) o).doubleValue();
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Double) {
+            return (Double) o;
+        }
+        if (o instanceof Long) {
+            return ((Long) o).doubleValue();
+        }
+        if (o instanceof Integer) {
+            return ((Integer) o).doubleValue();
+        }
+        if (o instanceof Float) {
+            return ((Float) o).doubleValue();
+        }
         if (o instanceof String) {
-            try { return Double.parseDouble((String) o); }
-            catch (NumberFormatException ignore) { return null; }
+            try {
+                return Double.parseDouble((String) o);
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
         }
         return null;
     }
 
     @SafeVarargs
     protected static <T> T coalesce(T... vals) {
-        for (T v : vals) if (v != null) return v;
+        for (T v : vals) {
+            if (v != null) {
+                return v;
+            }
+        }
         return null;
     }
 }

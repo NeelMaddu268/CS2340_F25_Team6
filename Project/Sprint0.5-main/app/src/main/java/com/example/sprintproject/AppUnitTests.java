@@ -10,8 +10,6 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-import com.example.sprintproject.model.SavingsCircle;
-
 import java.util.*;
 
 public class AppUnitTests {
@@ -273,24 +271,43 @@ public class AppUnitTests {
         private List<Budget> budgets;
         private List<Expense> expenses;
 
-        public User(String email, String name, String password, List<Budget> budgets, List<Expense> expenses) {
+        public User(String email, String name, String password,
+                    List<Budget> budgets, List<Expense> expenses) {
             this.email = email;
             this.name = name;
             this.password = password;
             this.budgets = budgets;
             this.expenses = expenses;
         }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
+        public String getEmail() {
+            return email;
+        }
+        public void setEmail(String email) {
+            this.email = email;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public String getName() {
+            return name;
+        }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
+        public String getPassword() {
+            return password;
+        }
 
-        public List<Budget> getBudgets() { return budgets; }
-        public List<Expense> getExpenses() { return expenses; }
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public List<Budget> getBudgets() {
+            return budgets;
+        }
+
+        public List<Expense> getExpenses() {
+            return expenses;
+        }
 
         public void addBudget(Budget budget) {
             if (budget != null) {
@@ -315,14 +332,24 @@ public class AppUnitTests {
 
     public class Budget {
         private String name;
-        public Budget(String name) { this.name = name; }
-        public String getName() { return name; }
+        public Budget(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     public class Expense {
         private String name;
-        public Expense(String name) { this.name = name; }
-        public String getName() { return name; }
+        public Expense(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     public class SavingsCircle {

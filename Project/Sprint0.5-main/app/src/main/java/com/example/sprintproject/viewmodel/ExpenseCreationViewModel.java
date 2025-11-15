@@ -163,7 +163,7 @@ public class ExpenseCreationViewModel extends ViewModel {
             String category,
             String notes,
             boolean contributesToGroupSavings,
-            String circleId,                 // <-- NEW
+            String circleId,
             Runnable onBudgetUpdated) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
