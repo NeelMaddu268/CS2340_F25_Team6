@@ -203,33 +203,6 @@ public class BudgetsFragment extends Fragment {
                 new ViewModelProvider(requireActivity()).get(BudgetCreationViewModel.class);
         setupFrequencySpinner(popupView, budgetFrequencyEntry, budgetDateEntry);
 
-        // Date picker setup
-    //        budgetDateEntry.setOnClickListener(m -> {
-    //            String selectedFrequency = budgetFrequencyEntry.getSelectedItem().toString();
-    //            final Calendar today = Calendar.getInstance();
-    //            int year = today.get(Calendar.YEAR);
-    //            int month = today.get(Calendar.MONTH);
-    //            int day = today.get(Calendar.DAY_OF_MONTH);
-    //
-    //            DatePickerDialog datePickerDialog = new DatePickerDialog(
-    //                    requireContext(),
-    //                    (view1, y, mZero, dd) -> {
-    //                        Calendar selectedDate = Calendar.getInstance();
-    //                        selectedDate.set(y, mZero, dd);
-    //                        if ("Monthly".equals(selectedFrequency)) {
-    //                            selectedDate.set(Calendar.DAY_OF_MONTH, 1);
-    //                            if (selectedDate.before(today)) {
-    //                                selectedDate.add(Calendar.MONTH, 1);
-    //                            }
-    //                        }
-    //                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-    //                        budgetDateEntry.setText(sdf.format(selectedDate.getTime()));
-    //                    },
-    //                    year, month, day
-    //            );
-    //            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
-    //            datePickerDialog.show();
-    //        });
         budgetDateEntry.setOnClickListener(v -> {
             DateViewModel dateViewModel = new ViewModelProvider(requireActivity())
                     .get(DateViewModel.class);

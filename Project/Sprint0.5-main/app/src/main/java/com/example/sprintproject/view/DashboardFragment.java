@@ -67,7 +67,9 @@ public class DashboardFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
 
         authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
@@ -144,20 +146,22 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadChartsWithStrategy() {
-        if (charts == null) return;
+        if (charts == null) {
+            return;
+        }
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            charts.pie.render(new java.util.HashMap<>());
-            charts.bar.render(0.0, 0.0);
+            charts.getPie().render(new java.util.HashMap<>());
+            charts.getBar().render(0.0, 0.0);
             return;
         }
 
         String uid = auth.getCurrentUser().getUid();
         FirestoreManager fm = FirestoreManager.getInstance();
 
-        currentStrategy.loadPie(fm, uid, charts.pie);
-        currentStrategy.loadBar(fm, uid, charts.bar);
+        currentStrategy.loadPie(fm, uid, charts.getPie());
+        currentStrategy.loadBar(fm, uid, charts.getBar());
     }
 
     private void openDatePicker() {

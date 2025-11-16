@@ -31,9 +31,13 @@ public class PieChartController {
     }
 
     public void render(Map<String, Double> totals) {
-        if (pie == null) return;
+        if (pie == null) {
+            return;
+        }
         double sum = 0.0;
-        for (Double d : totals.values()) sum += (d == null ? 0.0 : d);
+        for (Double d : totals.values()) {
+            sum += (d == null ? 0.0 : d);
+        }
 
         if (sum <= 0.0001) {
             pie.clear();
@@ -45,7 +49,7 @@ public class PieChartController {
         List<PieEntry> entries = new ArrayList<>();
         for (Map.Entry<String, Double> e : totals.entrySet()) {
             double v = (e.getValue() == null) ? 0.0 : e.getValue();
-            float pct = (float) (v / sum * 100.0);
+            float pct = (float) ((v / sum) * 100.0f);
             if (pct > 0) {
                 entries.add(new PieEntry(pct, cap(e.getKey())));
             }
@@ -63,9 +67,11 @@ public class PieChartController {
     }
 
     private static String cap(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         s = s.trim();
-        return s.isEmpty() ? "" :
-                s.substring(0, 1).toUpperCase(Locale.US) + s.substring(1);
+        return s.isEmpty() ? ""
+                : s.substring(0, 1).toUpperCase(Locale.US) + s.substring(1);
     }
 }
