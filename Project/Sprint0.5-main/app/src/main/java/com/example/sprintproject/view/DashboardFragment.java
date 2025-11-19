@@ -27,6 +27,14 @@ import com.example.sprintproject.viewmodel.AuthenticationViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
 
+import com.example.sprintproject.charts.ChartFactory;
+import com.example.sprintproject.charts.Charts;
+import com.example.sprintproject.strategies.ExpenseWindowStrategy;
+import com.example.sprintproject.strategies.AllTimeWindowStrategy;
+
+import com.example.sprintproject.viewmodel.FirestoreManager;
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -44,6 +52,10 @@ public class DashboardFragment extends Fragment {
     private RecyclerView budgetRecycler;
     private DashboardBudgetAdapter budgetAdapter;
 
+    private Charts charts;
+
+    private ExpenseWindowStrategy currentStrategy = new AllTimeWindowStrategy();
+
     public DashboardFragment() {
         super(R.layout.fragment_dashboard);
     }
@@ -59,12 +71,10 @@ public class DashboardFragment extends Fragment {
             return null;
         }
 
-        // Initialize ViewModels
         authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
-        // UI References
         btnCalendar = view.findViewById(R.id.btnCalendar);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
@@ -74,7 +84,6 @@ public class DashboardFragment extends Fragment {
 
         headerText.setText("Dashboard");
 
-        // Edge-to-edge insets
         EdgeToEdge.enable(requireActivity());
         ViewCompat.setOnApplyWindowInsetsListener(
                 view.findViewById(R.id.dashboard_layout),
@@ -84,12 +93,12 @@ public class DashboardFragment extends Fragment {
                     return insets;
                 });
 
-        // Recycler setup
         budgetAdapter = new DashboardBudgetAdapter();
         budgetRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         budgetRecycler.setAdapter(budgetAdapter);
 
-        // Observers
+        charts = ChartFactory.attach(view);
+
         dashboardVM.getBudgetsList().observe(getViewLifecycleOwner(), budgetAdapter::updateData);
 
         dashboardVM.getTotalSpentAllTime().observe(getViewLifecycleOwner(), total ->
@@ -103,16 +112,15 @@ public class DashboardFragment extends Fragment {
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), date -> {
             if (date != null) {
                 dashboardVM.loadDataFor(date);
+
+                loadChartsWithStrategy();
             }
         });
 
-
-        // Calendar picker
         if (btnCalendar != null) {
             btnCalendar.setOnClickListener(v -> openDatePicker());
         }
 
-        // Logout button
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
                 authenticationViewModel.logout();
@@ -121,10 +129,39 @@ public class DashboardFragment extends Fragment {
             });
         }
 
-        // Initial load
         dashboardVM.loadData();
+        loadChartsWithStrategy();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        AppDate currentDate = dateVM.getCurrentDate().getValue();
+        if (currentDate != null) {
+            dashboardVM.loadDataFor(currentDate);
+        }
+        loadChartsWithStrategy();
+    }
+
+    private void loadChartsWithStrategy() {
+        if (charts == null) {
+            return;
+        }
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            charts.getPie().render(new java.util.HashMap<>());
+            charts.getBar().render(0.0, 0.0);
+            return;
+        }
+
+        String uid = auth.getCurrentUser().getUid();
+        FirestoreManager fm = FirestoreManager.getInstance();
+
+        currentStrategy.loadPie(fm, uid, charts.getPie());
+        currentStrategy.loadBar(fm, uid, charts.getBar());
     }
 
     private void openDatePicker() {
@@ -147,14 +184,4 @@ public class DashboardFragment extends Fragment {
         );
         dlg.show();
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        AppDate currentDate = dateVM.getCurrentDate().getValue();
-        if (currentDate != null) {
-            dashboardVM.loadDataFor(currentDate);
-        }
-    }
-
 }

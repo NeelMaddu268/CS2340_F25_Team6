@@ -75,12 +75,15 @@ public class SavingsCircleFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
+
+            // Null-safe memberEmails handling (your version)
             intent.putStringArrayListExtra(
                     "groupEmails",
                     savings.getMemberEmails() == null
                             ? new ArrayList<>()
                             : new ArrayList<>(savings.getMemberEmails())
             );
+
             intent.putExtra("groupInvite", savings.getInvite());
             intent.putExtra("groupChallengeTitle", savings.getTitle());
             intent.putExtra("groupChallengeGoal", savings.getGoal());
@@ -163,17 +166,30 @@ public class SavingsCircleFragment extends Fragment {
                     Toast.makeText(requireContext(), "Invalid frequency", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if (name.isEmpty()) { groupName.setError("Please enter a name"); return; }
-                if (title.isEmpty()) { groupChallengeTitle.setError("Please enter a challenge title"); return; }
-                if (goal.isEmpty())  { groupChallengeGoal.setError("Please enter a challenge goal"); return; }
+                if (name.isEmpty()) {
+                    groupName.setError("Please enter a name");
+                    return;
+                }
+                if (title.isEmpty()) {
+                    groupChallengeTitle.setError("Please enter a challenge title");
+                    return;
+                }
+                if (goal.isEmpty()) {
+                    groupChallengeGoal.setError("Please enter a challenge goal");
+                    return;
+                }
                 try {
                     double goalAmount = Double.parseDouble(goal);
-                    if (goalAmount <= 0) { groupChallengeGoal.setError("Amount must be greater than 0"); return; }
+                    if (goalAmount <= 0) {
+                        groupChallengeGoal.setError("Amount must be greater than 0");
+                        return;
+                    }
                 } catch (NumberFormatException e) {
                     groupChallengeGoal.setError("Invalid number");
                     return;
                 }
 
+                // Your AppDate-aware creation logic (single read, no extra observers)
                 AppDate appDate = dateViewModel.getCurrentDate().getValue();
                 if (appDate == null) {
                     Toast.makeText(requireContext(), "Date not ready. Try again.", Toast.LENGTH_SHORT).show();
@@ -208,5 +224,6 @@ public class SavingsCircleFragment extends Fragment {
         savingsCircleFragmentViewModel.setAppDate(d);
     }
 }
+
 
 

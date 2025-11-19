@@ -1,5 +1,6 @@
 package com.example.sprintproject.view;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,90 +8,102 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ListAdapter;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.SavingsCircle;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
+        SavingsCircleAdapter.SavingsCircleViewHolder> {
 
-public class SavingsCircleAdapter extends RecyclerView.Adapter<SavingsCircleAdapter.VH> {
+    private final OnSavingsCircleClickListener onSavingsCircleClickListener;
 
-    public interface OnItemClick {
-        void onClick(SavingsCircle item);
-    }
+    private static final DiffUtil.ItemCallback<SavingsCircle> SAVINGS_CIRCLE_DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<SavingsCircle>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull SavingsCircle oldItem,
+                                               @NonNull SavingsCircle newItem) {
+                    return oldItem.getName().equals(newItem.getName());
+                }
 
-    private final List<SavingsCircle> items = new ArrayList<>();
-    private final OnItemClick click;
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull SavingsCircle oldItem, @NonNull SavingsCircle newItem) {
+                    return oldItem.getName().equals(newItem.getName())
+                            && oldItem.getTitle().equals(newItem.getTitle())
+                            && oldItem.getGoal() == newItem.getGoal()
+                            && oldItem.getFrequency().equals(newItem.getFrequency())
+                            && ((oldItem.getNotes() == null && newItem.getNotes() == null)
+                            || (oldItem.getNotes() != null
+                            && oldItem.getNotes().equals(newItem.getNotes())));
+                }
+            };
 
-    public SavingsCircleAdapter(OnItemClick click) {
-        this.click = click;
-    }
-
-    public void submitList(List<SavingsCircle> data) {
-        items.clear();
-        if (data != null) items.addAll(data);
-        notifyDataSetChanged();
+    public SavingsCircleAdapter(OnSavingsCircleClickListener onSavingsCircleClickListener) {
+        super(SAVINGS_CIRCLE_DIFF_CALLBACK);
+        this.onSavingsCircleClickListener = onSavingsCircleClickListener;
     }
 
     @NonNull
     @Override
-    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                // If your item XML has a different name, change this:
+    public SavingsCircleViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_savingscircle, parent, false);
-        return new VH(v);
+        return new SavingsCircleViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull VH h, int position) {
-        SavingsCircle c = items.get(position);
+    public void onBindViewHolder(@NonNull SavingsCircleViewHolder holder, int position) {
+        SavingsCircle circle = getItem(position);
 
-        // Bind text fields (null-safe)
-        h.name.setText(c.getName() == null ? "" : c.getName());
-        h.title.setText(c.getTitle() == null ? "" : c.getTitle());
-        h.goal.setText(String.format(Locale.US, "$%.1f", c.getGoal()));
-        h.frequency.setText(c.getFrequency() == null ? "" : c.getFrequency());
+        // Text fields
+        holder.groupName.setText(circle.getName());
+        holder.groupTitle.setText(circle.getTitle());
+        holder.groupGoal.setText("$" + circle.getGoal());
+        holder.groupFrequency.setText(circle.getFrequency());
 
-        // Background color logic (matches your rollover palette)
-        int colorRes;
-        if (c.isGoalMet()) {
-            colorRes = R.color.green;     // #3DB85D
-        } else if (c.isCompleted()) {
-            colorRes = R.color.red;       // #E53935
+        // Background color based on group goal status
+        int color = getGroupStatusColor(circle, holder.itemView.getContext());
+        holder.itemView.setBackgroundColor(color);
+
+        // Click handler
+        holder.itemView.setOnClickListener(v ->
+                onSavingsCircleClickListener.onSavingsCircleClick(circle));
+    }
+
+    /** Decide row color from goal/completed flags set in the ViewModel. */
+    private int getGroupStatusColor(SavingsCircle circle, Context ctx) {
+        if (circle.isGoalMet()) {
+            // Group goal met (after end date)
+            return ContextCompat.getColor(ctx, R.color.green);
+        } else if (circle.isCompleted()) {
+            // End date passed, group goal NOT met
+            return ContextCompat.getColor(ctx, R.color.red);
         } else {
-            colorRes = R.color.blue;      // #357DED
+            // Still within the time window (in progress)
+            return ContextCompat.getColor(ctx, R.color.blue);
         }
-        h.itemView.setBackgroundColor(ContextCompat.getColor(h.itemView.getContext(), colorRes));
-
-        h.itemView.setOnClickListener(v -> {
-            if (click != null) click.onClick(c);
-        });
     }
 
-    @Override
-    public int getItemCount() {
-        return items.size();
-    }
+    static class SavingsCircleViewHolder extends RecyclerView.ViewHolder {
+        private final TextView groupName;
+        private final TextView groupTitle;
+        private final TextView groupGoal;
+        private final TextView groupFrequency;
 
-    static class VH extends RecyclerView.ViewHolder {
-        final TextView name;
-        final TextView title;
-        final TextView goal;
-        final TextView frequency;
-
-        VH(@NonNull View itemView) {
+        public SavingsCircleViewHolder(@NonNull View itemView) {
             super(itemView);
-            // IDs from your item layout you shared
-            name = itemView.findViewById(R.id.textGroupName);
-            title = itemView.findViewById(R.id.textGroupTitle);
-            goal = itemView.findViewById(R.id.textGroupGoal);
-            frequency = itemView.findViewById(R.id.textGroupFrequency);
+            groupName = itemView.findViewById(R.id.textGroupName);
+            groupTitle = itemView.findViewById(R.id.textGroupTitle);
+            groupGoal = itemView.findViewById(R.id.textGroupGoal);
+            groupFrequency = itemView.findViewById(R.id.textGroupFrequency);
         }
+    }
+
+    public interface OnSavingsCircleClickListener {
+        void onSavingsCircleClick(SavingsCircle savingsCircle);
     }
 }
-
-
 

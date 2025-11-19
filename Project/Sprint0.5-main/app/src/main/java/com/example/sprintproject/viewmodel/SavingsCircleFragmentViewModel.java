@@ -8,11 +8,9 @@ import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.SavingsCircle;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -72,8 +70,13 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .userSavingsCirclePointers(currentUidCached)
-                .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
+                .addSnapshotListener((QuerySnapshot qs, com.google.firebase.firestore.FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
+                        cache.clear();
+                        savingsCircleLiveData.postValue(new ArrayList<>());
+                        return;
+                    }
+                    if (qs.isEmpty()) {
                         cache.clear();
                         savingsCircleLiveData.postValue(new ArrayList<>());
                         return;
@@ -91,13 +94,16 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                         savingsCircleLiveData.postValue(new ArrayList<>());
                         return;
                     }
+
                     final int expectedFinal = tmp; // effectively final for lambdas
                     final int[] seen = {0};
                     final List<SavingsCircle> acc = new ArrayList<>();
 
                     for (DocumentSnapshot pointerDoc : docs) {
                         String circleId = pointerDoc.getString("circleId");
-                        if (circleId == null) continue;
+                        if (circleId == null) {
+                            continue;
+                        }
 
                         FirestoreManager.getInstance()
                                 .savingsCirclesGlobalReference()
@@ -249,23 +255,5 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         cal.set(Calendar.MILLISECOND, 0);
         return cal.getTimeInMillis();
     }
-
-    //    public void deleteCircle(String circleId) {
-    //        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-    //
-    //        FirestoreManager.getInstance()
-    //                .deleteSavingsCircle(circleId, currentUid)
-    //                .addOnSuccessListener(aVoid ->
-    //                        System.out.println("Circle deleted successfully"))
-    //                .addOnFailureListener(e ->
-    //                        System.err.println("Delete failed: " + e.getMessage()));
-    //    }
 }
-
-
-
-
-
-
-
 
