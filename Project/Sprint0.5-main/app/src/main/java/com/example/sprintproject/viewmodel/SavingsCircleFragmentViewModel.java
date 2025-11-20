@@ -203,25 +203,22 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         boolean ended = (personalEndTs > 0) && (appTs >= personalEndTs);
         circle.setCompleted(ended);
 
-        // 3) personal target
-        int memberCount = 1;
-        if (circle.getMemberIds() != null && !circle.getMemberIds().isEmpty()) {
-            memberCount = circle.getMemberIds().size();
-        } else if (circle.getContributions() != null && !circle.getContributions().isEmpty()) {
-            memberCount = circle.getContributions().size();
+        // 3) GROUP goal logic: sum all contributions
+        double totalContributed = 0.0;
+        if (circle.getContributions() != null) {
+            for (Double v : circle.getContributions().values()) {
+                if (v != null) {
+                    totalContributed += v;
+                }
+            }
         }
-        double totalGoal = circle.getGoal();
-        double personalTarget = (memberCount > 0) ? (totalGoal / memberCount) : totalGoal;
 
-        // 4) my contribution
-        Double myContribution = (circle.getContributions() != null)
-                ? circle.getContributions().get(currentUid)
-                : null;
-        boolean personalMet = (myContribution != null && myContribution >= personalTarget);
+        boolean groupMet = totalContributed >= circle.getGoal();
 
-        // Only mark met when the 7-day window has ended
-        circle.setGoalMet(ended && personalMet);
+        // 4) Only mark goalMet when the 7-day window has ended AND group goal is met
+        circle.setGoalMet(ended && groupMet);
     }
+
 
     /** yyyy-MM-dd -> millis for (date + 7 days), DST-safe. */
     private long add7Days(String ymd) {
