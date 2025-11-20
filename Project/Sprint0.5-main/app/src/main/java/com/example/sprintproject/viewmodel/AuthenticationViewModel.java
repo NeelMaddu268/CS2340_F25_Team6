@@ -115,7 +115,6 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
     public void createUserInFirestore(FirebaseUser firebaseUser) {
-        FirebaseFirestore databaseReference = FirebaseFirestore.getInstance();
         String uid = firebaseUser.getUid();
 
         Map<String, Object> userData = new HashMap<>();
