@@ -153,8 +153,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
                             continue;
                         }
 
-                        b.setOverBudget(b.getMoneyRemaining() < 0);
-
                         if (isBudgetExpired(b, today)) {
                             applyRollover(b, today);
                         }
@@ -224,8 +222,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
                         if (expired) {
                             applyRollover(b, selected.getTime());
                         }
-
-                        b.setOverBudget(b.getMoneyRemaining() < 0);
 
                         list.add(b);
                     }
