@@ -20,7 +20,7 @@ public class SavingsCircle {
     private String notes;
 
     public SavingsCircle() {
-
+        // Remains empty for firestore
     }
 
     public String getId() {
@@ -142,8 +142,8 @@ public class SavingsCircle {
     }
 
 
-    private transient boolean completed;
-    private transient boolean goalMet;
+    private boolean completed;
+    private boolean goalMet;
 
     public boolean isCompleted() {
         return completed;
