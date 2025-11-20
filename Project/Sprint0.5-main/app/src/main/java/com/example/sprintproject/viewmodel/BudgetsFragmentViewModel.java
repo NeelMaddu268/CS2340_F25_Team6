@@ -114,9 +114,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 end.add(Calendar.MONTH, 1);
             }
 
-            boolean expired = compareDate.after(end.getTime());
-            return expired;
-
+            return compareDate.after(end.getTime());
         } catch (Exception e) {
             return false;
         }
@@ -476,15 +474,16 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 "MMMM d, yyyy"
         );
         for (String f : fullFormats) {
+            SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
+            sdf.setLenient(false);
+            Date d = null;
             try {
-                SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
-                sdf.setLenient(false);
-                Date d = sdf.parse(t);
-                if (d != null) {
-                    return fromDate(d);
-                }
-            } catch (ParseException ignored) {
-
+                d = sdf.parse(t);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+            if (d != null) {
+                return fromDate(d);
             }
         }
 

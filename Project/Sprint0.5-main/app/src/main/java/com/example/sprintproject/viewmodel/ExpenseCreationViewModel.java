@@ -27,7 +27,6 @@ import java.util.Map;
 public class ExpenseCreationViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<String>> categoriesLiveData =
             new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<String>> circleNamesLive =

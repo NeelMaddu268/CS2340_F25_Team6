@@ -49,7 +49,10 @@ public class PieChartController {
         List<PieEntry> entries = new ArrayList<>();
         for (Map.Entry<String, Double> e : totals.entrySet()) {
             double v = (e.getValue() == null) ? 0.0 : e.getValue();
-            float pct = (float) ((v / sum) * 100.0f);
+            float pct = 0;
+            if (sum != 0) {
+                 pct = (float) ((v / sum) * 100.0f);
+            }
             if (pct > 0) {
                 entries.add(new PieEntry(pct, cap(e.getKey())));
             }
