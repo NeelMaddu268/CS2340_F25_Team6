@@ -55,8 +55,7 @@ public class AppDate {
             cal.setTime(date);
             cal.add(Calendar.DAY_OF_MONTH, daysToAdd);
             cal.add(Calendar.MONTH, monthsToAdd);
-            String newDateString = sdf.format(cal.getTime());
-            return newDateString;
+            return sdf.format(cal.getTime());
         } catch (Exception e) {
             e.printStackTrace();
             return null;

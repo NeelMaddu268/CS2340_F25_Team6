@@ -44,32 +44,35 @@ public class FirestoreManager {
         return db;
     }
 
+    private static final String savingsCirclesString = "savingsCircles";
+    private static final String usersString = "users";
+
     public CollectionReference savingsCircleReference(String uid) {
-        return db.collection("users").document(uid).collection("savingsCircles");
+        return db.collection(usersString).document(uid).collection(savingsCirclesString);
     }
 
     public CollectionReference budgetsReference(String uid) {
-        return db.collection("users").document(uid).collection("budgets");
+        return db.collection(usersString).document(uid).collection("budgets");
     }
 
     public CollectionReference expensesReference(String uid) {
-        return db.collection("users").document(uid).collection("expenses");
+        return db.collection(usersString).document(uid).collection("expenses");
     }
 
     public CollectionReference categoriesReference(String uid) {
-        return db.collection("users").document(uid).collection("categories");
+        return db.collection(usersString).document(uid).collection("categories");
     }
 
     public CollectionReference savingsCirclesGlobalReference() {
-        return db.collection("savingsCircles");
+        return db.collection(savingsCirclesString);
     }
 
     public DocumentReference savingsCircleDoc(String circleId) {
-        return db.collection("savingsCircles").document(circleId);
+        return db.collection(savingsCirclesString).document(circleId);
     }
 
     public CollectionReference userSavingsCirclePointers(String uid) {
-        return db.collection("users").document(uid).collection("savingsCirclePointers");
+        return db.collection(usersString).document(uid).collection("savingsCirclePointers");
     }
 
     public CollectionReference invitationsReference() {
@@ -77,7 +80,7 @@ public class FirestoreManager {
     }
 
     public void addUser(String uid, Map<String, Object> userData) {
-        db.collection("users").document(uid).set(userData);
+        db.collection(usersString).document(uid).set(userData);
     }
 
     public Query invitationsForUser(String uid) {
@@ -102,8 +105,7 @@ public class FirestoreManager {
     }
 
     public Task<Void> deleteSavingsCircle(String circleId, String requesterUid) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
+        DocumentReference circleRef = db.collection(savingsCirclesString).document(circleId);
 
         TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
 
@@ -135,7 +137,7 @@ public class FirestoreManager {
 
             for (String uid : allUids) {
                 fetches.add(
-                        db.collection("users")
+                        db.collection(usersString)
                                 .document(uid)
                                 .collection("savingsCirclePointers")
                                 .whereEqualTo("circleId", circleId)

@@ -123,7 +123,6 @@ public class BudgetCreationViewModel extends ViewModel {
                     budget.setSpentToDate(spentToDate);
                     budget.setMoneyRemaining(budgetData.getAmount() - spentToDate);
                     budget.setCompleted(false);
-                    budget.setOverBudget(false);
                     budget.setHasPreviousCycle(false);
                     budget.setPreviousCycleOverBudget(false);
                     budget.setPreviousCycleEndTimestamp(0L);
