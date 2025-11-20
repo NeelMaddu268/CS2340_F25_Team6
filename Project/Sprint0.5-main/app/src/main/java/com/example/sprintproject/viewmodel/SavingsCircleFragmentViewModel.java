@@ -70,7 +70,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .userSavingsCirclePointers(currentUidCached)
-                .addSnapshotListener((QuerySnapshot qs, com.google.firebase.firestore.FirebaseFirestoreException e) -> {
+                .addSnapshotListener((QuerySnapshot qs,
+                                      com.google.firebase.firestore
+                                              .FirebaseFirestoreException e) -> {
                     if (e != null || qs == null) {
                         cache.clear();
                         savingsCircleLiveData.postValue(new ArrayList<>());
@@ -87,7 +89,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                     // Count valid pointers
                     int tmp = 0;
                     for (DocumentSnapshot d : docs) {
-                        if (d.getString("circleId") != null) tmp++;
+                        if (d.getString("circleId") != null) {
+                            tmp++;
+                        }
                     }
                     if (tmp == 0) {
                         cache.clear();
@@ -114,26 +118,31 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                                     if (circle != null) {
                                         circle.setId(circleSnap.getId());
 
-                                        // Normalize contributions if snapshot stored generic numbers
-                                        Map<String, Double> contrib = circle.getContributions();
+                                        Map<String, Double> contrib =
+                                                circle.getContributions();
                                         if (contrib == null || contrib.isEmpty()) {
                                             @SuppressWarnings("unchecked")
                                             Map<String, Object> raw =
-                                                    (Map<String, Object>) circleSnap.get("contributions");
+                                                    (Map<String, Object>) circleSnap
+                                                            .get("contributions");
                                             Map<String, Double> coerced = new HashMap<>();
                                             if (raw != null) {
-                                                for (Map.Entry<String, Object> en : raw.entrySet()) {
+                                                for (Map.Entry<String, Object> en
+                                                        : raw.entrySet()) {
                                                     Object v = en.getValue();
                                                     if (v instanceof Number) {
-                                                        coerced.put(en.getKey(), ((Number) v).doubleValue());
+                                                        coerced.put(en.getKey(),
+                                                                ((Number) v).doubleValue());
                                                     }
                                                 }
                                             }
                                             circle.setContributions(coerced);
                                         }
 
-                                        // Evaluate per-user goal status against AppDate (join + 7 days rule)
-                                        evaluatePersonalAgainstAppDate(circle, currentUidCached, currentAppDate);
+                                        // Evaluate per-user goal status
+                                        // against AppDate (join + 7 days rule)
+                                        evaluatePersonalAgainstAppDate(circle,
+                                                currentUidCached, currentAppDate);
 
                                         acc.add(circle);
                                     }
@@ -170,7 +179,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         String uid = currentUidCached;
         if (uid == null) {
             FirebaseAuth auth = FirebaseAuth.getInstance();
-            if (auth.getCurrentUser() != null) uid = auth.getCurrentUser().getUid();
+            if (auth.getCurrentUser() != null) {
+                uid = auth.getCurrentUser().getUid();
+            }
         }
         for (SavingsCircle c : cache) {
             evaluatePersonalAgainstAppDate(c, uid, appDate);
@@ -187,13 +198,18 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
      *      completed = ended
      *      goalMet   = ended && (myContribution >= personalTarget)
      */
-    private void evaluatePersonalAgainstAppDate(SavingsCircle circle, String currentUid, AppDate appDate) {
-        if (circle == null || currentUid == null) return;
+    private void evaluatePersonalAgainstAppDate(SavingsCircle circle,
+                                                String currentUid, AppDate appDate) {
+        if (circle == null || currentUid == null) {
+            return;
+        }
 
         // 1) personal end timestamp from datesJoined[currentUid] + 7 days
         String joinedStr = null;
         Map<String, String> joinedMap = circle.getDatesJoined();
-        if (joinedMap != null) joinedStr = joinedMap.get(currentUid);
+        if (joinedMap != null) {
+            joinedStr = joinedMap.get(currentUid);
+        }
 
         long personalEndTs = (joinedStr != null) ? add7Days(joinedStr) : 0L;
 
@@ -222,7 +238,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
     /** yyyy-MM-dd -> millis for (date + 7 days), DST-safe. */
     private long add7Days(String ymd) {
-        if (ymd == null) return 0L;
+        if (ymd == null) {
+            return 0L;
+        }
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             sdf.setLenient(false);
@@ -241,7 +259,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
     /** Convert AppDate (Y,M,D) to millis at local 00:00. */
     private long appDateStartMillis(AppDate a) {
-        if (a == null) return 0L;
+        if (a == null) {
+            return 0L;
+        }
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, a.getYear());
         cal.set(Calendar.MONTH, a.getMonth() - 1);

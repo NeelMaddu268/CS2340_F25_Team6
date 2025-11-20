@@ -14,7 +14,6 @@ public class PlaceholderFeature {
 
     // Example future hook (to expand later)
     public static void futureIntegrationPoint() {
-        // TODO: Implement future analytics / UI enhancements here
         System.out.println(TAG + ": Future integration point reached.");
     }
 

@@ -230,15 +230,15 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                                         .addOnFailureListener(e ->
                                                 statusMessage.postValue("Error finding user: "
                                                         + e.getMessage())
-                                        );
+                                    );
                             })
                             .addOnFailureListener(e ->
                                     statusMessage.postValue("Error checking pending invites: "
                                             + e.getMessage())
-                            );
+                        );
                 })
                 .addOnFailureListener(e ->
                         statusMessage.postValue("Error loading circle: " + e.getMessage())
-                );
+            );
     }
 }
