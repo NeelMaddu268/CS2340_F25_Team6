@@ -20,8 +20,6 @@ import java.util.ArrayList;
 public class InvitationsFragment extends Fragment {
 
     private InvitationsViewModel invitationsViewModel;
-    private InvitationsAdapter adapter;
-    private TextView noInvitesText;
 
     public InvitationsFragment() {
         super(R.layout.fragment_invitations);
@@ -29,6 +27,8 @@ public class InvitationsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        InvitationsAdapter adapter;
+        TextView noInvitesText;
         super.onViewCreated(view, savedInstanceState);
 
         RecyclerView recyclerView = view.findViewById(R.id.invitationsRecyclerView);

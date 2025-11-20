@@ -38,13 +38,6 @@ import java.util.Locale;
 
 public class ExpensesFragment extends Fragment {
 
-    private ExpensesFragmentViewModel expensesFragmentViewModel;
-    private DateViewModel dateVM;                                    // <-- ADD
-    private RecyclerView recyclerView;
-    private ExpenseAdapter adapter;
-    private BudgetsFragmentViewModel budgetsFragmentViewModel;
-
-
     public ExpensesFragment() {
         super(R.layout.fragment_expenses);
     }
@@ -62,6 +55,13 @@ public class ExpensesFragment extends Fragment {
                             systemBars.top, systemBars.right, systemBars.bottom);
                     return insets;
                 });
+
+        ExpensesFragmentViewModel expensesFragmentViewModel;
+        DateViewModel dateVM;
+        RecyclerView recyclerView;
+        ExpenseAdapter adapter;
+        BudgetsFragmentViewModel budgetsFragmentViewModel;
+
 
         recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -146,6 +146,7 @@ public class ExpensesFragment extends Fragment {
                         }
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
+                            //when nothing is selected
                         }
                     });
 
@@ -157,12 +158,12 @@ public class ExpensesFragment extends Fragment {
                         List<String> allCategories = new ArrayList<>();
                         allCategories.add("Choose a category");
                         allCategories.addAll(categories);
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        ArrayAdapter<String> miniAdapter = new ArrayAdapter<>(
                                 requireContext(),
                                 android.R.layout.simple_spinner_dropdown_item,
                                 allCategories
                         );
-                        categorySpinner.setAdapter(adapter);
+                        categorySpinner.setAdapter(miniAdapter);
                     });
 
             expenseCreationViewModel.getCircleNames().observe(
@@ -180,12 +181,12 @@ public class ExpensesFragment extends Fragment {
                             List<String> allCircles = new ArrayList<>();
                             allCircles.add("Select a Circle");
                             allCircles.addAll(circles);
-                            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            ArrayAdapter<String> miniAdapter = new ArrayAdapter<>(
                                     requireContext(),
                                     android.R.layout.simple_spinner_dropdown_item,
                                     allCircles
                             );
-                            chooseCircleSpinner.setAdapter(adapter);
+                            chooseCircleSpinner.setAdapter(miniAdapter);
                         }
                     }
             );
@@ -252,7 +253,7 @@ public class ExpensesFragment extends Fragment {
                             notes,
                             contributesToGroupSavings,
                             circleId,
-                            () -> budgetsFragmentViewModel.loadBudgets()
+                            budgetsFragmentViewModel::loadBudgets
                     );
 
                     dialog.dismiss();

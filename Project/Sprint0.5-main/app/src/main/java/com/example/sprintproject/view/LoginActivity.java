@@ -15,7 +15,6 @@ import com.example.sprintproject.viewmodel.AuthenticationViewModel;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private AuthenticationViewModel authenticationViewModel;
 
     private String email;
     private String password;
@@ -25,6 +24,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        AuthenticationViewModel authenticationViewModel;
 
         Log.d("LoginActivity", "onCreate called");
 
@@ -53,7 +54,6 @@ public class LoginActivity extends AppCompatActivity {
                 error.setVisibility(View.VISIBLE);
             } else {
                 error.setVisibility(View.GONE);
-                //startActivity(new Intent(LoginActivity.this, AppActivity.class));
                 Intent intent = new Intent(LoginActivity.this, AppActivity.class);
                 startActivity(intent);
                 finish();

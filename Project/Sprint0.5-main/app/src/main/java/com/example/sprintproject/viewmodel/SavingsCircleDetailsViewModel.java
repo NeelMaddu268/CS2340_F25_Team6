@@ -90,6 +90,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         });
     }
 
+    @Override
     protected void onCleared() {
         super.onCleared();
         if (listener != null) {
@@ -107,7 +108,6 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
 
         final String fromUid = auth.getCurrentUser().getUid();
         final String fromEmail = auth.getCurrentUser().getEmail();
-        final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         if (inviteeEmail == null || inviteeEmail.trim().isEmpty()) {
             statusMessage.postValue("Enter a valid email.");
@@ -212,20 +212,15 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                                             FirestoreManager.getInstance()
                                                     .invitationsReference()
                                                     .add(invite)
-                                                    .addOnSuccessListener(ref -> {
+                                                    .addOnSuccessListener(ref ->
                                                         statusMessage.postValue(
-                                                                "Invite sent successfully!");
-                                                        System.out.println(
-                                                                "[sendInvite] Invite created: "
-                                                                        + ref.getId());
-                                                    })
-                                                    .addOnFailureListener(e -> {
+                                                                "Invite sent successfully!")
+                                                    )
+                                                    .addOnFailureListener(e ->
                                                         statusMessage.postValue(
                                                                 "Failed to send invite: "
-                                                                        + e.getMessage());
-                                                        System.err.println("[sendInvite] Failed: "
-                                                                + e.getMessage());
-                                                    });
+                                                                        + e.getMessage())
+                                                );
                                         })
                                         .addOnFailureListener(e ->
                                                 statusMessage.postValue("Error finding user: "
