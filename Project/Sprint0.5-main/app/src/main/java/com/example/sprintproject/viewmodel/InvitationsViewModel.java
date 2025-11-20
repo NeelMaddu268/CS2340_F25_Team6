@@ -121,13 +121,13 @@ public class InvitationsViewModel extends ViewModel {
                                                     FieldValue.arrayUnion(doc.getString("toEmail")))
                                             .addOnSuccessListener(aVoid3 ->
                                                     System.out.println("[respondToInvite] "
-                                                           + "datesJoined added successfully")
+                                                            + "datesJoined added successfully")
                                             )
                                             .addOnFailureListener(e ->
                                                     System.err.println("[respondToInvite] Failed "
                                                             + "to add datesJoined: "
                                                             + e.getMessage())
-                                        );
+                                            );
                                     System.out.println("[respondToInvite] User"
                                             + " added to circle successfully");
 
@@ -149,7 +149,7 @@ public class InvitationsViewModel extends ViewModel {
                                 .addOnFailureListener(e ->
                                         System.err.println("[respondToInvite] Failed to"
                                                 + " add user to circle: " + e.getMessage())
-                            );
+                                );
 
                     }).addOnFailureListener(e ->
                             System.err.println("[respondToInvite] Failed to fetch invite doc: "
@@ -159,6 +159,6 @@ public class InvitationsViewModel extends ViewModel {
                 .addOnFailureListener(e ->
                         System.err.println("[respondToInvite] Failed to update invite status: "
                                 + e.getMessage())
-            );
+                );
     }
 }

@@ -132,22 +132,22 @@ public class ExpensesFragment extends Fragment {
 
             groupSavingsContributionSpinner.setOnItemSelectedListener(
                     new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent,
-                                               View view, int position, long id) {
-                        String choice = parent.getItemAtPosition(position).toString();
-                        boolean isYes = choice.equalsIgnoreCase("Yes");
-                        chooseCircle.setVisibility(isYes ? View.VISIBLE : View.GONE);
-                        chooseCircleSpinner.setVisibility(isYes ? View.VISIBLE : View.GONE);
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent,
+                                                   View view, int position, long id) {
+                            String choice = parent.getItemAtPosition(position).toString();
+                            boolean isYes = choice.equalsIgnoreCase("Yes");
+                            chooseCircle.setVisibility(isYes ? View.VISIBLE : View.GONE);
+                            chooseCircleSpinner.setVisibility(isYes ? View.VISIBLE : View.GONE);
 
-                        if (isYes) {
-                            expenseCreationViewModel.loadUserCircles();
+                            if (isYes) {
+                                expenseCreationViewModel.loadUserCircles();
+                            }
                         }
-                    }
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                    }
-                });
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+                        }
+                    });
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
