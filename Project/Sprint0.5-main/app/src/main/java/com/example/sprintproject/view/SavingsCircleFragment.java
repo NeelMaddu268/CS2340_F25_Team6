@@ -132,7 +132,8 @@ public class SavingsCircleFragment extends Fragment {
         // Create new group
         Button addGroup = view.findViewById(R.id.addGroup);
         addGroup.setOnClickListener(v -> {
-            View popupView = getLayoutInflater().inflate(R.layout.popup_savingscircle_creation, null);
+            View popupView = getLayoutInflater()
+                    .inflate(R.layout.popup_savingscircle_creation, null);
             AlertDialog dialog = new AlertDialog.Builder(requireActivity())
                     .setView(popupView)
                     .create();
@@ -163,7 +164,8 @@ public class SavingsCircleFragment extends Fragment {
                 String notes = groupNotes.getText().toString().trim();
 
                 if (!frequency.equals("Weekly") && !frequency.equals("Monthly")) {
-                    Toast.makeText(requireContext(), "Invalid frequency", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Invalid frequency",
+                            Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (name.isEmpty()) {
@@ -192,7 +194,8 @@ public class SavingsCircleFragment extends Fragment {
                 // Your AppDate-aware creation logic (single read, no extra observers)
                 AppDate appDate = dateViewModel.getCurrentDate().getValue();
                 if (appDate == null) {
-                    Toast.makeText(requireContext(), "Date not ready. Try again.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Date not ready. Try again.",
+                            Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -203,11 +206,13 @@ public class SavingsCircleFragment extends Fragment {
                 savingsCircleCreationViewModel.getText()
                         .observe(getViewLifecycleOwner(), message -> {
                             if (message != null && !message.isEmpty()) {
-                                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(requireContext(), message,
+                                        Toast.LENGTH_SHORT).show();
                             }
                         });
 
-                Toast.makeText(requireContext(), "Savings Circle created!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Savings Circle created!",
+                        Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
 

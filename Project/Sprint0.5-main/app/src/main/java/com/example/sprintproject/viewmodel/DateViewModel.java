@@ -103,7 +103,9 @@ public class DateViewModel extends AndroidViewModel {
     }
 
     public void setDate(AppDate date, int day) {
-        if (date == null) return;
+        if (date == null) {
+            return;
+        }
         currentDate.setValue(date);
         currentDay.setValue(day);
         saveDateToFirestore(date, day);
@@ -138,9 +140,13 @@ public class DateViewModel extends AndroidViewModel {
         setDate(next, next.getDay());
     }
 
-    public void nextDay() { nudgeDays(1); }
+    public void nextDay() {
+        nudgeDays(1);
+    }
 
-    public void prevDay() { nudgeDays(-1); }
+    public void prevDay() {
+        nudgeDays(-1);
+    }
 
     /** Reset to real-world today. */
     public void resetToToday() {

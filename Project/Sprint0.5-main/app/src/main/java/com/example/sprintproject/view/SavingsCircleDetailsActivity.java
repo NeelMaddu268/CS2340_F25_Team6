@@ -47,7 +47,13 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     private DateViewModel dateViewModel;
 
     // Intent data
-    private String circleId, creatorId, groupName, groupChallengeTitle, groupFrequency, groupNotes, creationDate;
+    private String circleId;
+    private String creatorId;
+    private String groupName;
+    private String groupChallengeTitle;
+    private String groupFrequency;
+    private String groupNotes;
+    private String creationDate;
     private double groupChallengeGoal;
     private ArrayList<String> groupEmails;
     @SuppressWarnings("unchecked") private HashMap<String, String> datesJoined;
@@ -59,7 +65,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     private Map<String, String> vmMemberUids;    // idx -> uid
 
     // State
-    private String currentUid, currentEmail;
+    private String currentUid;
+    private String currentEmail;
     private AppDate lastAppDate; // NOT device clock
 
     @Override
@@ -129,7 +136,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
 
         String dateJoinedInitial = safeGetJoinedDate(datesJoined, currentUid, currentEmail);
-        groupJoinedTextView.setText(dateJoinedInitial != null ? dateJoinedInitial : "Date not available");
+        groupJoinedTextView.setText(dateJoinedInitial != null
+                ? dateJoinedInitial : "Date not available");
 
         // Initial group end date from creation + frequency
         if ("Weekly".equals(groupFrequency)) {
@@ -170,11 +178,14 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                                     FirestoreManager.getInstance()
                                             .deleteSavingsCircle(circleId, currentUid)
                                             .addOnSuccessListener(aVoid -> {
-                                                Toast.makeText(this, "Circle deleted successfully", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(this, "Circle deleted successfully",
+                                                        Toast.LENGTH_SHORT).show();
                                                 finish();
                                             })
                                             .addOnFailureListener(e ->
-                                                    Toast.makeText(this, "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show())
+                                                    Toast.makeText(this, "Failed to delete: "
+                                                            + e.getMessage(),
+                                                            Toast.LENGTH_SHORT).show())
                             )
                             .setNegativeButton("Cancel", null)
                             .show()
@@ -328,19 +339,28 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     }
 
     private String safeGetJoinedDate(Map<String, String> map, String uid, String email) {
-        if (map == null) return null;
-        if (uid != null && map.containsKey(uid)) return map.get(uid);
-        if (email != null && map.containsKey(email)) return map.get(email);
+        if (map == null) {
+            return null;
+        }
+        if (uid != null && map.containsKey(uid)) {
+            return map.get(uid);
+        }
+        if (email != null && map.containsKey(email)) {
+            return map.get(email);
+        }
         return null;
     }
 
     /** Re-render contributions and the single colored status TEXT using AppDate. */
     private void updateUIWithAppDate(AppDate appDate) {
 
-        if (appDate == null && dateViewModel != null && dateViewModel.getCurrentDate().getValue() != null) {
+        if (appDate == null && dateViewModel != null
+                && dateViewModel.getCurrentDate().getValue() != null) {
             appDate = dateViewModel.getCurrentDate().getValue();
         }
-        if (statusLineTextView == null) return;
+        if (statusLineTextView == null) {
+            return;
+        }
 
         statusLineTextView.setText("Calculating goal status…");
         statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.white));
@@ -373,7 +393,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                 joinedRaw = shown.toString();
             }
         }
-        if (joinedRaw == null) joinedRaw = creationDate;
+        if (joinedRaw == null) {
+            joinedRaw = creationDate;
+        }
 
         long personalEndTs = add7DaysFlexible(joinedRaw);
         long appTs = appDateStartMillis(appDate);
@@ -385,7 +407,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         Double myContribution = null;
         if (vmContributions != null) {
-            if (currentUid != null) myContribution = vmContributions.get(currentUid);
+            if (currentUid != null) {
+                myContribution = vmContributions.get(currentUid);
+            }
             if (myContribution == null && currentEmail != null) {
                 myContribution = vmContributions.get(currentEmail);
             }
@@ -426,7 +450,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     private long add7DaysFlexible(String s) {
         Date joined = parseFlexibleDate(s);
-        if (joined == null) return 0L;
+        if (joined == null) {
+            return 0L;
+        }
         Calendar cal = Calendar.getInstance();
         cal.setTime(joined);
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -438,18 +464,22 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     }
 
     private Date parseFlexibleDate(String s) {
-        if (s == null) return null;
+        if (s == null) {
+            return null;
+        }
         String[] fmts = new String[]{
-                "yyyy-MM-dd", "MMM d, yyyy", "MMM dd, yyyy",
-                "MMMM d, yyyy", "MMMM dd, yyyy",
-                "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy"
+            "yyyy-MM-dd", "MMM d, yyyy", "MMM dd, yyyy",
+            "MMMM d, yyyy", "MMMM dd, yyyy",
+            "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy"
         };
         for (String f : fmts) {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
                 sdf.setLenient(false);
                 Date d = sdf.parse(s.trim());
-                if (d != null) return d;
+                if (d != null) {
+                    return d;
+                }
             } catch (ParseException ignored) {
             }
         }
@@ -457,7 +487,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     }
 
     private long appDateStartMillis(AppDate a) {
-        if (a == null) return 0L;
+        if (a == null) {
+            return 0L;
+        }
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, a.getYear());
         cal.set(Calendar.MONTH, a.getMonth() - 1);
