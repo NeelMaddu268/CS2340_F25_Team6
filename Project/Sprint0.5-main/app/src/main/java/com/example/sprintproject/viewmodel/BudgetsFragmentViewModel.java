@@ -8,17 +8,14 @@ import androidx.lifecycle.ViewModel;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +32,8 @@ public class BudgetsFragmentViewModel extends ViewModel {
     private final MutableLiveData<Double> totalSpentAllTimeLiveData = new MutableLiveData<>(0.0);
 
     private static final String TAG = "BudgetsVM";
+
+    String startDateTimestampString = "startDateTimestamp";
 
     /** Keep exactly one active Firestore listener at a time. */
     private ListenerRegistration activeListener;
@@ -79,9 +78,9 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     }
                     totalSpentAllTimeLiveData.postValue(total);
                 })
-                .addOnFailureListener(e -> {
-                    totalSpentAllTimeLiveData.postValue(0.0);
-                });
+                .addOnFailureListener(e ->
+                    totalSpentAllTimeLiveData.postValue(0.0)
+                );
     }
 
     @Override
@@ -135,7 +134,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .budgetsReference(uid)
-                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                .orderBy(startDateTimestampString, Query.Direction.DESCENDING)
                 .addSnapshotListener((qs, e) -> {
                     if (e != null || qs == null) {
                         budgetsLiveData.postValue(new ArrayList<>());
@@ -202,7 +201,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .budgetsReference(uid)
-                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                .orderBy(startDateTimestampString, Query.Direction.DESCENDING)
                 .addSnapshotListener((qs, e) -> {
                     if (e != null || qs == null) {
                         budgetsLiveData.postValue(new ArrayList<>());
@@ -354,7 +353,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 .document(budget.getId())
                 .update(
                         "startDate", budget.getStartDate(),
-                        "startDateTimestamp", budget.getStartDateTimestamp(),
+                        startDateTimestampString, budget.getStartDateTimestamp(),
                         "spentToDate", budget.getSpentToDate(),
                         "moneyRemaining", budget.getMoneyRemaining(),
                         "hasPreviousCycle", budget.isHasPreviousCycle(),
@@ -368,7 +367,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
     }
 
     private Budget toBudgetWithId(@NonNull DocumentSnapshot doc) {
-        if (doc.getId() == null || doc.getId().trim().isEmpty()) {
+        if (doc.getId().trim().isEmpty()) {
             return null;
         }
         Budget b = doc.toObject(Budget.class);
@@ -377,174 +376,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
         }
         b.setId(doc.getId());
         return b;
-    }
-
-    /**
-     * Determines whether a budget start date is on or before the selected application date.
-     *
-     * @param start    The start date of the budget, represented as a YMD object.
-     * @param selected The selected application date to compare against.
-     * @return True if the budget starts on or before the selected date; false otherwise.
-     */
-    private boolean startedOnOrBefore(YMD start, AppDate selected) {
-        Calendar sel = Calendar.getInstance();
-        sel.set(selected.getYear(), selected.getMonth() - 1, selected.getDay(), 0, 0, 0);
-        sel.set(Calendar.MILLISECOND, 0);
-
-        Calendar st = Calendar.getInstance();
-        st.set(start.year, start.month - 1, start.day, 0, 0, 0);
-        st.set(Calendar.MILLISECOND, 0);
-
-        return !st.after(sel);
-    }
-
-    /**
-     * Extracts a year, month, and day from a Firestore field value or fallback string.
-     *
-     * @param rawStartDate The Firestore field, which may be a Timestamp, Date, Long, or String.
-     * @param fallbackStr  A backup string representation to parse
-     *                     if the raw value is null or invalid.
-     * @return A YMD object containing the extracted year, month, and day, or null if parsing fails.
-     */
-    private YMD extractYMD(Object rawStartDate, String fallbackStr) {
-        // Native types
-        if (rawStartDate instanceof Timestamp) {
-            return fromDate(((Timestamp) rawStartDate).toDate());
-        }
-        if (rawStartDate instanceof Date) {
-            return fromDate((Date) rawStartDate);
-        }
-        if (rawStartDate instanceof Long) {
-            return fromDate(new Date((Long) rawStartDate));
-        }
-
-        // String in the doc field
-        if (rawStartDate instanceof String) {
-            YMD ymd = parseYMDFromString((String) rawStartDate);
-            if (ymd != null) {
-                return ymd;
-            }
-        }
-        // Fallback to model field
-        if (fallbackStr != null) {
-            return parseYMDFromString(fallbackStr);
-        }
-        return null;
-    }
-
-    private YMD fromDate(Date date) {
-        Calendar c = Calendar.getInstance();
-        c.setTime(date);
-        return new YMD(
-                c.get(Calendar.YEAR),
-                c.get(Calendar.MONTH) + 1,
-                c.get(Calendar.DAY_OF_MONTH)
-        );
-    }
-
-    /**
-     * Attempts to parse a date string into a YMD object.
-     * Supports full and month-only formats.
-     *
-     * @param s The date string to parse.
-     * @return A YMD object if parsing succeeds, or null otherwise.
-     */
-    private YMD parseYMDFromString(String s) {
-        if (s == null) {
-            return null;
-        }
-        String t = s.trim();
-        if (t.isEmpty()) {
-            return null;
-        }
-
-        // Full date formats (contain a day)
-        List<String> fullFormats = Arrays.asList(
-                "yyyy-MM-dd",
-                "MM/dd/yyyy",
-                "yyyy/MM/dd",
-                "dd-MM-yyyy",
-                "MMM dd, yyyy",
-                "MMM d, yyyy",
-                "MMMM dd, yyyy",
-                "MMMM d, yyyy"
-        );
-        for (String f : fullFormats) {
-            SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
-            sdf.setLenient(false);
-            Date d = null;
-            try {
-                d = sdf.parse(t);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-            if (d != null) {
-                return fromDate(d);
-            }
-        }
-
-        // Month-only formats (default day = 1)
-        List<String> monthOnly = Arrays.asList(
-                "yyyy-MM",
-                "yyyy/MM",
-                "MM-yyyy",
-                "MM/yyyy",
-                "MMM yyyy",
-                "MMMM yyyy"
-        );
-        for (String f : monthOnly) {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
-                sdf.setLenient(false);
-                Date d = sdf.parse(t);
-                if (d != null) {
-                    Calendar c = Calendar.getInstance();
-                    c.setTime(d);
-                    return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
-                }
-            } catch (ParseException ignored) {
-
-            }
-        }
-
-        // Loose numeric fallbacks like "2023-05" or "2023/05"
-        String cleaned = t.replace('/', '-');
-        String[] parts = cleaned.split("-");
-        if (parts.length >= 2) {
-            try {
-                int y = Integer.parseInt(parts[0]);
-                int m = Integer.parseInt(parts[1]);
-                if (m >= 1 && m <= 12) {
-                    return new YMD(y, m, 1);
-                }
-            } catch (NumberFormatException ignored) {
-
-            }
-        }
-        return null;
-    }
-
-    private static final class YMD {
-        private final int year;
-        private final int month;
-        private final int day;
-        YMD(int year, int month, int day) {
-            this.year = year;
-            this.month = month;
-            this.day = day;
-        }
-
-        public int getYear() {
-            return year;
-        }
-
-        public int getMonth() {
-            return month;
-        }
-
-        public int getDay() {
-            return day;
-        }
     }
 }
 

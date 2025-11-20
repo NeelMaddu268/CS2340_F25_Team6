@@ -31,14 +31,20 @@ public class BudgetDetailsActivity extends AppCompatActivity {
     private Button budgetComputeButton;
     private Button budgetSaveButton;
 
-    private BudgetsFragmentViewModel viewModel;
-    private BudgetDetailsViewModel budgetDetailsViewModel;
     private Budget currentBudget;
 
+    private static final String overBudgetString = "Over budget by: $";
+    private static final String surplusString = "Surplus: $";
+
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        BudgetDetailsViewModel budgetDetailsViewModel;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_details);
 
+        BudgetsFragmentViewModel viewModel;
         budgetDetailsViewModel = new ViewModelProvider(this).get(BudgetDetailsViewModel.class);
 
         // Get the budget details from the intent
@@ -89,9 +95,9 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                             double surplus = total - spent;
                             if (surplus >= 0) {
                                 budgetSurplusText.setText(
-                                        "Surplus: $" + String.format("%.2f", surplus));
+                                        surplusString + String.format("%.2f", surplus));
                             } else {
-                                budgetSurplusText.setText("Over budget by: $"
+                                budgetSurplusText.setText(overBudgetString
                                         + String.format("%.2f", Math.abs(surplus)));
                             }
                         }
@@ -121,12 +127,9 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                         total,
                         spent,
                         remaining,
-                        () -> {
-                            Toast.makeText(this, "Budget saved!", Toast.LENGTH_SHORT).show();
-                        },
-                        () -> {
-                            Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show();
-                        }
+                        () -> Toast.makeText(this, "Budget saved!", Toast.LENGTH_SHORT).show(),
+                        () -> Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show()
+
                 );
             } catch (NumberFormatException e) {
                 Toast.makeText(this, "Invalid numbers were entered.", Toast.LENGTH_SHORT).show();
@@ -149,10 +152,10 @@ public class BudgetDetailsActivity extends AppCompatActivity {
             double budgetSurplus = total - spent;
             if (budgetSurplus >= 0) {
                 budgetSurplusText.setText(
-                        "Surplus: $" + String.format("%.2f", budgetSurplus));
+                        surplusString + String.format("%.2f", budgetSurplus));
             } else {
                 budgetSurplusText.setText(
-                        "Over budget by: $" + String.format("%.2f", Math.abs(budgetSurplus)));
+                        overBudgetString + String.format("%.2f", Math.abs(budgetSurplus)));
             }
         }
     }
@@ -214,9 +217,9 @@ public class BudgetDetailsActivity extends AppCompatActivity {
 
             double surplus = total - spent;
             if (surplus >= 0) {
-                budgetSurplusText.setText("Surplus: $" + String.format("%.2f", surplus));
+                budgetSurplusText.setText(surplusString + String.format("%.2f", surplus));
             } else {
-                budgetSurplusText.setText("Over budget by: $"
+                budgetSurplusText.setText(overBudgetString
                         + String.format("%.2f", Math.abs(surplus)));
             }
         });

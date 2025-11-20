@@ -21,13 +21,8 @@ import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.example.sprintproject.viewmodel.SavingsCircleDetailsViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,9 +31,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     // UI
     private TextView groupContributionsTextView;
     private TextView groupEmailTextView;
-    private TextView groupEndingTextView;
-    private TextView groupJoinedTextView;
-    private TextView groupChallengeGoalTextView;
     // Single-line status under Contributions
     private TextView statusLineTextView;
 
@@ -48,14 +40,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     // Intent data
     private String circleId;
-    private String creatorId;
     private String groupName;
-    private String groupChallengeTitle;
-    private String groupFrequency;
-    private String groupNotes;
-    private String creationDate;
     private double groupChallengeGoal;
-    private ArrayList<String> groupEmails;
     @SuppressWarnings("unchecked") private HashMap<String, String> datesJoined;
     @SuppressWarnings("unchecked") private HashMap<String, Double> contributions;
 
@@ -73,6 +59,20 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_savingscircle_details);
+
+        String groupChallengeTitle;
+        String groupFrequency;
+        String groupNotes;
+        String creationDate;
+        String creatorId;
+        TextView groupEndingTextView;
+        TextView groupJoinedTextView;
+        TextView groupChallengeGoalTextView;
+        ArrayList<String> groupEmails;
+
+        String weeklyText = "Weekly";
+
+
 
         // --------- ViewModels ----------
         detailsViewModel = new ViewModelProvider(this).get(SavingsCircleDetailsViewModel.class);
@@ -140,7 +140,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                 ? dateJoinedInitial : "Date not available");
 
         // Initial group end date from creation + frequency
-        if ("Weekly".equals(groupFrequency)) {
+        if (weeklyText.equals(groupFrequency)) {
             groupEndingTextView.setText(AppDate.addDays(creationDate, 7, 0));
         } else if ("Monthly".equals(groupFrequency)) {
             groupEndingTextView.setText(AppDate.addDays(creationDate, 0, 1));
@@ -211,7 +211,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                 }
 
                 Map<String, String> dates = lastDatesRef.get();
-                if (dates == null || circleCreatorId == null) {
+                if (dates == null) {
                     return;
                 }
 
@@ -225,7 +225,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                     return;
                 }
 
-                String creatorEndIso = "Weekly".equals(freq)
+                String creatorEndIso = weeklyText.equals(freq)
                         ? AppDate.addDays(creatorJoinIso, 7, 0)
                         : AppDate.addDays(creatorJoinIso, 0, 1);
 
@@ -264,7 +264,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             vmContributions = detailsViewModel.getContributions().getValue();
             vmMembers = detailsViewModel.getMembers().getValue();
             vmMemberUids = detailsViewModel.getMemberUids().getValue();
-            updateUIWithAppDate(lastAppDate);
+            updateUIWithAppDate();
         };
         detailsViewModel.getContributions().observe(this, dataObserver);
         detailsViewModel.getMembers().observe(this, dataObserver);
@@ -303,7 +303,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         dateViewModel.getCurrentDate().observe(this, appDate -> {
             lastAppDate = appDate;
-            updateUIWithAppDate(appDate);
+            updateUIWithAppDate();
         });
 
         // Start listening after observers are wired
@@ -312,22 +312,14 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         if (lastAppDate == null) {
             lastAppDate = dateViewModel.getCurrentDate().getValue();
         }
-        updateUIWithAppDate(lastAppDate);
-        groupContributionsTextView.post(() -> {
-            AppDate a = (lastAppDate != null)
-                    ? lastAppDate
-                    : dateViewModel.getCurrentDate().getValue();
-            updateUIWithAppDate(a);
-        });
+        updateUIWithAppDate();
+        groupContributionsTextView.post(this::updateUIWithAppDate);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        AppDate a = (lastAppDate != null)
-                ? lastAppDate
-                : dateViewModel.getCurrentDate().getValue();
-        updateUIWithAppDate(a);
+        updateUIWithAppDate();
     }
 
     private SavingsCircleDetailsViewModel getDetailsVM() {
@@ -352,12 +344,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     }
 
     /** Re-render contributions and the single colored status TEXT using AppDate. */
-    private void updateUIWithAppDate(AppDate appDate) {
+    private void updateUIWithAppDate() {
 
-        if (appDate == null && dateViewModel != null
-                && dateViewModel.getCurrentDate().getValue() != null) {
-            appDate = dateViewModel.getCurrentDate().getValue();
-        }
         if (statusLineTextView == null) {
             return;
         }
@@ -385,22 +373,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             }
         }
 
-        // 2) Determine my 7-day window end based on join date
-        String joinedRaw = safeGetJoinedDate(datesJoined, currentUid, currentEmail);
-        if (joinedRaw == null) {
-            CharSequence shown = groupJoinedTextView != null ? groupJoinedTextView.getText() : null;
-            if (shown != null && !"Date not available".contentEquals(shown)) {
-                joinedRaw = shown.toString();
-            }
-        }
-        if (joinedRaw == null) {
-            joinedRaw = creationDate;
-        }
-
-        long personalEndTs = add7DaysFlexible(joinedRaw);
-        long appTs = appDateStartMillis(appDate);
-        boolean windowEnded = (personalEndTs > 0 && appTs >= personalEndTs);
-
         // 3) Compute my target and contribution
         int people = (vmMembers != null && !vmMembers.isEmpty()) ? vmMembers.size() : 1;
         double personalTarget = groupChallengeGoal / Math.max(people, 1);
@@ -419,12 +391,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         // 4) Build the TEXT and color for statusLineTextView
         String text;
         int color;
-
-        if (!windowEnded) {
-            text = String.format(Locale.US,
-                    "You: $%.2f • Target by day 7: $%.2f", myAmt, personalTarget);
-            color = ContextCompat.getColor(this, android.R.color.white);
-        }
 
         if (myAmt >= personalTarget) {
             text = "Goal met";
@@ -446,59 +412,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         } catch (Exception e) {
             return fallback;
         }
-    }
-
-    private long add7DaysFlexible(String s) {
-        Date joined = parseFlexibleDate(s);
-        if (joined == null) {
-            return 0L;
-        }
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(joined);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        cal.add(Calendar.DAY_OF_YEAR, 7);
-        return cal.getTimeInMillis();
-    }
-
-    private Date parseFlexibleDate(String s) {
-        if (s == null) {
-            return null;
-        }
-        String[] fmts = new String[]{
-            "yyyy-MM-dd", "MMM d, yyyy", "MMM dd, yyyy",
-            "MMMM d, yyyy", "MMMM dd, yyyy",
-            "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy"
-        };
-        for (String f : fmts) {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
-                sdf.setLenient(false);
-                Date d = sdf.parse(s.trim());
-                if (d != null) {
-                    return d;
-                }
-            } catch (ParseException ignored) {
-            }
-        }
-        return null;
-    }
-
-    private long appDateStartMillis(AppDate a) {
-        if (a == null) {
-            return 0L;
-        }
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, a.getYear());
-        cal.set(Calendar.MONTH, a.getMonth() - 1);
-        cal.set(Calendar.DAY_OF_MONTH, a.getDay());
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTimeInMillis();
     }
 
     private void setInviteControls(boolean open, EditText input, Button button) {

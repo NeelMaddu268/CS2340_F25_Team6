@@ -13,13 +13,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 
 public class AppActivity extends AppCompatActivity {
-
-    private ActivityAppBinding binding;
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ActivityAppBinding binding;
+
         super.onCreate(savedInstanceState);
         binding = ActivityAppBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

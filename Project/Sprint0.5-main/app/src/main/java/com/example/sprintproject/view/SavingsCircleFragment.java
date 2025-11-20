@@ -32,10 +32,7 @@ import java.util.ArrayList;
 
 public class SavingsCircleFragment extends Fragment {
 
-    private RecyclerView recyclerView;
-    private SavingsCircleAdapter adapter;
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
-    private SavingsCircleCreationViewModel savingsCircleCreationViewModel;
     private DateViewModel dateViewModel;
 
     public SavingsCircleFragment() {
@@ -59,7 +56,11 @@ public class SavingsCircleFragment extends Fragment {
                     return insets;
                 });
 
-        recyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
+        SavingsCircleCreationViewModel savingsCircleCreationViewModel;
+
+        RecyclerView recyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
+        SavingsCircleAdapter adapter;
+
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         // ViewModels
@@ -115,11 +116,9 @@ public class SavingsCircleFragment extends Fragment {
         );
 
         // Recompute row flags/colors whenever AppDate changes
-        dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
-            savingsCircleFragmentViewModel.setAppDate(appDate);
-            // If you also want to refetch from Firestore on date change, use:
-            // savingsCircleFragmentViewModel.loadSavingsCircleFor(appDate);
-        });
+        dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate ->
+            savingsCircleFragmentViewModel.setAppDate(appDate)
+        );
 
         // Initial load using current AppDate (if present)
         AppDate initial = dateViewModel.getCurrentDate().getValue();
