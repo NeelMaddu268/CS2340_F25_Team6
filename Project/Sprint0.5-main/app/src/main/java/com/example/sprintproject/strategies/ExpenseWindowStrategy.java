@@ -11,7 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public abstract class ExpenseWindowStrategy {
-    String amtString = "amount";
+    private static final String AMT_STRING = "amount";
 
     protected Query windowQuery(FirestoreManager fm, String uid) {
         return fm.expensesReference(uid);
@@ -23,7 +23,7 @@ public abstract class ExpenseWindowStrategy {
                 .addOnSuccessListener(qs -> {
                     Map<String, Double> totals = new HashMap<>();
                     for (DocumentSnapshot d : qs.getDocuments()) {
-                        Double amt = readDouble(d, amtString);
+                        Double amt = readDouble(d, AMT_STRING);
                         String cat = d.getString("category");
                         if (amt == null || cat == null) {
                             continue;
@@ -43,7 +43,7 @@ public abstract class ExpenseWindowStrategy {
                 .addOnSuccessListener(expenseSnap -> {
                     double spent = 0.0;
                     for (DocumentSnapshot d : expenseSnap.getDocuments()) {
-                        Double amt = readDouble(d, amtString);
+                        Double amt = readDouble(d, AMT_STRING);
                         if (amt != null) {
                             spent += amt;
                         }

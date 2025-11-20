@@ -220,7 +220,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
                                                         statusMessage.postValue(
                                                                 "Failed to send invite: "
                                                                         + e.getMessage())
-                                                    );
+                                                );
                                         })
                                         .addOnFailureListener(e ->
                                                 statusMessage.postValue("Error finding user: "

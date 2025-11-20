@@ -28,7 +28,7 @@ public class DateViewModel extends AndroidViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
-    String selectedDateString = "selectedDate";
+    private static final String SELECTED_DATE_STRING = "selectedDate";
 
     public DateViewModel(@NonNull Application application) {
         super(application);
@@ -111,10 +111,10 @@ public class DateViewModel extends AndroidViewModel {
         DocumentReference docRef = db.collection("users").document(uid);
 
         docRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists() && documentSnapshot.contains(selectedDateString)) {
+            if (documentSnapshot.exists() && documentSnapshot.contains(SELECTED_DATE_STRING)) {
                 @SuppressWarnings("unchecked")
                 Map<String, Long> dateMap = (Map<String, Long>)
-                        documentSnapshot.get(selectedDateString);
+                        documentSnapshot.get(SELECTED_DATE_STRING);
                 if (dateMap != null) {
                     int year = dateMap.get("year").intValue();
                     int month = dateMap.get("month").intValue();

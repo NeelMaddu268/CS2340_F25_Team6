@@ -216,7 +216,8 @@ public class BudgetsFragment extends Fragment {
                 }
 
                 Calendar minCalendar = Calendar.getInstance();
-                minCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
+                minCalendar.set(appDate.getYear(),
+                        appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
                 minCalendar.set(Calendar.MILLISECOND, 0);
 
                 final Calendar today = Calendar.getInstance();

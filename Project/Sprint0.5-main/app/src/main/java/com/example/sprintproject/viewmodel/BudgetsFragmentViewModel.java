@@ -33,7 +33,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
     private static final String TAG = "BudgetsVM";
 
-    String startDateTimestampString = "startDateTimestamp";
+    private static final String START_DATE_TIMESTAMP_STRING = "startDateTimestamp";
 
     /** Keep exactly one active Firestore listener at a time. */
     private ListenerRegistration activeListener;
@@ -80,7 +80,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 })
                 .addOnFailureListener(e ->
                     totalSpentAllTimeLiveData.postValue(0.0)
-                );
+        );
     }
 
     @Override
@@ -134,7 +134,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .budgetsReference(uid)
-                .orderBy(startDateTimestampString, Query.Direction.DESCENDING)
+                .orderBy(START_DATE_TIMESTAMP_STRING, Query.Direction.DESCENDING)
                 .addSnapshotListener((qs, e) -> {
                     if (e != null || qs == null) {
                         budgetsLiveData.postValue(new ArrayList<>());
@@ -201,7 +201,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
         activeListener = FirestoreManager.getInstance()
                 .budgetsReference(uid)
-                .orderBy(startDateTimestampString, Query.Direction.DESCENDING)
+                .orderBy(START_DATE_TIMESTAMP_STRING, Query.Direction.DESCENDING)
                 .addSnapshotListener((qs, e) -> {
                     if (e != null || qs == null) {
                         budgetsLiveData.postValue(new ArrayList<>());
@@ -353,7 +353,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
                 .document(budget.getId())
                 .update(
                         "startDate", budget.getStartDate(),
-                        startDateTimestampString, budget.getStartDateTimestamp(),
+                        START_DATE_TIMESTAMP_STRING, budget.getStartDateTimestamp(),
                         "spentToDate", budget.getSpentToDate(),
                         "moneyRemaining", budget.getMoneyRemaining(),
                         "hasPreviousCycle", budget.isHasPreviousCycle(),

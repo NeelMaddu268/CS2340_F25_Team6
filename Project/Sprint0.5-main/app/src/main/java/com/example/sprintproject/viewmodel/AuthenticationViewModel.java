@@ -92,7 +92,8 @@ public class AuthenticationViewModel extends ViewModel {
                     //need to wait for budgets to be made for expenses to be made
                     //add some async/sync logic
                     //budget view model will call expense view model to make expenses
-                    budgetCreationViewModel.createSampleBudgets(expenseCreationViewModel::createSampleExpenses);
+                    budgetCreationViewModel
+                            .createSampleBudgets(expenseCreationViewModel::createSampleExpenses);
                 } else {
                     Exception e = task.getException();
                     Log.w("AuthenticationViewModel",

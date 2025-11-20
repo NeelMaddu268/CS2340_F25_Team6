@@ -106,7 +106,8 @@ public class InvitationsViewModel extends ViewModel {
                                             .document(circleId)
                                             .update("datesJoined." + currentUid, joinDate.toIso(),
                                                     "memberEmails",
-                                                    FieldValue.arrayUnion(doc.getString("toEmail")));
+                                                    FieldValue.arrayUnion(
+                                                            doc.getString("toEmail")));
 
                                     Map<String, Object> pointer = new HashMap<>();
                                     pointer.put("circleId", circleId);

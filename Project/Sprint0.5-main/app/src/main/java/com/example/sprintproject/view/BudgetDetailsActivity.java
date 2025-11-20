@@ -33,8 +33,8 @@ public class BudgetDetailsActivity extends AppCompatActivity {
 
     private Budget currentBudget;
 
-    private static final String overBudgetString = "Over budget by: $";
-    private static final String surplusString = "Surplus: $";
+    private static final String OVER_BUDGET_STRING = "Over budget by: $";
+    private static final String SURPLUS_STRING = "Surplus: $";
 
 
     @Override
@@ -95,9 +95,9 @@ public class BudgetDetailsActivity extends AppCompatActivity {
                             double surplus = total - spent;
                             if (surplus >= 0) {
                                 budgetSurplusText.setText(
-                                        surplusString + String.format("%.2f", surplus));
+                                        SURPLUS_STRING + String.format("%.2f", surplus));
                             } else {
-                                budgetSurplusText.setText(overBudgetString
+                                budgetSurplusText.setText(OVER_BUDGET_STRING
                                         + String.format("%.2f", Math.abs(surplus)));
                             }
                         }
@@ -152,10 +152,10 @@ public class BudgetDetailsActivity extends AppCompatActivity {
             double budgetSurplus = total - spent;
             if (budgetSurplus >= 0) {
                 budgetSurplusText.setText(
-                        surplusString + String.format("%.2f", budgetSurplus));
+                        SURPLUS_STRING + String.format("%.2f", budgetSurplus));
             } else {
                 budgetSurplusText.setText(
-                        overBudgetString + String.format("%.2f", Math.abs(budgetSurplus)));
+                        OVER_BUDGET_STRING + String.format("%.2f", Math.abs(budgetSurplus)));
             }
         }
     }
@@ -217,9 +217,9 @@ public class BudgetDetailsActivity extends AppCompatActivity {
 
             double surplus = total - spent;
             if (surplus >= 0) {
-                budgetSurplusText.setText(surplusString + String.format("%.2f", surplus));
+                budgetSurplusText.setText(SURPLUS_STRING + String.format("%.2f", surplus));
             } else {
-                budgetSurplusText.setText(overBudgetString
+                budgetSurplusText.setText(OVER_BUDGET_STRING
                         + String.format("%.2f", Math.abs(surplus)));
             }
         });

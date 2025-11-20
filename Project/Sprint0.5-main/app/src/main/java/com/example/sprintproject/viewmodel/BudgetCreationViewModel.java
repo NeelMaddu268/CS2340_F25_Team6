@@ -23,7 +23,7 @@ public class BudgetCreationViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
 
-    String budgetString = "budgets";
+    private static final String BUDGET_STRING = "budgets";
 
 
     public LiveData<String> getText() {
@@ -135,7 +135,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                     FirestoreManager.getInstance()
                                             .categoriesReference(uid)
                                             .document(budgetData.getCategoryId())
-                                            .update(budgetString, FieldValue.arrayUnion(budgetId))
+                                            .update(BUDGET_STRING, FieldValue.arrayUnion(budgetId))
                                             .addOnCompleteListener(task -> {
                                                 if (onComplete != null) {
                                                     onComplete.run();
@@ -153,7 +153,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                                     DocumentSnapshot existing =
                                                             catSnap.getDocuments().get(0);
                                                     existing.getReference().update(
-                                                            budgetString,
+                                                            BUDGET_STRING,
                                                             FieldValue.arrayUnion(budgetId)
                                                     );
                                                 } else {
@@ -163,7 +163,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                                             category.trim()
                                                                     .toLowerCase(
                                                                             Locale.US));
-                                                    cat.put(budgetString,
+                                                    cat.put(BUDGET_STRING,
                                                             Collections.singletonList(budgetId));
                                                     cat.put("expenses", Collections.emptyList());
                                                     FirestoreManager.getInstance()

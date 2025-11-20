@@ -69,7 +69,7 @@ public class ExpenseCreationViewModel extends ViewModel {
                 })
                 .addOnFailureListener(e ->
                     categoriesLiveData.setValue(new ArrayList<>())
-                );
+        );
     }
 
     public void loadUserCircles() {
