@@ -80,7 +80,7 @@ public class AppActivity extends AppCompatActivity {
         setupReminderListener(nav);
 
         // Check for missed logs as soon as user gets to dashboard page
-        NotificationQueueManager.getInstance().checkForMissedExpenseLog();
+        NotificationQueueManager.getInstance().registerDateObserver(dateVM);
     }
 
     private void replaceFragment(Fragment fragment) {

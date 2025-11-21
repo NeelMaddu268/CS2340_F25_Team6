@@ -3,6 +3,7 @@ package com.example.sprintproject.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.NotificationData;
 import java.util.Calendar;
 import java.util.PriorityQueue;
@@ -63,21 +64,26 @@ public class NotificationQueueManager {
         );
     }
 
-    public void checkForMissedExpenseLog() {
+    public void checkForMissedExpenseLog(AppDate currentDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(currentDate.getYear(), currentDate.getMonth() - 1, currentDate.getDay(), 0, 0, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long appDateMillis = calendar.getTimeInMillis();
+
         expenseRepository.getLastExpenseLogDate(lastLogMillis -> {
-
-            if (lastLogMillis == 0) {
-                return;
-            }
-
-            Calendar now = Calendar.getInstance();
-            long todayMillis = now.getTimeInMillis();
-
-            int daysMissed = ExpenseRepository.calculateDaysSince(lastLogMillis, todayMillis);
+            int daysMissed = ExpenseRepository.calculateDaysSince(lastLogMillis, appDateMillis);
 
             if (daysMissed > 0) {
                 NotificationData reminder = NotificationData.createMissedLogReminder(daysMissed);
                 submitReminder(reminder);
+            }
+        });
+    }
+
+    public void registerDateObserver(DateViewModel dateVM) {
+        dateVM.getCurrentDate().observeForever((AppDate appDate) -> {
+                if (appDate != null) {
+                    checkForMissedExpenseLog(appDate);
             }
         });
     }
