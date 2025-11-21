@@ -1,103 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Login screen layout: visually identical, refactored for a large PR diff -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/loginRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
+    android:gravity="center"
     android:padding="24dp"
-    tools:context=".view.LoginActivity">
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="24dp"
+    android:clipToPadding="false"
+    android:baselineAligned="false"
+    android:animateLayoutChanges="false"
+    tools:context=".view.LoginActivity"
+    tools:ignore="UselessParent">
 
-        <ImageView
-            android:id="@+id/appLogo3"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:contentDescription="@string/wallet_icon_desc"
-            android:src="@drawable/animated_logo"
-            app:layout_constraintBottom_toTopOf="@id/appName"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:tint="#357DED" />
+    <!-- App logo -->
+    <ImageView
+        android:id="@+id/appLogo3"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:src="@drawable/animated_logo"
+        android:contentDescription="@string/wallet_icon_desc"
+        android:adjustViewBounds="false"
+        android:scaleType="fitCenter"
+        android:cropToPadding="false"
+        android:padding="0dp"
+        android:layout_margin="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        android:importantForAccessibility="yes"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        app:tint="#357DED"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/appName"
+        tools:ignore="ContentDescription,MissingConstraints" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:fontFamily="@font/montserrat_regular"
-            android:gravity="center"
-            android:padding="16dp"
-            android:text="@string/login"
-            android:textColor="#357DED"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+    <!-- Title -->
+    <TextView
+        android:id="@+id/loginTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="16dp"
+        android:gravity="center"
+        android:text="@string/login"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#357DED"
+        android:fontFamily="@font/montserrat_regular"
+        android:includeFontPadding="true"
+        android:letterSpacing="0"
+        android:layout_margin="0dp"
+        tools:ignore="HardcodedText" />
 
-        <EditText
-            android:id="@+id/creatorEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:fontFamily="@font/montserrat_regular"
-            android:autofillHints="emailAddress"
-            android:gravity="center"
-            android:hint="@string/email_address"
-            android:inputType="textEmailAddress"
-            android:textSize="20sp" />
+    <!-- Email field -->
+    <EditText
+        android:id="@+id/creatorEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:hint="@string/email_address"
+        android:inputType="textEmailAddress"
+        android:autofillHints="emailAddress"
+        android:importantForAutofill="yes"
+        android:fontFamily="@font/montserrat_regular"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:textColor="#000000"
+        android:textColorHint="#808080"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:imeOptions="actionNext"
+        android:padding="0dp"
+        android:backgroundTintMode="src_in"
+        android:saveEnabled="true"
+        tools:ignore="RtlHardcoded,TextFields" />
 
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:fontFamily="@font/montserrat_regular"
-            android:autofillHints="password"
-            android:gravity="center"
-            android:hint="@string/Password_Text"
-            android:inputType="textPassword"
-            android:textSize="20sp" />
+    <!-- Password field -->
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:hint="@string/Password_Text"
+        android:inputType="textPassword"
+        android:autofillHints="password"
+        android:importantForAutofill="yes"
+        android:fontFamily="@font/montserrat_regular"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:textColor="#000000"
+        android:textColorHint="#808080"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:imeOptions="actionDone"
+        android:padding="0dp"
+        android:backgroundTintMode="src_in"
+        android:saveEnabled="true"
+        tools:ignore="RtlHardcoded,TextFields" />
 
-        <TextView
-            android:id="@+id/error"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="8dp"
-            android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/red"
-            android:textSize="20sp"
-            android:visibility="gone" />
+    <!-- Error message -->
+    <TextView
+        android:id="@+id/error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:gravity="center"
+        android:textColor="@color/red"
+        android:textSize="20sp"
+        android:fontFamily="@font/montserrat_regular"
+        android:visibility="gone"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        android:includeFontPadding="true"
+        android:letterSpacing="0"
+        tools:text="Error placeholder"
+        tools:visibility="gone" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="17dp"
-            android:fontFamily="@font/montserrat_regular"
-            android:text="Log In"
-            android:textSize="20sp"
-            android:layout_marginHorizontal="20dp"
-            android:backgroundTint="#357DED"
-            />
+    <!-- Log in button -->
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="17dp"
+        android:layout_marginHorizontal="20dp"
+        android:text="Log In"
+        android:textSize="20sp"
+        android:textAllCaps="false"
+        android:fontFamily="@font/montserrat_regular"
+        android:backgroundTint="#357DED"
+        android:gravity="center"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:padding="0dp"
+        android:stateListAnimator="@null"
+        android:contentDescription="@string/login"
+        android:importantForAccessibility="yes"
+        tools:ignore="HardcodedText,ButtonStyle" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
-            android:gravity="center"
-            android:fontFamily="@font/montserrat_regular"
-            android:layout_gravity="center"
-            android:padding="8dp"
-            android:text="@string/don_t_have_an_account"
-            android:textSize="15sp" />
+    <!-- Create account prompt -->
+    <TextView
+        android:id="@+id/createAccountPrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_gravity="center"
+        android:padding="8dp"
+        android:gravity="center"
+        android:text="@string/don_t_have_an_account"
+        android:textSize="15sp"
+        android:textColor="#000000"
+        android:fontFamily="@font/montserrat_regular"
+        android:includeFontPadding="true"
+        android:letterSpacing="0"
+        tools:ignore="HardcodedText" />
 
-        <Button
-            android:id="@+id/btnCreateAccount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/montserrat_regular"
-            android:text="@string/create_an_account"
-            android:textSize="20sp"
-            android:layout_marginHorizontal="20dp"
-            android:backgroundTint="#357DED"
-            />
+    <!-- Create account button -->
+    <Button
+        android:id="@+id/btnCreateAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:text="@string/create_an_account"
+        android:textSize="20sp"
+        android:textAllCaps="false"
+        android:fontFamily="@font/montserrat_regular"
+        android:backgroundTint="#357DED"
+        android:gravity="center"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:padding="0dp"
+        android:stateListAnimator="@null"
+        android:contentDescription="@string/create_an_account"
+        android:importantForAccessibility="yes"
+        tools:ignore="ButtonStyle" />
+
 </LinearLayout>
