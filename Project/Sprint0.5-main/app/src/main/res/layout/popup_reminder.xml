@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|center_horizontal"
+    android:layout_marginHorizontal="48dp"
+    android:layout_marginBottom="90dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="12dp"
+    android:background="@android:color/white"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        >
+
+        <TextView
+            android:id="@+id/reminderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Log Reminder"
+            android:textSize="20sp"
+            android:textColor="#357DED"
+            android:fontFamily="@font/montserrat_regular"
+            android:textStyle="bold"
+            />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="10dp"
+            android:background="#E0E0E0" />
+
+        <TextView
+            android:id="@+id/reminderMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="It's been 3 days since your last expense!"
+            android:textSize="15sp"
+            android:textColor="@android:color/black"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginBottom="12dp"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/reminderDismissButton"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="0dp"
+                android:text="DISMISS"
+                android:textColor="#888888"
+                android:textSize="15sp"
+                android:fontFamily="@font/montserrat_regular"
+                android:textStyle="bold"
+                />
+
+            <Button
+                android:id="@+id/reminderActionButton"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:minHeight="0dp"
+                android:text="LOG EXPENSES"
+                android:textColor="#357DED"
+                android:textSize="15sp"
+                android:fontFamily="@font/montserrat_regular"
+                android:textStyle="bold"
+                android:visibility="gone"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

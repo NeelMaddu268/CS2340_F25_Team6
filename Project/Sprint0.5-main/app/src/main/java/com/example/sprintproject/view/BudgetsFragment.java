@@ -46,8 +46,6 @@ public class BudgetsFragment extends Fragment {
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private DateViewModel dateVM;
-    private RecyclerView budgetRecyclerView;
-    private RecyclerView savingsCircleRecyclerView;
     private BudgetAdapter budgetAdapter;
     private SavingsCircleAdapter savingsCircleAdapter;
 
@@ -55,6 +53,7 @@ public class BudgetsFragment extends Fragment {
         super(R.layout.fragment_budgets);
     }
 
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -140,6 +139,8 @@ public class BudgetsFragment extends Fragment {
     }
 
     private void setupBudgetRecyclerView(View view) {
+        RecyclerView budgetRecyclerView;
+
         budgetRecyclerView = view.findViewById(R.id.budgetsRecyclerView);
         budgetRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         budgetAdapter = new BudgetAdapter(budget -> {
@@ -156,6 +157,8 @@ public class BudgetsFragment extends Fragment {
     }
 
     private void setupSavingsCircleRecyclerView(View view) {
+        RecyclerView savingsCircleRecyclerView;
+
         savingsCircleRecyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
         savingsCircleRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
@@ -213,7 +216,8 @@ public class BudgetsFragment extends Fragment {
                 }
 
                 Calendar minCalendar = Calendar.getInstance();
-                minCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
+                minCalendar.set(appDate.getYear(),
+                        appDate.getMonth() - 1, appDate.getDay(), 0, 0, 0);
                 minCalendar.set(Calendar.MILLISECOND, 0);
 
                 final Calendar today = Calendar.getInstance();

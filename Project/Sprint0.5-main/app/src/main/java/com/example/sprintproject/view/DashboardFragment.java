@@ -40,17 +40,9 @@ import java.util.Locale;
 
 public class DashboardFragment extends Fragment {
 
-    private AuthenticationViewModel authenticationViewModel;
     private DateViewModel dateVM;
     private DashboardViewModel dashboardVM;
 
-    private ImageButton btnCalendar;
-    private TextView headerText;
-    private TextView totalSpentText;
-    private TextView totalRemainingText;
-    private Button logoutButton;
-    private RecyclerView budgetRecycler;
-    private DashboardBudgetAdapter budgetAdapter;
 
     private Charts charts;
 
@@ -71,9 +63,19 @@ public class DashboardFragment extends Fragment {
             return null;
         }
 
+        AuthenticationViewModel authenticationViewModel;
+
         authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
+
+        ImageButton btnCalendar;
+        TextView headerText;
+        TextView totalSpentText;
+        TextView totalRemainingText;
+        Button logoutButton;
+        RecyclerView budgetRecycler;
+        DashboardBudgetAdapter budgetAdapter;
 
         btnCalendar = view.findViewById(R.id.btnCalendar);
         headerText = view.findViewById(R.id.dashboardTitle);

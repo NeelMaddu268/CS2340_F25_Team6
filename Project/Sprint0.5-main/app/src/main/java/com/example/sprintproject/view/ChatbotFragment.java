@@ -23,8 +23,6 @@ public class ChatbotFragment extends Fragment {
             Bundle savedInstanceState
     ) {
 
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-
-        return view;
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 }
