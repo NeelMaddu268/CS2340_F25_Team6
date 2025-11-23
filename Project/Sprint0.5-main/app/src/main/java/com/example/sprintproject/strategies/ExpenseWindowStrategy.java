@@ -57,7 +57,7 @@ public abstract class ExpenseWindowStrategy {
                                 for (DocumentSnapshot b : budgetSnap.getDocuments()) {
                                     Double t = coalesce(
                                             readDouble(b, "total"),
-                                            readDouble(b, "amount"),
+                                            readDouble(b, AMT_STRING),
                                             readDouble(b, "limit"),
                                             readDouble(b, "value"),
                                             readDouble(b, "budget")
