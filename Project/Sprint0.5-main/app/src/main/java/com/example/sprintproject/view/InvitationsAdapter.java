@@ -61,25 +61,25 @@ public class InvitationsAdapter extends RecyclerView.Adapter<InvitationsAdapter.
         holder.circleName.setText(circleName);
         holder.fromEmail.setText("Invited by: " + fromEmail);
 
-        holder.acceptBtn.setOnClickListener(v -> {
+        holder.acceptBtn.setOnClickListener(v ->
             dateViewModel.getCurrentDate().observe(lifecycleOwner, appDate -> {
                 if (appDate == null) {
                     return;
                 }
                 invitationsViewModel.respondToInvite(inviteId, true, appDate);
                 Toast.makeText(context, "Joined " + circleName + "!", Toast.LENGTH_SHORT).show();
-            });
-        });
+            })
+        );
 
-        holder.declineBtn.setOnClickListener(v -> {
+        holder.declineBtn.setOnClickListener(v ->
             dateViewModel.getCurrentDate().observe(lifecycleOwner, appDate -> {
                 if (appDate == null) {
                     return;
                 }
                 invitationsViewModel.respondToInvite(inviteId, false, appDate);
                 Toast.makeText(context, "Declined invite.", Toast.LENGTH_SHORT).show();
-            });
-        });
+            })
+        );
     }
 
     @Override
