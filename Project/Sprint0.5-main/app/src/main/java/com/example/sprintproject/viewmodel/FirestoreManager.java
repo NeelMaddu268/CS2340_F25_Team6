@@ -23,22 +23,19 @@ import java.util.Map;
 import java.util.Set;
 
 public class FirestoreManager {
-    private static volatile FirestoreManager instance;
     private final FirebaseFirestore db;
 
     private FirestoreManager() {
         db = FirebaseFirestore.getInstance();
     }
 
-    public static synchronized FirestoreManager getInstance() {
-        if (instance == null) {
-            synchronized (FirestoreManager.class) {
-                if (instance == null) {
-                    instance = new FirestoreManager();
-                }
-            }
-        }
-        return instance;
+    // Singleton pattern with lazy initialization (to fix code smells)
+    private static class Holder {
+        private static final FirestoreManager INSTANCE = new FirestoreManager();
+    }
+
+    public static FirestoreManager getInstance() {
+        return Holder.INSTANCE;
     }
 
     public FirebaseFirestore getDb() {
