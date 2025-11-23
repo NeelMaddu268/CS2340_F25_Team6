@@ -146,7 +146,7 @@ public class DateViewModel extends AndroidViewModel {
         dateMap.put("day", day);
 
         Map<String, Object> updateMap = new HashMap<>();
-        updateMap.put("selectedDate", dateMap);
+        updateMap.put(SELECTED_DATE_STRING, dateMap);
 
         docRef.set(updateMap, com.google.firebase.firestore.SetOptions.merge());
     }

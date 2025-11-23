@@ -25,7 +25,11 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ExpenseCreationViewModel extends ViewModel {
-
+    private static final String EATING = "eating";
+    private static final String DATE20 = "Oct 20, 2025";
+    private static final String TRAVEL = "travel";
+    private static final String GAMING = "gaming";
+    private static final String DATE21 = "Oct 21, 2025";
     private final MutableLiveData<String> text = new MutableLiveData<>();
     private final MutableLiveData<List<String>> categoriesLiveData =
             new MutableLiveData<>(new ArrayList<>());
@@ -325,28 +329,28 @@ public class ExpenseCreationViewModel extends ViewModel {
 
 
     public void createSampleExpenses() {
-        createExpense("Tin Drum", "Oct 15, 2025", "20.00", "eating", null, null);
-        createExpense("Panda Express", "Oct 20, 2025", "30.00", "eating", "Was Hungry", null);
+        createExpense("Tin Drum", "Oct 15, 2025", "20.00", EATING, null, null);
+        createExpense("Panda Express", DATE20, "30.00", EATING, "Was Hungry", null);
 
-        createExpense("Hawaii", "Oct 18, 2025", "100.00", "travel", null, null);
-        createExpense("Spain", "Oct 19, 2025", "500.00", "travel", "Spring Break", null);
+        createExpense("Hawaii", "Oct 18, 2025", "100.00", TRAVEL, null, null);
+        createExpense("Spain", "Oct 19, 2025", "500.00", TRAVEL, "Spring Break", null);
 
-        createExpense("Xbox", "Oct 21, 2025", "200.00", "gaming", null, null);
-        createExpense("PS5", "Oct 22, 2025", "800.00", "gaming", "Xbox Broke", null);
+        createExpense("Xbox", DATE21, "200.00", GAMING, null, null);
+        createExpense("PS5", "Oct 22, 2025", "800.00", GAMING, "Xbox Broke", null);
 
         createExpense("Loan", "Oct 07, 2025", "1000.00", "other", null, null);
 
     }
 
     public void createSampleDate(Runnable onComplete) {
-        createExpense("Tin Drum", "Oct 19, 2025", "20.00", "eating", null, null);
-        createExpense("Panda Express", "Oct 20, 2025", "30.00", "eating", "Was Hungry", null);
+        createExpense("Tin Drum", "Oct 19, 2025", "20.00", EATING, null, null);
+        createExpense("Panda Express", DATE20, "30.00", EATING, "Was Hungry", null);
 
-        createExpense("Hawaii", "Oct 20, 2025", "100.00", "travel", null, null);
-        createExpense("Spain", "Oct 21, 2025", "500.00", "travel", "Spring Break", null);
+        createExpense("Hawaii", DATE20, "100.00", TRAVEL, null, null);
+        createExpense("Spain", DATE21, "500.00", TRAVEL, "Spring Break", null);
 
-        createExpense("Xbox", "Oct 21, 2025", "200.00", "gaming", null, null);
-        createExpense("PS5", "Oct 22, 2025", "800.00", "gaming", "Xbox Broke", null);
+        createExpense("Xbox", DATE21, "200.00", GAMING, null, null);
+        createExpense("PS5", "Oct 22, 2025", "800.00", GAMING, "Xbox Broke", null);
 
         createExpense("Loan", "Oct 07, 2025", "1000.00", "other", null, null);
 
