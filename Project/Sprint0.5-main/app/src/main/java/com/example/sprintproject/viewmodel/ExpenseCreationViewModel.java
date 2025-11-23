@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.model.ExpenseData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -148,19 +149,13 @@ public class ExpenseCreationViewModel extends ViewModel {
             String category, String notes, Runnable onBudgetUpdated) {
 
         // default: not contributing, no circle
-        createExpense(name, date, amountString, category, notes,
-                false, null, onBudgetUpdated);
+        ExpenseData data = new ExpenseData(name, date, amountString, category, notes, false, null);
+        createExpense(data, onBudgetUpdated);
     }
 
 
     public void createExpense(
-            String name,
-            String date,
-            String amountString,
-            String category,
-            String notes,
-            boolean contributesToGroupSavings,
-            String circleId,
+            ExpenseData data,
             Runnable onBudgetUpdated) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -171,16 +166,17 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         String uid = auth.getCurrentUser().getUid();
         Log.d("EXP", "Writing expense for uid=" + uid);
-        String normalizedCategory = normalizeCategory(category);
-        Double amount = parseAmount(amountString);
+        String normalizedCategory = normalizeCategory(data.getCategory());
+        Double amount = parseAmount(data.getAmountString());
         if (amount == null) {
             return;
         }
 
-        long timestamp = parseDateToMillis(date);
-        Expense expense = new Expense(name, amount, normalizedCategory, date, notes);
+        long timestamp = parseDateToMillis(data.getDate());
+        Expense expense = new Expense(data.getName(), amount, normalizedCategory,
+                data.getDate(), data.getNotes());
         expense.setTimestamp(timestamp);
-        expense.setContributesToGroupSavings(contributesToGroupSavings);
+        expense.setContributesToGroupSavings(data.getContributesToGroupSavings());
 
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
@@ -188,8 +184,9 @@ public class ExpenseCreationViewModel extends ViewModel {
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
-                    if (contributesToGroupSavings && circleId != null && !circleId.isEmpty()) {
-                        updateGroupSavingsByCircleId(circleId, uid, amount);
+                    if (data.getContributesToGroupSavings() && data.getCircleId() != null
+                            && !data.getCircleId().isEmpty()) {
+                        updateGroupSavingsByCircleId(data.getCircleId(), uid, amount);
                     }
                 });
     }

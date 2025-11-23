@@ -55,7 +55,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         loadSavingsCircleFor(currentAppDate);
     }
 
-    /** Load and evaluate circles for a specific AppDate. */
+    /** Load and evaluate circles for a specific AppDate.
+     * @param appDate the appDate
+     * */
     public void loadSavingsCircleFor(AppDate appDate) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -164,13 +166,17 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                 });
     }
 
-    /** Update AppDate and recompute flags on the cached list. */
+    /** Update AppDate and recompute flags on the cached list.
+     * @param appDate The new AppDate.
+     * */
     public void setAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
         recomputeFor(appDate);
     }
 
-    /** Re-evaluate using the provided AppDate (no network). */
+    /** Re-evaluate using the provided AppDate (no network).
+     * @param appDate The new AppDate.
+     * */
     public void recomputeFor(AppDate appDate) {
         if (cache.isEmpty()) {
             savingsCircleLiveData.postValue(new ArrayList<>());
@@ -197,6 +203,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
      *  - Flags:
      *      completed = ended
      *      goalMet   = ended && (myContribution >= personalTarget)
+     * @param circle the savingscircle
+     * @param currentUid users id
+     * @param appDate the appDate
      */
     private void evaluatePersonalAgainstAppDate(SavingsCircle circle,
                                                 String currentUid, AppDate appDate) {
@@ -236,7 +245,10 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
     }
 
 
-    /** yyyy-MM-dd -> millis for (date + 7 days), DST-safe. */
+    /** yyyy-MM-dd -> millis for (date + 7 days), DST-safe.
+     * @param ymd the date
+     * @return the millis after adding 7 days
+     * */
     private long add7Days(String ymd) {
         if (ymd == null) {
             return 0L;
@@ -257,7 +269,10 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         }
     }
 
-    /** Convert AppDate (Y,M,D) to millis at local 00:00. */
+    /** Convert AppDate (Y,M,D) to millis at local 00:00.
+     * @param a the appDate
+     * @return the millis
+     * */
     private long appDateStartMillis(AppDate a) {
         if (a == null) {
             return 0L;

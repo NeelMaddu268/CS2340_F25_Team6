@@ -91,6 +91,7 @@ public class AppActivity extends AppCompatActivity {
 
     /**
      * Observes the NotificationQueueManager and handles displaying the pop-up.
+     * @param nav Bottom navigation view
      */
     private void setupReminderListener(BottomNavigationView nav) {
         NotificationQueueManager.getInstance().getCurrentReminder().observe(this, reminder -> {
@@ -104,6 +105,8 @@ public class AppActivity extends AppCompatActivity {
 
     /**
      * Displays the small reminder window
+     * @param nav Bottom navigation view
+     * @param reminder The notification data
      */
     private void displayReminder(NotificationData reminder, BottomNavigationView nav) {
         if (reminderView == null && reminderContainer != null) {
@@ -124,7 +127,8 @@ public class AppActivity extends AppCompatActivity {
         titleText.setText(reminder.getTitle());
         messageText.setText(reminder.getMessage());
 
-        dismissButton.setOnClickListener(v -> NotificationQueueManager.getInstance().dismissCurrentReminder());
+        dismissButton.setOnClickListener(v -> NotificationQueueManager
+                .getInstance().dismissCurrentReminder());
 
         if (reminder.getType() == NotificationData.Type.MISSED_LOG) {
             actionButton.setText("Log Expenses");

@@ -66,7 +66,8 @@ public class NotificationQueueManager {
 
     public void checkForMissedExpenseLog(AppDate currentDate) {
         Calendar calendar = Calendar.getInstance();
-        calendar.set(currentDate.getYear(), currentDate.getMonth() - 1, currentDate.getDay(), 0, 0, 0);
+        calendar.set(currentDate.getYear(), currentDate.getMonth() - 1,
+                currentDate.getDay(), 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         long appDateMillis = calendar.getTimeInMillis();
 
@@ -82,8 +83,8 @@ public class NotificationQueueManager {
 
     public void registerDateObserver(DateViewModel dateVM) {
         dateVM.getCurrentDate().observeForever((AppDate appDate) -> {
-                if (appDate != null) {
-                    checkForMissedExpenseLog(appDate);
+            if (appDate != null) {
+                checkForMissedExpenseLog(appDate);
             }
         });
     }
