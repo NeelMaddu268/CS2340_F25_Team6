@@ -24,9 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
         splashScreen.setKeepOnScreenCondition(() -> isLoading);
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            isLoading = false;
-        }, 1500);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> isLoading = false, 1500);
 
         Button btnStart = findViewById(R.id.btnStart);
         Button btnQuit = findViewById(R.id.btnQuit);
