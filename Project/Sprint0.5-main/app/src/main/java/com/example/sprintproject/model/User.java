@@ -4,11 +4,15 @@ public class User {
     private final String email;
     private final String name;
     private final String password;
+    private int totalExpenses;
+    private int totalBudgets;
 
-    public User(String email, String name, String password) {
+    public User(String email, String name, String password, int totalExpenses, int totalBudgets) {
         this.email = email;
         this.name = name;
         this.password = password;
+        this.totalExpenses = totalExpenses;
+        this.totalBudgets = totalBudgets;
     }
 
     public String getEmail() {
@@ -21,5 +25,13 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public int getTotalExpenses() {
+        return totalExpenses;
+    }
+
+    public int getTotalBudgets() {
+        return totalBudgets;
     }
 }

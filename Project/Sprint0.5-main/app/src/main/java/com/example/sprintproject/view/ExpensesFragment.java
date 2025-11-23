@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.ExpenseData;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
@@ -37,13 +38,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class ExpensesFragment extends Fragment {
-
-    private ExpensesFragmentViewModel expensesFragmentViewModel;
-    private DateViewModel dateVM;                                    // <-- ADD
-    private RecyclerView recyclerView;
-    private ExpenseAdapter adapter;
-    private BudgetsFragmentViewModel budgetsFragmentViewModel;
-
 
     public ExpensesFragment() {
         super(R.layout.fragment_expenses);
@@ -62,6 +56,13 @@ public class ExpensesFragment extends Fragment {
                             systemBars.top, systemBars.right, systemBars.bottom);
                     return insets;
                 });
+
+        ExpensesFragmentViewModel expensesFragmentViewModel;
+        DateViewModel dateVM;
+        RecyclerView recyclerView;
+        ExpenseAdapter adapter;
+        BudgetsFragmentViewModel budgetsFragmentViewModel;
+
 
         recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -130,22 +131,25 @@ public class ExpensesFragment extends Fragment {
                     .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             groupSavingsContributionSpinner.setAdapter(groupSavingsAdapter);
 
-            groupSavingsContributionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String choice = parent.getItemAtPosition(position).toString();
-                    boolean isYes = choice.equalsIgnoreCase("Yes");
-                    chooseCircle.setVisibility(isYes ? View.VISIBLE : View.GONE);
-                    chooseCircleSpinner.setVisibility(isYes ? View.VISIBLE : View.GONE);
+            groupSavingsContributionSpinner.setOnItemSelectedListener(
+                    new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent,
+                                                   View view, int position, long id) {
+                            String choice = parent.getItemAtPosition(position).toString();
+                            boolean isYes = choice.equalsIgnoreCase("Yes");
+                            chooseCircle.setVisibility(isYes ? View.VISIBLE : View.GONE);
+                            chooseCircleSpinner.setVisibility(isYes ? View.VISIBLE : View.GONE);
 
-                    if (isYes) {
-                        expenseCreationViewModel.loadUserCircles();
-                    }
-                }
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                }
-            });
+                            if (isYes) {
+                                expenseCreationViewModel.loadUserCircles();
+                            }
+                        }
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+                            //when nothing is selected
+                        }
+                    });
 
             closeButton.setOnClickListener(view1 -> dialog.dismiss());
 
@@ -155,12 +159,12 @@ public class ExpensesFragment extends Fragment {
                         List<String> allCategories = new ArrayList<>();
                         allCategories.add("Choose a category");
                         allCategories.addAll(categories);
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        ArrayAdapter<String> miniAdapter = new ArrayAdapter<>(
                                 requireContext(),
                                 android.R.layout.simple_spinner_dropdown_item,
                                 allCategories
                         );
-                        categorySpinner.setAdapter(adapter);
+                        categorySpinner.setAdapter(miniAdapter);
                     });
 
             expenseCreationViewModel.getCircleNames().observe(
@@ -178,12 +182,12 @@ public class ExpensesFragment extends Fragment {
                             List<String> allCircles = new ArrayList<>();
                             allCircles.add("Select a Circle");
                             allCircles.addAll(circles);
-                            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            ArrayAdapter<String> miniAdapter = new ArrayAdapter<>(
                                     requireContext(),
                                     android.R.layout.simple_spinner_dropdown_item,
                                     allCircles
                             );
-                            chooseCircleSpinner.setAdapter(adapter);
+                            chooseCircleSpinner.setAdapter(miniAdapter);
                         }
                     }
             );
@@ -224,7 +228,8 @@ public class ExpensesFragment extends Fragment {
                 if (isValid) {
                     boolean contributesToGroupSavings =
 
-                            groupSavingsContributionSpinner.getSelectedItem().toString().equals("Yes");
+                            groupSavingsContributionSpinner
+                                    .getSelectedItem().toString().equals("Yes");
 
                     String circleId = null;
                     if (contributesToGroupSavings) {
@@ -232,22 +237,19 @@ public class ExpensesFragment extends Fragment {
                         if (selectedCircleName != null
                                 && !"No circles found".equals(selectedCircleName)
                                 && !"Select a Circle".equals(selectedCircleName)) {
-                            circleId = expenseCreationViewModel.getCircleIdForName(selectedCircleName);
+                            circleId = expenseCreationViewModel
+                                    .getCircleIdForName(selectedCircleName);
                         } else {
-                            Toast.makeText(requireContext(), "Please choose a circle", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(requireContext(), "Please choose a circle",
+                                    Toast.LENGTH_SHORT).show();
                             return;
                         }
                     }
 
-                    expenseCreationViewModel.createExpense(
-                            name,
-                            date,
-                            amount,
-                            category,
-                            notes,
-                            contributesToGroupSavings,
-                            circleId,
-                            () -> budgetsFragmentViewModel.loadBudgets()
+                    ExpenseData data = new ExpenseData(name, date, amount, category,
+                            notes, contributesToGroupSavings, circleId);
+                    expenseCreationViewModel.createExpense(data,
+                            budgetsFragmentViewModel::loadBudgets
                     );
 
                     dialog.dismiss();
@@ -259,29 +261,11 @@ public class ExpensesFragment extends Fragment {
                 }
             });
 
-
-//            expenseDate.setOnClickListener(v1 -> {
-//                final Calendar today = Calendar.getInstance();
-//                int year = today.get(Calendar.YEAR);
-//                int month = today.get(Calendar.MONTH);
-//                int day = today.get(Calendar.DAY_OF_MONTH);
-//                DatePickerDialog picker = new DatePickerDialog(
-//                        requireContext(),
-//                        (view1, y, mZero, dd) -> {
-//                            Calendar sel = Calendar.getInstance();
-//                            sel.set(y, mZero, dd);
-//                            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-//                            expenseDate.setText(sdf.format(sel.getTime()));
-//                        },
-//                        year, month, day
-//                );
-//                picker.getDatePicker().setMaxDate(System.currentTimeMillis());
-//                picker.show();
-//            });
-
             expenseDate.setOnClickListener(v1 -> {
                 dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
-                    if (appDate == null) return;
+                    if (appDate == null) {
+                        return;
+                    }
                     Calendar maxCalendar = Calendar.getInstance();
                     maxCalendar.set(appDate.getYear(), appDate.getMonth() - 1, appDate.getDay());
                     final Calendar today = Calendar.getInstance();
@@ -293,7 +277,8 @@ public class ExpensesFragment extends Fragment {
                             (view1, y, mZero, dd) -> {
                                 Calendar sel = Calendar.getInstance();
                                 sel.set(y, mZero, dd);
-                                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+                                SimpleDateFormat sdf =
+                                        new SimpleDateFormat("MMM dd, yyyy", Locale.US);
                                 expenseDate.setText(sdf.format(sel.getTime()));
                             },
                             year, month, day

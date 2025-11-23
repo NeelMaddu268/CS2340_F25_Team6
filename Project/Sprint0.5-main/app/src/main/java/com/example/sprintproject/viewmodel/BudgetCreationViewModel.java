@@ -10,7 +10,6 @@ import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -23,7 +22,9 @@ import java.util.Map;
 public class BudgetCreationViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+    private static final String BUDGET_STRING = "budgets";
+
 
     public LiveData<String> getText() {
         return text;
@@ -35,7 +36,6 @@ public class BudgetCreationViewModel extends ViewModel {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            System.err.println("User not logged in — cannot create budget");
             if (onComplete != null) {
                 onComplete.run();
             }
@@ -78,7 +78,6 @@ public class BudgetCreationViewModel extends ViewModel {
                     addBudgetToFirestore(uid, budgetData, onComplete);
                 })
                 .addOnFailureListener(e -> {
-                    System.err.println("Failed to fetch category: " + e.getMessage());
                     if (onComplete != null) {
                         onComplete.run();
                     }
@@ -123,7 +122,6 @@ public class BudgetCreationViewModel extends ViewModel {
                     budget.setSpentToDate(spentToDate);
                     budget.setMoneyRemaining(budgetData.getAmount() - spentToDate);
                     budget.setCompleted(false);
-                    budget.setOverBudget(false);
                     budget.setHasPreviousCycle(false);
                     budget.setPreviousCycleOverBudget(false);
                     budget.setPreviousCycleEndTimestamp(0L);
@@ -133,11 +131,13 @@ public class BudgetCreationViewModel extends ViewModel {
                             .addOnSuccessListener(budgetRef -> {
                                 String budgetId = budgetRef.getId();
 
+                                FirestoreManager.getInstance().incrementField(uid, "totalBudgets");
+
                                 if (budgetData.getCategoryId() != null) {
                                     FirestoreManager.getInstance()
                                             .categoriesReference(uid)
                                             .document(budgetData.getCategoryId())
-                                            .update("budgets", FieldValue.arrayUnion(budgetId))
+                                            .update(BUDGET_STRING, FieldValue.arrayUnion(budgetId))
                                             .addOnCompleteListener(task -> {
                                                 if (onComplete != null) {
                                                     onComplete.run();
@@ -155,7 +155,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                                     DocumentSnapshot existing =
                                                             catSnap.getDocuments().get(0);
                                                     existing.getReference().update(
-                                                            "budgets",
+                                                            BUDGET_STRING,
                                                             FieldValue.arrayUnion(budgetId)
                                                     );
                                                 } else {
@@ -165,7 +165,7 @@ public class BudgetCreationViewModel extends ViewModel {
                                                             category.trim()
                                                                     .toLowerCase(
                                                                             Locale.US));
-                                                    cat.put("budgets",
+                                                    cat.put(BUDGET_STRING,
                                                             Collections.singletonList(budgetId));
                                                     cat.put("expenses", Collections.emptyList());
                                                     FirestoreManager.getInstance()
@@ -181,14 +181,12 @@ public class BudgetCreationViewModel extends ViewModel {
                                 }
                             })
                             .addOnFailureListener(e -> {
-                                System.err.println("Failed to add budget: " + e.getMessage());
                                 if (onComplete != null) {
                                     onComplete.run();
                                 }
                             });
                 })
                 .addOnFailureListener(e -> {
-                    System.err.println("Expense query failed: " + e.getMessage());
                     if (onComplete != null) {
                         onComplete.run();
                     }
@@ -197,7 +195,6 @@ public class BudgetCreationViewModel extends ViewModel {
 
 
     public void createSampleBudgets(Runnable onComplete) {
-        Calendar calendar = Calendar.getInstance();
         String[][] sampleBudgets = {
                 {"Eating Budget", "Oct 17, 2025", "100.00", "eating", "Weekly"},
                 {"Travel Budget", "Oct 19, 2025", "1000.00", "travel", "Monthly"},

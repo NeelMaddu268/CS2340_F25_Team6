@@ -9,9 +9,6 @@ public class Budget {
     private long startDateTimestamp;
     private boolean isCompleted;
 
-    private boolean overBudget;
-    private double progressPercent;
-
     private boolean hasPreviousCycle;
     private boolean previousCycleOverBudget;
     private long previousCycleEndTimestamp;
@@ -31,7 +28,6 @@ public class Budget {
         this.frequency = frequency;
         this.startDate = startDate;
         this.isCompleted = false;
-        this.overBudget = false;
         this.hasPreviousCycle = false;
         this.previousCycleOverBudget = false;
         this.previousCycleEndTimestamp = 0L;
@@ -64,12 +60,6 @@ public class Budget {
     public boolean isOverBudget() {
         return moneyRemaining < 0;
     }
-
-
-    public void setOverBudget(boolean overBudget) {
-        this.overBudget = overBudget;
-    }
-
 
     public String getName() {
         return name;
@@ -147,9 +137,5 @@ public class Budget {
 
     public void setStartDateTimestamp(long startDateTimestamp) {
         this.startDateTimestamp = startDateTimestamp;
-    }
-
-    public void setProgressPercent(double progressPercent) {
-        this.progressPercent = progressPercent;
     }
 }

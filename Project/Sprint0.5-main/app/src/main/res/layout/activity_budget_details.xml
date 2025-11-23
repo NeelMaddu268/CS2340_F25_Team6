@@ -3,13 +3,13 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#357DED"
+    android:background="?attr/colorPrimary"
     android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#357DED"
+        android:background="?attr/colorPrimary"
         android:orientation="vertical">
 
         <LinearLayout
@@ -24,7 +24,7 @@
                 android:fontFamily="@font/montserrat_regular"
                 android:textStyle="bold"
                 android:layout_weight="1"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="30sp"
                 android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:textStyle="bold"
                 android:layout_gravity="end"
                 android:layout_marginBottom="8dp" />
@@ -50,7 +50,7 @@
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:text="Category: "
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
         </LinearLayout>
 
@@ -74,7 +74,7 @@
                 android:text="Frequency: "
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -83,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
         </LinearLayout>
 
@@ -98,7 +98,7 @@
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:text="Start Date: "
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -107,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="22sp"
                 android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnPrimary"
                 android:layout_marginBottom="8dp" />
         </LinearLayout>
 
@@ -117,7 +117,7 @@
             android:layout_width="match_parent"
             android:layout_height="32dp"
             android:max="100"
-            android:progressTint="@color/white"
+            android:progressTint="?attr/colorOnPrimary"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
@@ -128,7 +128,7 @@
             android:text="Surplus: "
             android:fontFamily="@font/montserrat_regular"
             android:textSize="16sp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:layout_marginBottom="8dp" />
 
         <!--calculator section -->
@@ -141,7 +141,7 @@
             android:textStyle="bold"
             android:gravity="center"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="8dp" />
 
@@ -152,7 +152,7 @@
             android:text="Total Budget: "
             android:fontFamily="@font/montserrat_regular"
             android:textStyle="bold"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="16sp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="4dp" />
@@ -165,7 +165,7 @@
             android:fontFamily="@font/montserrat_regular"
             android:paddingVertical="12dp"
             android:inputType="numberDecimal"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:hint="Enter Total Budget"
             android:autofillHints="budgetTotal"
             android:layout_marginBottom="16dp" />
@@ -177,7 +177,7 @@
             android:text="Spent-to-date: "
             android:fontFamily="@font/montserrat_regular"
             android:textStyle="bold"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="16sp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="4dp" />
@@ -188,7 +188,7 @@
             android:layout_height="wrap_content"
             android:minHeight="16dp"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:paddingVertical="12dp"
             android:inputType="numberDecimal"
             android:hint="Enter Spent to Date"
@@ -202,7 +202,7 @@
             android:text="Remaining Budget: "
             android:textStyle="bold"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="16sp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="4dp" />
@@ -213,7 +213,7 @@
             android:layout_height="wrap_content"
             android:minHeight="16dp"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:paddingVertical="12dp"
             android:inputType="numberDecimal"
             android:hint="Enter Remaining"
@@ -226,7 +226,7 @@
             android:layout_height="wrap_content"
             android:text="Compute Budget"
             android:fontFamily="@font/montserrat_regular"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?attr/colorOnPrimary"
             android:textColor="#357DED"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
@@ -237,7 +237,7 @@
             android:layout_height="wrap_content"
             android:text="Save Budget"
             android:fontFamily="@font/montserrat_regular"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?attr/colorOnPrimary"
             android:textColor="#357DED"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
@@ -248,7 +248,7 @@
             android:id="@+id/backButton"
             android:text="Back"
             android:fontFamily="@font/montserrat_regular"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?attr/colorOnPrimary"
             android:textColor="#357DED"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"

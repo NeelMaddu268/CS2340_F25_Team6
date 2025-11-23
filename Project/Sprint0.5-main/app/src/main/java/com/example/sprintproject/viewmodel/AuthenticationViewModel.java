@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -58,7 +57,7 @@ public class AuthenticationViewModel extends ViewModel {
                     FirebaseUser firebaseUser = task.getResult().getUser();
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
-                    createUserInFirestore(firebaseUser);
+                    //createUserInFirestore(firebaseUser);
                 } else {
                     Exception e = task.getException();
                     if (e != null) {
@@ -93,9 +92,8 @@ public class AuthenticationViewModel extends ViewModel {
                     //need to wait for budgets to be made for expenses to be made
                     //add some async/sync logic
                     //budget view model will call expense view model to make expenses
-                    budgetCreationViewModel.createSampleBudgets(() -> {
-                        expenseCreationViewModel.createSampleExpenses();
-                    });
+                    budgetCreationViewModel
+                            .createSampleBudgets(expenseCreationViewModel::createSampleExpenses);
                 } else {
                     Exception e = task.getException();
                     Log.w("AuthenticationViewModel",
@@ -115,11 +113,11 @@ public class AuthenticationViewModel extends ViewModel {
     }
 
     public void createUserInFirestore(FirebaseUser firebaseUser) {
-        FirebaseFirestore databaseReference = FirebaseFirestore.getInstance();
         String uid = firebaseUser.getUid();
 
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", firebaseUser.getEmail());
+        userData.put("name", "User");
 
         FirestoreManager.getInstance().addUser(uid, userData);
     }

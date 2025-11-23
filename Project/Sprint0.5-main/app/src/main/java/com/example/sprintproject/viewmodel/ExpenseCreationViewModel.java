@@ -8,10 +8,10 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.model.ExpenseData;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -27,7 +27,6 @@ import java.util.Map;
 public class ExpenseCreationViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<String>> categoriesLiveData =
             new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<String>> circleNamesLive =
@@ -69,9 +68,9 @@ public class ExpenseCreationViewModel extends ViewModel {
                     }
                     categoriesLiveData.setValue(categoryNames);
                 })
-                .addOnFailureListener(e -> {
-                    categoriesLiveData.setValue(new ArrayList<>());
-                });
+                .addOnFailureListener(e ->
+                    categoriesLiveData.setValue(new ArrayList<>())
+        );
     }
 
     public void loadUserCircles() {
@@ -140,7 +139,6 @@ public class ExpenseCreationViewModel extends ViewModel {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    System.err.println("[loadUserCircles] Failed: " + e.getMessage());
                     circleNameToId.clear();
                     circleNamesLive.setValue(new ArrayList<>());
                 });
@@ -151,19 +149,13 @@ public class ExpenseCreationViewModel extends ViewModel {
             String category, String notes, Runnable onBudgetUpdated) {
 
         // default: not contributing, no circle
-        createExpense(name, date, amountString, category, notes,
-                false, null, onBudgetUpdated);
+        ExpenseData data = new ExpenseData(name, date, amountString, category, notes, false, null);
+        createExpense(data, onBudgetUpdated);
     }
 
 
     public void createExpense(
-            String name,
-            String date,
-            String amountString,
-            String category,
-            String notes,
-            boolean contributesToGroupSavings,
-            String circleId,                 // <-- NEW
+            ExpenseData data,
             Runnable onBudgetUpdated) {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -174,64 +166,39 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         String uid = auth.getCurrentUser().getUid();
         Log.d("EXP", "Writing expense for uid=" + uid);
-        String normalizedCategory = normalizeCategory(category);
-        Double amount = parseAmount(amountString);
+        String normalizedCategory = normalizeCategory(data.getCategory());
+        Double amount = parseAmount(data.getAmountString());
         if (amount == null) {
             return;
         }
 
-        long timestamp = parseDateToMillis(date);
-        Expense expense = new Expense(name, amount, normalizedCategory, date, notes);
+        long timestamp = parseDateToMillis(data.getDate());
+        Expense expense = new Expense(data.getName(), amount, normalizedCategory,
+                data.getDate(), data.getNotes());
         expense.setTimestamp(timestamp);
-        expense.setContributesToGroupSavings(contributesToGroupSavings);
-
-        System.out.println("[createExpense] category =" + category
-                + ", amount=" + amount
-                + ", date=" + date
-                + ", contributes=" + contributesToGroupSavings
-                + ", circleId=" + circleId);
+        expense.setContributesToGroupSavings(data.getContributesToGroupSavings());
 
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
                 .addOnSuccessListener(docRef -> {
-                    System.out.println("[createExpense] Expense added successfully! ID="
-                            + docRef.getId());
-                    Log.d("EXP", "WROTE: " + docRef.getPath());
+                    FirestoreManager.getInstance().incrementField(uid, "totalExpenses");
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
-                    if (contributesToGroupSavings && circleId != null && !circleId.isEmpty()) {
-                        updateGroupSavingsByCircleId(circleId, uid, amount);
+                    if (data.getContributesToGroupSavings() && data.getCircleId() != null
+                            && !data.getCircleId().isEmpty()) {
+                        updateGroupSavingsByCircleId(data.getCircleId(), uid, amount);
                     }
-                })
-                .addOnFailureListener(e -> {
-                    System.err.println("[createExpense] Failed to add expense: "
-                            + e.getMessage());
-                    Log.e("EXP", "Write failed", e);
-                    System.err.println("[createExpense] unable to add expense: " + e.getMessage());
-                    e.printStackTrace();
                 });
     }
 
     private void updateGroupSavingsByCircleId(String circleId, String uid, double amount) {
         FirestoreManager.getInstance()
                 .savingsCircleDoc(circleId)
-                .update("spent", FieldValue.increment(amount))
-                .addOnSuccessListener(a ->
-                        System.out.println("[updateGroupSavingsByCircleId] +"
-                                + amount + " to circle " + circleId))
-                .addOnFailureListener(e ->
-                        System.err.println("[updateGroupSavingsByCircleId] unable to update "
-                                + "'spent': " + e.getMessage()));
+                .update("spent", FieldValue.increment(amount));
         FirestoreManager.getInstance()
                 .savingsCircleDoc(circleId)
-                .update("contributions." + uid, FieldValue.increment(amount))
-                .addOnSuccessListener(a ->
-                        System.out.println("[updateGroupSavingsByCircleId] +"
-                                + amount + " to contributions[" + uid + "]"))
-                .addOnFailureListener(e ->
-                        System.err.println("[updateGroupSavingsByCircleId] unable to "
-                                + "update 'contributions': " + e.getMessage()));
+                .update("contributions." + uid, FieldValue.increment(amount));
     }
 
     private String normalizeCategory(String category) {
@@ -258,17 +225,13 @@ public class ExpenseCreationViewModel extends ViewModel {
                 .limit(1)
                 .get()
                 .addOnSuccessListener(query -> {
-                    System.out.println("[handleCategoryUpdate] Found " + query.size() + " docs.");
                     if (!query.isEmpty()) {
                         query.getDocuments().get(0).getReference()
                                 .update("expenses", FieldValue.arrayUnion(expenseId));
-                        System.out.println("Added expense to existing category: " + category);
                     } else {
                         createNewCategory(uid, category, expenseId);
                     }
-                })
-                .addOnFailureListener(e ->
-                        System.err.println("[handleCategoryUpdate] Failed: " + e.getMessage()));
+                });
     }
 
     private void createNewCategory(String uid, String category, String expenseId) {
@@ -278,11 +241,7 @@ public class ExpenseCreationViewModel extends ViewModel {
         newCategory.put("expenses", Collections.singletonList(expenseId));
 
         FirestoreManager.getInstance().categoriesReference(uid)
-                .add(newCategory)
-                .addOnSuccessListener(ref ->
-                        System.out.println("Created new category: " + category))
-                .addOnFailureListener(e ->
-                        System.err.println("Failed to create category: " + e.getMessage()));
+                .add(newCategory);
     }
 
     private void handleBudgetUpdate(String uid, String category, Runnable onBudgetUpdated) {
@@ -292,8 +251,6 @@ public class ExpenseCreationViewModel extends ViewModel {
                 .limit(1)
                 .get()
                 .addOnSuccessListener(query -> {
-                    System.out.println("[handleBudgetUpdate] Found " + query.size()
-                            + " budget docs.");
                     if (query.isEmpty()) {
                         return;
                     }
@@ -314,14 +271,8 @@ public class ExpenseCreationViewModel extends ViewModel {
                                 double spent = calculateSpentToDate(
                                         expenseQuery, budgetStart, budgetEnd);
                                 updateBudgetDoc(uid, budgetDoc, budget, spent, onBudgetUpdated);
-                            })
-                            .addOnFailureListener(e ->
-                                    System.err.println("[handleBudgetUpdate] Expense fetch failed: "
-                                            + e.getMessage()));
-                })
-                .addOnFailureListener(e ->
-                        System.err.println("[handleBudgetUpdate] Budget fetch failed: "
-                                + e.getMessage()));
+                            });
+                });
     }
 
     private long calcBudgetEnd(long start, String freq) {
@@ -347,12 +298,8 @@ public class ExpenseCreationViewModel extends ViewModel {
             long t = e.getTimestamp();
             if (t >= start - 24L * 60 * 60 * 1000 && t <= effectiveEnd) {
                 spent += e.getAmount();
-                System.out.println("Counted: " + e.getName());
-            } else {
-                System.out.println("Skipped (out of range): " + e.getName());
             }
         }
-        System.out.println("[calculateSpentToDate] Total spent: " + spent);
         return spent;
     }
 
@@ -370,23 +317,14 @@ public class ExpenseCreationViewModel extends ViewModel {
                         "overBudget", overBudget
                 )
                 .addOnSuccessListener(a -> {
-                    System.out.println("[updateBudgetDoc] Budget '" + budget.getName()
-                            + "' updated: spent=" + spent + ", remaining=" + remaining);
                     if (onBudgetUpdated != null) {
                         onBudgetUpdated.run();
                     }
-                })
-                .addOnFailureListener(e ->
-                        System.err.println("[updateBudgetDoc] Failed: " + e.getMessage()));
+                });
     }
 
 
     public void createSampleExpenses() {
-
-        //        {"Eating Budget", "Oct 17, 2025", "100.00", "Eating", "Weekly"},
-        //        {"Travel Budget", "Oct 19, 2025", "1000.00", "Travel", "Monthly"},
-        //        {"Gaming Budget", "Oct 21, 2025", "1500.00", "Gaming", "Weekly"}
-
         createExpense("Tin Drum", "Oct 15, 2025", "20.00", "eating", null, null);
         createExpense("Panda Express", "Oct 20, 2025", "30.00", "eating", "Was Hungry", null);
 
@@ -415,7 +353,6 @@ public class ExpenseCreationViewModel extends ViewModel {
         BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
 
         budgetCreationViewModel.createSampleBudgets(() -> {
-            System.out.println("sample budgets made after expenses");
             if (onComplete != null) {
                 onComplete.run();
             }

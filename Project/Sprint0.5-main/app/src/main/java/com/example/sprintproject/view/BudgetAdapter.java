@@ -61,6 +61,7 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
     // Binding data to each row
     @Override
     public void onBindViewHolder(BudgetViewHolder holder, int position) {
+        String pinkColor = "#FFCDD2";
         Budget budget = getItem(position);
         holder.nameText.setText(budget.getName());
         holder.amountText.setText(String.valueOf(budget.getAmount()));
@@ -79,8 +80,8 @@ public class BudgetAdapter extends ListAdapter<Budget, BudgetAdapter.BudgetViewH
                 holder.lastWeekBudgetText.setText("over budget.");
                 holder.lastWeekBudgetTitle.setVisibility(View.VISIBLE);
                 holder.lastWeekBudgetText.setVisibility(View.VISIBLE);
-                holder.lastWeekBudgetTitle.setBackgroundColor(Color.parseColor("#FFCDD2"));
-                holder.lastWeekBudgetText.setBackgroundColor(Color.parseColor("#FFCDD2"));
+                holder.lastWeekBudgetTitle.setBackgroundColor(Color.parseColor(pinkColor));
+                holder.lastWeekBudgetText.setBackgroundColor(Color.parseColor(pinkColor));
             } else {
                 holder.lastWeekBudgetText.setText("on track.");
                 holder.lastWeekBudgetTitle.setVisibility(View.VISIBLE);

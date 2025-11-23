@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public abstract class ExpenseWindowStrategy {
+    private static final String AMT_STRING = "amount";
 
     protected Query windowQuery(FirestoreManager fm, String uid) {
         return fm.expensesReference(uid);
@@ -22,16 +23,18 @@ public abstract class ExpenseWindowStrategy {
                 .addOnSuccessListener(qs -> {
                     Map<String, Double> totals = new HashMap<>();
                     for (DocumentSnapshot d : qs.getDocuments()) {
-                        Double amt = readDouble(d, "amount");
+                        Double amt = readDouble(d, AMT_STRING);
                         String cat = d.getString("category");
-                        if (amt == null || cat == null) continue;
+                        if (amt == null || cat == null) {
+                            continue;
+                        }
                         String k = cat.trim().toLowerCase(Locale.US);
                         Double prev = totals.get(k);
                         totals.put(k, (prev == null ? 0.0 : prev) + amt);
                     }
                     pie.render(totals);
                 })
-                .addOnFailureListener(e -> pie.render(new HashMap<String, Double>()));
+                .addOnFailureListener(e -> pie.render(new HashMap<>()));
     }
 
     public final void loadBar(FirestoreManager fm, String uid, BarChartController bar) {
@@ -40,8 +43,10 @@ public abstract class ExpenseWindowStrategy {
                 .addOnSuccessListener(expenseSnap -> {
                     double spent = 0.0;
                     for (DocumentSnapshot d : expenseSnap.getDocuments()) {
-                        Double amt = readDouble(d, "amount");
-                        if (amt != null) spent += amt;
+                        Double amt = readDouble(d, AMT_STRING);
+                        if (amt != null) {
+                            spent += amt;
+                        }
                     }
                     final double spentFinal = spent;
 
@@ -57,7 +62,9 @@ public abstract class ExpenseWindowStrategy {
                                             readDouble(b, "value"),
                                             readDouble(b, "budget")
                                     );
-                                    if (t != null) budgetSum += t;
+                                    if (t != null) {
+                                        budgetSum += t;
+                                    }
                                 }
                                 bar.render(budgetSum, spentFinal);
                             })
@@ -68,21 +75,38 @@ public abstract class ExpenseWindowStrategy {
 
     protected static Double readDouble(DocumentSnapshot d, String field) {
         Object o = d.get(field);
-        if (o == null) return null;
-        if (o instanceof Double) return (Double) o;
-        if (o instanceof Long)   return ((Long) o).doubleValue();
-        if (o instanceof Integer)return ((Integer) o).doubleValue();
-        if (o instanceof Float)  return ((Float) o).doubleValue();
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Double) {
+            return (Double) o;
+        }
+        if (o instanceof Long) {
+            return ((Long) o).doubleValue();
+        }
+        if (o instanceof Integer) {
+            return ((Integer) o).doubleValue();
+        }
+        if (o instanceof Float) {
+            return ((Float) o).doubleValue();
+        }
         if (o instanceof String) {
-            try { return Double.parseDouble((String) o); }
-            catch (NumberFormatException ignore) { return null; }
+            try {
+                return Double.parseDouble((String) o);
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
         }
         return null;
     }
 
     @SafeVarargs
     protected static <T> T coalesce(T... vals) {
-        for (T v : vals) if (v != null) return v;
+        for (T v : vals) {
+            if (v != null) {
+                return v;
+            }
+        }
         return null;
     }
 }

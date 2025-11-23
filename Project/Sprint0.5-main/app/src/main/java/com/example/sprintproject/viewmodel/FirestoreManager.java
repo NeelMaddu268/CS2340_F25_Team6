@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -44,32 +45,35 @@ public class FirestoreManager {
         return db;
     }
 
+    private static final String SAVINGS_CIRCLE_STRING = "savingsCircles";
+    private static final String USERS_STRING = "users";
+
     public CollectionReference savingsCircleReference(String uid) {
-        return db.collection("users").document(uid).collection("savingsCircles");
+        return db.collection(USERS_STRING).document(uid).collection(SAVINGS_CIRCLE_STRING);
     }
 
     public CollectionReference budgetsReference(String uid) {
-        return db.collection("users").document(uid).collection("budgets");
+        return db.collection(USERS_STRING).document(uid).collection("budgets");
     }
 
     public CollectionReference expensesReference(String uid) {
-        return db.collection("users").document(uid).collection("expenses");
+        return db.collection(USERS_STRING).document(uid).collection("expenses");
     }
 
     public CollectionReference categoriesReference(String uid) {
-        return db.collection("users").document(uid).collection("categories");
+        return db.collection(USERS_STRING).document(uid).collection("categories");
     }
 
     public CollectionReference savingsCirclesGlobalReference() {
-        return db.collection("savingsCircles");
+        return db.collection(SAVINGS_CIRCLE_STRING);
     }
 
     public DocumentReference savingsCircleDoc(String circleId) {
-        return db.collection("savingsCircles").document(circleId);
+        return db.collection(SAVINGS_CIRCLE_STRING).document(circleId);
     }
 
     public CollectionReference userSavingsCirclePointers(String uid) {
-        return db.collection("users").document(uid).collection("savingsCirclePointers");
+        return db.collection(USERS_STRING).document(uid).collection("savingsCirclePointers");
     }
 
     public CollectionReference invitationsReference() {
@@ -77,7 +81,7 @@ public class FirestoreManager {
     }
 
     public void addUser(String uid, Map<String, Object> userData) {
-        db.collection("users").document(uid).set(userData);
+        db.collection(USERS_STRING).document(uid).set(userData);
     }
 
     public Query invitationsForUser(String uid) {
@@ -102,8 +106,7 @@ public class FirestoreManager {
     }
 
     public Task<Void> deleteSavingsCircle(String circleId, String requesterUid) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference circleRef = db.collection("savingsCircles").document(circleId);
+        DocumentReference circleRef = db.collection(SAVINGS_CIRCLE_STRING).document(circleId);
 
         TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
 
@@ -135,7 +138,7 @@ public class FirestoreManager {
 
             for (String uid : allUids) {
                 fetches.add(
-                        db.collection("users")
+                        db.collection(USERS_STRING)
                                 .document(uid)
                                 .collection("savingsCirclePointers")
                                 .whereEqualTo("circleId", circleId)
@@ -181,5 +184,11 @@ public class FirestoreManager {
 
     public void addExpense(String uid, Expense expense) {
         expensesReference(uid).add(expense);
+    }
+
+    public void incrementField(String uid, String fieldName) {
+        db.collection("users")
+                .document(uid)
+                .update(fieldName, FieldValue.increment(1));
     }
 }

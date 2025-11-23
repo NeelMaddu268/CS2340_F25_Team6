@@ -40,17 +40,9 @@ import java.util.Locale;
 
 public class DashboardFragment extends Fragment {
 
-    private AuthenticationViewModel authenticationViewModel;
     private DateViewModel dateVM;
     private DashboardViewModel dashboardVM;
 
-    private ImageButton btnCalendar;
-    private TextView headerText;
-    private TextView totalSpentText;
-    private TextView totalRemainingText;
-    private Button logoutButton;
-    private RecyclerView budgetRecycler;
-    private DashboardBudgetAdapter budgetAdapter;
 
     private Charts charts;
 
@@ -67,13 +59,27 @@ public class DashboardFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
+
+        AuthenticationViewModel authenticationViewModel;
 
         authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
+        ImageButton btnCalendar;
+        ImageButton btnProfile;
+        TextView headerText;
+        TextView totalSpentText;
+        TextView totalRemainingText;
+        Button logoutButton;
+        RecyclerView budgetRecycler;
+        DashboardBudgetAdapter budgetAdapter;
+
         btnCalendar = view.findViewById(R.id.btnCalendar);
+        btnProfile = view.findViewById(R.id.btnProfile);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
         totalSpentText = view.findViewById(R.id.textTotalSpent);
@@ -119,6 +125,13 @@ public class DashboardFragment extends Fragment {
             btnCalendar.setOnClickListener(v -> openDatePicker());
         }
 
+        if (btnProfile != null) {
+            btnProfile.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                startActivity(intent);
+            });
+        }
+
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
                 authenticationViewModel.logout();
@@ -144,20 +157,22 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadChartsWithStrategy() {
-        if (charts == null) return;
+        if (charts == null) {
+            return;
+        }
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            charts.pie.render(new java.util.HashMap<>());
-            charts.bar.render(0.0, 0.0);
+            charts.getPie().render(new java.util.HashMap<>());
+            charts.getBar().render(0.0, 0.0);
             return;
         }
 
         String uid = auth.getCurrentUser().getUid();
         FirestoreManager fm = FirestoreManager.getInstance();
 
-        currentStrategy.loadPie(fm, uid, charts.pie);
-        currentStrategy.loadBar(fm, uid, charts.bar);
+        currentStrategy.loadPie(fm, uid, charts.getPie());
+        currentStrategy.loadBar(fm, uid, charts.getBar());
     }
 
     private void openDatePicker() {

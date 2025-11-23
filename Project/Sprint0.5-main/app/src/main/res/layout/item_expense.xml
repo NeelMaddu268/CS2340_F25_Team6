@@ -8,7 +8,7 @@
     android:padding="12dp"
     android:clickable="true"
     android:focusable="true"
-    android:background="#357DED">
+    android:background="?attr/colorPrimary">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
             android:layout_marginLeft="10dp"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/white" />
+            android:textColor="?attr/colorOnPrimary" />
 
         <TextView
             android:id="@+id/textExpenseAmount"
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:inputType="numberDecimal"
             android:textStyle="bold"
             android:textSize="20sp"
@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textStyle="bold"/>
 
         <TextView
@@ -63,7 +63,7 @@
             android:text="Expense Category"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"/>
+            android:textColor="?attr/colorOnPrimary"/>
 
     </LinearLayout>
 
@@ -79,7 +79,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textStyle="bold" />
 
         <TextView
@@ -87,7 +87,7 @@
             android:text="Expense Date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"/>
+            android:textColor="?attr/colorOnPrimary"/>
 
     </LinearLayout>
 
@@ -103,7 +103,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textStyle="bold"/>
 
         <TextView
@@ -111,7 +111,7 @@
             android:text="Expense Notes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"/>
+            android:textColor="?attr/colorOnPrimary"/>
 
     </LinearLayout>
 
