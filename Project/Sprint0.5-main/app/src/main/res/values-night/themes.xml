@@ -1,7 +1,19 @@
+<!--<resources xmlns:tools="http://schemas.android.com/tools">-->
+<!--    <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">-->
+<!--        <color name="Primary">#0F172A</color>-->
+<!--        <color name="Accent">#CBD5E1</color>-->
+<!--    </style>-->
+<!--</resources>-->
+
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/Primary</item>
+        <item name="colorOnPrimary">@color/Accent</item>
+
+        <item name="colorSecondary">@color/Accent</item>
+        <item name="colorOnSecondary">@color/Primary</item>
+
+        <item name="android:statusBarColor">@color/Primary</item>
+        <item name="android:navigationBarColor">@color/Primary</item>
     </style>
 </resources>

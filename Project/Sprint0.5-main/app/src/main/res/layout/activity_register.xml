@@ -39,7 +39,7 @@
             android:src="@drawable/animated_logo"
             tools:ignore="VectorPath,ContentDescription"
             tools:src="@drawable/animated_logo"
-            tools:tint="#357DED" />
+            tools:tint="?attr/colorPrimary" />
 
         <!-- Title -->
         <TextView
@@ -120,7 +120,7 @@
             android:text="@string/create_account"
             android:textSize="20sp"
             android:fontFamily="@font/montserrat_regular"
-            android:backgroundTint="#357DED"
+            android:backgroundTint="?attr/colorPrimary"
             android:contentDescription="@string/create_account"
             android:importantForAccessibility="yes"
             android:enabled="true"
@@ -135,7 +135,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:padding="8dp"
-            android:textColor="@color/red"
+            android:textColor="#fc0303"
             android:fontFamily="@font/montserrat_regular"
             android:textSize="20sp"
             android:visibility="gone"
@@ -173,7 +173,7 @@
             android:text="@string/Login_Text"
             android:textSize="20sp"
             android:fontFamily="@font/montserrat_regular"
-            android:backgroundTint="#357DED"
+            android:backgroundTint="?attr/colorPrimary"
             android:contentDescription="@string/Login_Text"
             android:importantForAccessibility="yes"
             android:enabled="true"

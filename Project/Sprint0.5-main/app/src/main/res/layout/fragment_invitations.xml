@@ -9,7 +9,7 @@
     tools:context=".view.InvitationsFragment"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#357DED">
+    android:background="?attr/colorPrimary">
 
     <TextView
         android:id="@+id/invitationsTitle"
@@ -21,7 +21,7 @@
         android:gravity="center"
         android:layout_marginTop="24dp"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -39,7 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="No Pending Invites"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:gravity="center"
             android:textSize="18sp"
             android:fontFamily="@font/montserrat_regular"
