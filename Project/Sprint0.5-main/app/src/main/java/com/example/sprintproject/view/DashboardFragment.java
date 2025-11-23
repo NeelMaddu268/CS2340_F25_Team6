@@ -70,6 +70,7 @@ public class DashboardFragment extends Fragment {
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
         ImageButton btnCalendar;
+        ImageButton btnProfile;
         TextView headerText;
         TextView totalSpentText;
         TextView totalRemainingText;
@@ -78,6 +79,7 @@ public class DashboardFragment extends Fragment {
         DashboardBudgetAdapter budgetAdapter;
 
         btnCalendar = view.findViewById(R.id.btnCalendar);
+        btnProfile = view.findViewById(R.id.btnProfile);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
         totalSpentText = view.findViewById(R.id.textTotalSpent);
@@ -121,6 +123,13 @@ public class DashboardFragment extends Fragment {
 
         if (btnCalendar != null) {
             btnCalendar.setOnClickListener(v -> openDatePicker());
+        }
+
+        if (btnProfile != null) {
+            btnProfile.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                startActivity(intent);
+            });
         }
 
         if (logoutButton != null) {

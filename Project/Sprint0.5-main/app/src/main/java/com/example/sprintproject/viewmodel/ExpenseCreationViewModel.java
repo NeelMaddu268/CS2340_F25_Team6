@@ -181,6 +181,7 @@ public class ExpenseCreationViewModel extends ViewModel {
         FirestoreManager.getInstance().expensesReference(uid)
                 .add(expense)
                 .addOnSuccessListener(docRef -> {
+                    FirestoreManager.getInstance().incrementField(uid, "totalExpenses");
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
