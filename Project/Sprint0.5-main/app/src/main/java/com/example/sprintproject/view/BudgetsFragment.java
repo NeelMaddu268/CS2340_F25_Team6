@@ -45,7 +45,6 @@ public class BudgetsFragment extends Fragment {
 
     private Button addBudget;
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
-    private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private DateViewModel dateVM;
     private BudgetAdapter budgetAdapter;
     private SavingsCircleAdapter savingsCircleAdapter;
@@ -90,7 +89,7 @@ public class BudgetsFragment extends Fragment {
         );
 
         setupSavingsCircleRecyclerView(view);
-        savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
+        SavingsCircleFragmentViewModel savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
         savingsCircleFragmentViewModel.loadSavingsCircle();
         savingsCircleFragmentViewModel.getSavingsCircle().observe(
@@ -165,7 +164,7 @@ public class BudgetsFragment extends Fragment {
 
         savingsCircleRecyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
         savingsCircleRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
+        SavingsCircleFragmentViewModel savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
         savingsCircleAdapter = new SavingsCircleAdapter(savings -> {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
