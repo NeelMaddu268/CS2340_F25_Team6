@@ -113,7 +113,7 @@
         android:layout_height="wrap_content"
         android:padding="8dp"
         android:gravity="center"
-        android:textColor="@color/red"
+        android:textColor="#fc0303"
         android:textSize="20sp"
         android:fontFamily="@font/montserrat_regular"
         android:visibility="gone"

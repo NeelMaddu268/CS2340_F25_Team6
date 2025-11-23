@@ -351,7 +351,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
 
         statusLineTextView.setText("Calculating goal status…");
-        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.white));
+        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
         statusLineTextView.setVisibility(View.VISIBLE);
 
         // 1) Rebuild contributions list

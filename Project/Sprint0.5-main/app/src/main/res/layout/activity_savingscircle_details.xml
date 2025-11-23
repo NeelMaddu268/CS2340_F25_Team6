@@ -226,7 +226,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:paddingTop="2dp"
             android:paddingBottom="8dp"
             android:visibility="visible"/>
