@@ -1,20 +1,31 @@
+<!--<resources xmlns:tools="http://schemas.android.com/tools">-->
+<!--    <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">-->
+<!--&lt;!&ndash;        <item name="colorPrimary">@color/colorPrimary</item>&ndash;&gt;-->
+<!--&lt;!&ndash;        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>&ndash;&gt;-->
+<!--&lt;!&ndash;        <item name="colorAccent">@color/colorAccent</item>&ndash;&gt;-->
+<!--        <color name="Primary">#357DED</color>-->
+<!--        <color name="Accent">@color/white</color>-->
+<!--    </style>-->
+
+<!--    <style name="Theme.SprintProject" parent="Base.Theme.SprintProject" />-->
+
+<!--    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">-->
+<!--        <item name="windowSplashScreenAnimatedIcon">@drawable/animated_logo</item>-->
+<!--        <item name="windowSplashScreenBackground">@color/white</item>-->
+<!--        <item name="windowSplashScreenAnimationDuration">1000</item>-->
+<!--        <item name="postSplashScreenTheme">@style/Base.Theme.SprintProject</item>-->
+<!--    </style>-->
+
+<!--</resources>-->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="Theme.SprintProject" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/Primary</item>
+        <item name="colorOnPrimary">@color/Accent</item>
+
+        <item name="colorSecondary">@color/Accent</item>
+        <item name="colorOnSecondary">@color/Primary</item>
+
+        <item name="android:statusBarColor">@color/Primary</item>
+        <item name="android:navigationBarColor">@color/Primary</item>
     </style>
-
-    <style name="Theme.SprintProject" parent="Base.Theme.SprintProject" />
-
-    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenAnimatedIcon">@drawable/animated_logo</item>
-        <item name="windowSplashScreenBackground">@color/white</item>
-        <item name="windowSplashScreenAnimationDuration">1000</item>
-        <item name="postSplashScreenTheme">@style/Base.Theme.SprintProject</item>
-    </style>
-
 </resources>

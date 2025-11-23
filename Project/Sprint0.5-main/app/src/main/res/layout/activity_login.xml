@@ -18,7 +18,7 @@
             app:layout_constraintBottom_toTopOf="@id/appName"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:tint="#357DED" />
+            app:tint="?attr/colorPrimary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,7 +28,7 @@
             android:gravity="center"
             android:padding="16dp"
             android:text="@string/login"
-            android:textColor="#357DED"
+            android:textColor="?attr/colorPrimary"
             android:textSize="26sp"
             android:textStyle="bold" />
 
@@ -63,7 +63,7 @@
             android:gravity="center"
             android:padding="8dp"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="@color/red"
+            android:textColor="#fc0303"
             android:textSize="20sp"
             android:visibility="gone" />
 
@@ -76,7 +76,7 @@
             android:text="Log In"
             android:textSize="20sp"
             android:layout_marginHorizontal="20dp"
-            android:backgroundTint="#357DED"
+            android:backgroundTint="?attr/colorPrimary"
             />
 
         <TextView
@@ -98,6 +98,6 @@
             android:text="@string/create_an_account"
             android:textSize="20sp"
             android:layout_marginHorizontal="20dp"
-            android:backgroundTint="#357DED"
+            android:backgroundTint="?attr/colorPrimary"
             />
 </LinearLayout>

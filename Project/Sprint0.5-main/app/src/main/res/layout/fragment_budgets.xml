@@ -22,7 +22,7 @@
         android:textSize="30sp"
         android:textStyle="bold"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/budgetsRecyclerView"
@@ -43,7 +43,7 @@
         android:textSize="30sp"
         android:textStyle="bold"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
 
     <androidx.recyclerview.widget.RecyclerView
@@ -61,7 +61,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="30dp"
         android:text="@string/add_budget"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="?attr/colorOnPrimary"
         android:fontFamily="@font/montserrat_regular"
         android:textColor="#357DED"
         app:layout_constraintTop_toBottomOf="@id/budgetsTitle" />

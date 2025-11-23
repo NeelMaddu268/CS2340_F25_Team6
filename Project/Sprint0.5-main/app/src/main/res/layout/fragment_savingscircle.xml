@@ -9,7 +9,7 @@
     tools:context=".view.SavingsCircleFragment"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#357DED">
+    android:background="?attr/colorPrimary">
 
 
     <TextView
@@ -23,7 +23,7 @@
         android:padding="12dp"
         android:layout_marginTop="24dp"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/savingsCircleRecyclerView"
@@ -38,8 +38,8 @@
         android:layout_height="wrap_content"
         android:text="Add New Group"
         android:layout_marginHorizontal="24sp"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="?attr/colorOnPrimary"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="#357DED"
+        android:textColor="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/savings_circle_text" />
 </LinearLayout>
