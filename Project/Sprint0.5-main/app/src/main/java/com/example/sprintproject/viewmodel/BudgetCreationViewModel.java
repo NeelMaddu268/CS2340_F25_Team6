@@ -131,6 +131,8 @@ public class BudgetCreationViewModel extends ViewModel {
                             .addOnSuccessListener(budgetRef -> {
                                 String budgetId = budgetRef.getId();
 
+                                FirestoreManager.getInstance().incrementField(uid, "totalBudgets");
+
                                 if (budgetData.getCategoryId() != null) {
                                     FirestoreManager.getInstance()
                                             .categoriesReference(uid)

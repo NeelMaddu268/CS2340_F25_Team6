@@ -30,6 +30,7 @@
         <activity android:name=".view.BudgetDetailsActivity" android:exported="false" />
         <activity android:name=".view.ExpenseDetailsActivity" android:exported="false" />
         <activity android:name=".view.SavingsCircleDetailsActivity" />
+        <activity android:name=".view.ProfileActivity" />
 
         
     </application>

@@ -24,12 +24,11 @@
     <item
         android:id="@+id/Chatbot"
         android:title="@string/chatbot"
-        android:icon="@drawable/baseline_person_24" />
+        android:icon="@drawable/baseline_chat_bubble_24" />
 
     <item
         android:id="@+id/Invites"
         android:title="Invites"
         android:icon="@drawable/baseline_mail_outline_24"/>
-
 
 </menu>
