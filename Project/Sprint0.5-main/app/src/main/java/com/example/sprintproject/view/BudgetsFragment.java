@@ -30,6 +30,7 @@ import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.BudgetCreationViewModel;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
+import com.example.sprintproject.viewmodel.NotificationQueueManager;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
 
@@ -82,7 +83,10 @@ public class BudgetsFragment extends Fragment {
 
         budgetsFragmentViewModel.getBudgets().observe(
                 getViewLifecycleOwner(),
-                list -> budgetAdapter.submitList(list == null ? null : new ArrayList<>(list))
+                list -> {
+                    budgetAdapter.submitList(list == null ? null : new ArrayList<>(list));
+                    NotificationQueueManager.getInstance().checkForBudgetWarning(list);
+                }
         );
 
         setupSavingsCircleRecyclerView(view);

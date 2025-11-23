@@ -4,8 +4,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.NotificationData;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.PriorityQueue;
 
 /**
@@ -18,6 +21,8 @@ public class NotificationQueueManager {
     private final PriorityQueue<NotificationData> reminderQueue = new PriorityQueue<>(
             (r1, r2) -> Integer.compare(r2.getPriority(), r1.getPriority())
     );
+
+    private final HashMap<String, Integer> budgetWarningContainer = new HashMap<>();
 
     private final MutableLiveData<NotificationData> currentReminder = new MutableLiveData<>();
 
@@ -88,4 +93,41 @@ public class NotificationQueueManager {
             }
         });
     }
+
+    private boolean repeatedWarnings(String budgetId, int capacityUsed) {
+        if (!budgetWarningContainer.containsKey(budgetId)) {
+            return false;
+        }
+        return budgetWarningContainer.get(budgetId) >= capacityUsed;
+    }
+
+    private void alreadyWarned(String budgetId, int capacityUsed) {
+        budgetWarningContainer.put(budgetId, capacityUsed);
+    }
+
+    public void checkForBudgetWarning(List<Budget> budgets) {
+        if (budgets == null || budgets.isEmpty()) {
+            return;
+        }
+        for (Budget budget : budgets) {
+            if (budget == null) {
+                continue;
+            }
+            double total = budget.getAmount();
+            double spent = budget.getSpentToDate();
+            if (total <= 0) {
+                continue;
+            }
+            int capacityUsed = (int) (spent / total * 100);
+            if (capacityUsed >= 80 && capacityUsed < 100) {
+                if (repeatedWarnings(budget.getId(), capacityUsed)) {
+                    continue;
+                }
+                NotificationData warning = NotificationData.createAlmostBudgetFullReminder(budget.getName(), capacityUsed);
+                submitReminder(warning);
+                alreadyWarned(budget.getId(), capacityUsed);
+            }
+        }
+    }
+
 }
