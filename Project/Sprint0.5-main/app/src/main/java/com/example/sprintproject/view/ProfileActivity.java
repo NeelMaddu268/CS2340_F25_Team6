@@ -11,6 +11,8 @@ import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ProfileActivity extends AppCompatActivity {
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
@@ -20,29 +22,40 @@ public class ProfileActivity extends AppCompatActivity {
         TextView totalBudgets = findViewById(R.id.totalBudgets);
 
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userEmail.setText("Email: " + FirebaseAuth.getInstance().getCurrentUser().getEmail());
+            userEmail.setText("Email: " +
+                    FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
-            String uid = FirestoreManager.getInstance().getCurrentUserId();
-
-            if (uid != null) {
-                FirestoreManager.getInstance().getDb()
-                        .collection("users")
-                        .document(uid)
-                        .get()
-                        .addOnSuccessListener(document -> {
-                            if (document.exists()) {
-                                long expenses = document.getLong("totalExpenses") != null
-                                        ? document.getLong("totalExpenses") : 0;
-                                long budgets = document.getLong("totalBudgets") != null
-                                        ? document.getLong("totalBudgets") : 0;
-
-                                totalExpenses.setText("Expenses: " + expenses);
-                                totalBudgets.setText("Budgets: " + budgets);
-                            }
-                        });
-            }
+            loadUserTotals(totalExpenses, totalBudgets);
         }
+
         ImageButton backBtn = findViewById(R.id.btnBack);
         backBtn.setOnClickListener(v -> finish());
     }
+
+    // Extracted to reduce Cognitive Complexity in onCreate()
+    private void loadUserTotals(TextView totalExpenses, TextView totalBudgets) {
+        String uid = FirestoreManager.getInstance().getCurrentUserId();
+        if (uid == null) {
+            return;
+        }
+
+        FirestoreManager.getInstance().getDb()
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(document -> {
+                    if (!document.exists()) {
+                        return;
+                    }
+
+                    long expenses = document.getLong("totalExpenses") != null
+                            ? document.getLong("totalExpenses") : 0;
+                    long budgets = document.getLong("totalBudgets") != null
+                            ? document.getLong("totalBudgets") : 0;
+
+                    totalExpenses.setText("Expenses: " + expenses);
+                    totalBudgets.setText("Budgets: " + budgets);
+                });
+    }
 }
+
