@@ -34,7 +34,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     private TextView statusLineTextView;
     private TextView groupEndingTextView;
     private TextView groupJoinedTextView;
-    private TextView groupChallengeGoalTextView;
 
     private EditText inviteEmailInput;
     private Button inviteButton;
@@ -139,7 +138,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     private void wireViews() {
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
         TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
-        groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
+        TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
         TextView groupCreationTextView = findViewById(R.id.groupCreationTextView);

@@ -44,7 +44,6 @@ public class BudgetsFragment extends Fragment {
 
     private Button addBudget;
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
-    private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private DateViewModel dateVM;
 
     public BudgetsFragment() {
@@ -88,8 +87,8 @@ public class BudgetsFragment extends Fragment {
                     NotificationQueueManager.getInstance().checkForBudgetWarning(list);
                 }
         );
-
-        savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
+        // local variable now
+        SavingsCircleFragmentViewModel savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
         savingsCircleFragmentViewModel.loadSavingsCircle();
         savingsCircleFragmentViewModel.getSavingsCircle().observe(
