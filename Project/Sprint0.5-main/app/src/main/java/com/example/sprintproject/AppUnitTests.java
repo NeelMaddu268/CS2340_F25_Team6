@@ -260,6 +260,9 @@ public class AppUnitTests {
     }
 
     public static class BudgetCalculator {
+        private BudgetCalculator() {
+            throw new UnsupportedOperationException("Utility class");
+        }
         public static double computeSurplus(double total, double spent) {
             return total - spent;
         }
@@ -386,6 +389,9 @@ public class AppUnitTests {
     }
 
     public static class AuthValidator {
+        private AuthValidator() {
+            throw new UnsupportedOperationException("Utility class");
+        }
         public static boolean isValidInput(String email, String password) {
             if (email == null || password == null) {
                 return false;
@@ -401,6 +407,9 @@ public class AppUnitTests {
     }
 
     public static class ExpenseValidator {
+        private ExpenseValidator() {
+            throw new UnsupportedOperationException("Utility class");
+        }
         public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
             if (expenseDate == null || currentDate == null) {
                 return false;
@@ -410,21 +419,16 @@ public class AppUnitTests {
     }
 
     public static class SavingsCircleValidator {
+        private SavingsCircleValidator() {
+            throw new UnsupportedOperationException("Utility class");
+        }
         public static boolean isValidInput(String groupName, String challengeTitle,
                                            double goalAmount, String frequency) {
-            if (groupName == null || groupName.trim().isEmpty()) {
-                return false;
-            }
-            if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
-                return false;
-            }
-            if (goalAmount < 0) {
-                return false;
-            }
-            if (frequency == null || !frequency.equals("weekly") && !frequency.equals(MONTHLY)) {
-                return false;
-            }
-            return true;
+            return groupName != null && !groupName.trim().isEmpty()
+                    && challengeTitle != null && !challengeTitle.trim().isEmpty()
+                    && goalAmount >= 0
+                    && frequency != null
+                    && (frequency.equals("weekly") || frequency.equals(MONTHLY));
         }
     }
 }
