@@ -1,20 +1,23 @@
 package com.example.sprintproject.view;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ListAdapter;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.SavingsCircle;
-import androidx.recyclerview.widget.ListAdapter;
 
 public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
         SavingsCircleAdapter.SavingsCircleViewHolder> {
+
     private final OnSavingsCircleClickListener onSavingsCircleClickListener;
 
     private static final DiffUtil.ItemCallback<SavingsCircle> SAVINGS_CIRCLE_DIFF_CALLBACK =
@@ -25,11 +28,12 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
                     return oldItem.getName().equals(newItem.getName());
                 }
 
+                @Override
                 public boolean areContentsTheSame(
                         @NonNull SavingsCircle oldItem, @NonNull SavingsCircle newItem) {
                     return oldItem.getName().equals(newItem.getName())
                             && oldItem.getTitle().equals(newItem.getTitle())
-                            && oldItem.getGoal() == (newItem.getGoal())
+                            && oldItem.getGoal() == newItem.getGoal()
                             && oldItem.getFrequency().equals(newItem.getFrequency())
                             && ((oldItem.getNotes() == null && newItem.getNotes() == null)
                             || (oldItem.getNotes() != null
@@ -53,29 +57,47 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
     @Override
     public void onBindViewHolder(@NonNull SavingsCircleViewHolder holder, int position) {
         SavingsCircle circle = getItem(position);
+
+        // Text fields
         holder.groupName.setText(circle.getName());
         holder.groupTitle.setText(circle.getTitle());
-        holder.groupGoal.setText("Goal: $" + circle.getGoal());
-        holder.groupContribution.setText("Group Contribution: $" + circle.getSpent());
+        holder.groupGoal.setText("$" + circle.getGoal());
         holder.groupFrequency.setText(circle.getFrequency());
 
+        // Background color based on group goal status
+        int color = getGroupStatusColor(circle, holder.itemView.getContext());
+        holder.itemView.setBackgroundColor(color);
+
+        // Click handler
         holder.itemView.setOnClickListener(v ->
                 onSavingsCircleClickListener.onSavingsCircleClick(circle));
     }
 
-    static class SavingsCircleViewHolder extends RecyclerView.ViewHolder {
-        private TextView groupName;
-        private TextView groupTitle;
-        private TextView groupGoal;
-        private TextView groupContribution;
-        private TextView groupFrequency;
+    /** Decide row color from goal/completed flags set in the ViewModel. */
+    private int getGroupStatusColor(SavingsCircle circle, Context ctx) {
+        if (circle.isGoalMet()) {
+            // Group goal met (after end date)
+            return ContextCompat.getColor(ctx, R.color.green);
+        } else if (circle.isCompleted()) {
+            // End date passed, group goal NOT met
+            return ContextCompat.getColor(ctx, R.color.red);
+        } else {
+            // Still within the time window (in progress)
+            return ContextCompat.getColor(ctx, R.color.blue);
+        }
+    }
 
-        public SavingsCircleViewHolder(View itemView) {
+    static class SavingsCircleViewHolder extends RecyclerView.ViewHolder {
+        private final TextView groupName;
+        private final TextView groupTitle;
+        private final TextView groupGoal;
+        private final TextView groupFrequency;
+
+        public SavingsCircleViewHolder(@NonNull View itemView) {
             super(itemView);
             groupName = itemView.findViewById(R.id.textGroupName);
             groupTitle = itemView.findViewById(R.id.textGroupTitle);
             groupGoal = itemView.findViewById(R.id.textGroupGoal);
-            groupContribution = itemView.findViewById(R.id.textGroupContribution);
             groupFrequency = itemView.findViewById(R.id.textGroupFrequency);
         }
     }
@@ -84,3 +106,4 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
         void onSavingsCircleClick(SavingsCircle savingsCircle);
     }
 }
+

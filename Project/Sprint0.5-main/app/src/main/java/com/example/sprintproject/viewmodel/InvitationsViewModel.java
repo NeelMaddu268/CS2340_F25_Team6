@@ -66,7 +66,6 @@ public class InvitationsViewModel extends ViewModel {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         if (inviteId == null || inviteId.trim().isEmpty()) {
-            System.err.println("[respondToInvite] No inviteId provided");
             return;
         }
 
@@ -74,16 +73,12 @@ public class InvitationsViewModel extends ViewModel {
 
         ref.update("status", accept ? "accepted" : "declined")
                 .addOnSuccessListener(aVoid -> {
-                    System.out.println("[respondToInvite] Invite " + inviteId
-                            + " marked as " + (accept ? "accepted" : "declined"));
-
                     if (!accept) {
                         return;
                     }
 
                     ref.get().addOnSuccessListener(doc -> {
                         if (!doc.exists()) {
-                            System.err.println("[respondToInvite] Invite doc not found!");
                             return;
                         }
 
@@ -92,20 +87,13 @@ public class InvitationsViewModel extends ViewModel {
                         String circleName = doc.getString("circleName");
 
                         if (circleId == null || toUid == null) {
-                            System.err.println(
-                                    "[respondToInvite] Missing circleId or toUid in invite doc");
                             return;
                         }
 
                         String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         if (!currentUid.equals(toUid)) {
-                            System.err.println("[respondToInvite] Auth user doesn't"
-                                    + " match invite target (rejecting unauthorized join)");
                             return;
                         }
-
-                        System.out.println("[respondToInvite] Adding user "
-                                + currentUid + " to circle " + circleId);
 
                         db.collection("savingsCircles")
                                 .document(circleId)
@@ -118,18 +106,8 @@ public class InvitationsViewModel extends ViewModel {
                                             .document(circleId)
                                             .update("datesJoined." + currentUid, joinDate.toIso(),
                                                     "memberEmails",
-                                                    FieldValue.arrayUnion(doc.getString("toEmail")))
-                                            .addOnSuccessListener(aVoid3 ->
-                                                    System.out.println("[respondToInvite] "
-                                                           + "datesJoined added successfully")
-                                            )
-                                            .addOnFailureListener(e ->
-                                                    System.err.println("[respondToInvite] Failed "
-                                                            + "to add datesJoined: "
-                                                            + e.getMessage())
-                                        );
-                                    System.out.println("[respondToInvite] User"
-                                            + " added to circle successfully");
+                                                    FieldValue.arrayUnion(
+                                                            doc.getString("toEmail")));
 
                                     Map<String, Object> pointer = new HashMap<>();
                                     pointer.put("circleId", circleId);
@@ -137,28 +115,9 @@ public class InvitationsViewModel extends ViewModel {
 
                                     FirestoreManager.getInstance()
                                             .userSavingsCirclePointers(currentUid)
-                                            .add(pointer)
-                                            .addOnSuccessListener(r ->
-                                                    System.out.println("[respondToInvite] Added"
-                                                            + " circle pointer for user"))
-                                            .addOnFailureListener(e ->
-                                                    System.err.println("[respondToInvite] Failed "
-                                                            + "to add pointer: "
-                                                            + e.getMessage()));
-                                })
-                                .addOnFailureListener(e ->
-                                        System.err.println("[respondToInvite] Failed to"
-                                                + " add user to circle: " + e.getMessage())
-                            );
-
-                    }).addOnFailureListener(e ->
-                            System.err.println("[respondToInvite] Failed to fetch invite doc: "
-                                    + e.getMessage())
-                    );
-                })
-                .addOnFailureListener(e ->
-                        System.err.println("[respondToInvite] Failed to update invite status: "
-                                + e.getMessage())
-            );
+                                            .add(pointer);
+                                });
+                    });
+                });
     }
 }

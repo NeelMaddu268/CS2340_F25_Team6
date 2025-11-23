@@ -39,9 +39,9 @@ public class Expense {
     private long parseDateToMillis(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         try {
-            Date date = sdf.parse(dateString);
-            if (date != null) {
-                return date.getTime();
+            Date parseDate = sdf.parse(dateString);
+            if (parseDate != null) {
+                return parseDate.getTime();
             }
         } catch (Exception e) {
             e.printStackTrace();

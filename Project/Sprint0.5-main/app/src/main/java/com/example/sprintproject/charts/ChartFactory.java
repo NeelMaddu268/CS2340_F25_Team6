@@ -8,6 +8,10 @@ import com.github.mikephil.charting.charts.PieChart;
 
 public class ChartFactory {
 
+    private ChartFactory() {
+        throw new IllegalStateException("Chart Factory");
+    }
+
     public static Charts attach(View root) {
         PieChart pie = root.findViewById(R.id.pieChart);
         BarChart bar = root.findViewById(R.id.barChartTotals);

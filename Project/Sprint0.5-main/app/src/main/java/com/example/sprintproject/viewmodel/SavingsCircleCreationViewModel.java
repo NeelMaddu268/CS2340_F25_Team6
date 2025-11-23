@@ -7,22 +7,14 @@ import androidx.lifecycle.ViewModel;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.SavingsCircle;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
 public class SavingsCircleCreationViewModel extends ViewModel {
     private final MutableLiveData<String> text = new MutableLiveData<>();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final MutableLiveData<List<String>> categoriesLiveData =
-            new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<String>> frequenciesLiveData =
-            new MutableLiveData<>(new ArrayList<>());
 
     public SavingsCircleCreationViewModel() {
         // Just sets a sample value (not used for logic)
@@ -68,8 +60,6 @@ public class SavingsCircleCreationViewModel extends ViewModel {
                 .add(circle)
                 .addOnSuccessListener(docRef -> {
                     String circleId = docRef.getId();
-                    System.out.println("[createSavingsCircle] Added global circle: "
-                            + circleId);
 
                     Map<String, Object> pointerData = new HashMap<>();
                     pointerData.put("circleId", circleId);
@@ -79,22 +69,8 @@ public class SavingsCircleCreationViewModel extends ViewModel {
 
                     FirestoreManager.getInstance()
                             .userSavingsCirclePointers(uid)
-                            .add(pointerData)
-                            .addOnSuccessListener(ref ->
-                                System.out.println(
-                                        "[createUserSavingsCircle] Pointer added for user"))
-                            .addOnFailureListener(e -> {
-                                System.out.println(
-                                        "[createUserSavingsCircle] Failed to add pointer: "
-                                    + e.getMessage());
-                                e.printStackTrace();
-                            });
+                            .add(pointerData);
 
-                })
-                .addOnFailureListener(e -> {
-                    System.out.println("[createSavingsCircle] Failed to create circle: "
-                            + e.getMessage());
-                    e.printStackTrace();
                 });
     }
 

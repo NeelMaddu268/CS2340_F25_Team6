@@ -10,7 +10,6 @@ import com.example.sprintproject.model.Expense;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -30,7 +29,6 @@ public class ExpensesFragmentViewModel extends ViewModel {
     private final MutableLiveData<List<Expense>> expensesLiveData =
             new MutableLiveData<>(new ArrayList<>());
 
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration activeListener;
 
     public LiveData<List<Expense>> getExpenses() {
@@ -121,7 +119,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
                                 fallback = (String) val;
                             }
                         } catch (Exception ignored) {
-
+                            //ignore
                         }
 
                         YMD when = extractYMD(raw, fallback);
@@ -207,7 +205,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     return fromDate(d);
                 }
             } catch (ParseException ignored) {
-
+                //ignore
             }
         }
 
@@ -225,7 +223,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
                 }
             } catch (ParseException ignored) {
-
+                //ignore
             }
         }
 
@@ -239,7 +237,7 @@ public class ExpensesFragmentViewModel extends ViewModel {
                     return new YMD(y, m, 1);
                 }
             } catch (NumberFormatException ignored) {
-
+                //ignore
             }
         }
         return null;
