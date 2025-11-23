@@ -8,11 +8,28 @@ public class ExpenseRepository {
 
     private static final String TIMESTAMP_FIELD = "timestamp";
 
-    public interface LastLogCallback {
-        /**
-         * @param lastLogMillis The timestamp of the last logged expense, or 0 if none found.
-         */
-        void onLastLogDateRetrieved(long lastLogMillis);
+    /**
+     * Calculates the number of full days between two timestamps.
+     * @param dateMillis The older timestamp
+     * @param todayMillis The newer timestamp
+     * @return the day diff.
+     */
+    public static int calculateDaysSince(long dateMillis, long todayMillis) {
+        if (dateMillis == 0) {
+            return -1;
+        }
+
+        long oneDayMillis = TimeUnit.DAYS.toMillis(1);
+        long startOfDayDate = (dateMillis / oneDayMillis) * oneDayMillis;
+        long startOfDayToday = (todayMillis / oneDayMillis) * oneDayMillis;
+
+        if (startOfDayToday <= startOfDayDate) {
+            return 0;
+        }
+
+        long diff = startOfDayToday - startOfDayDate;
+        // divide to get how many days
+        return (int) (diff / oneDayMillis);
     }
 
     /**
@@ -46,27 +63,10 @@ public class ExpenseRepository {
                 .addOnFailureListener(e -> callback.onLastLogDateRetrieved(0));
     }
 
-    /**
-     * Calculates the number of full days between two timestamps.
-     * @param dateMillis The older timestamp
-     * @param todayMillis The newer timestamp
-     * @return the day diff.
-     */
-    public static int calculateDaysSince(long dateMillis, long todayMillis) {
-        if (dateMillis == 0) {
-            return -1;
-        }
-
-        long oneDayMillis = TimeUnit.DAYS.toMillis(1);
-        long startOfDayDate = (dateMillis / oneDayMillis) * oneDayMillis;
-        long startOfDayToday = (todayMillis / oneDayMillis) * oneDayMillis;
-
-        if (startOfDayToday <= startOfDayDate) {
-            return 0;
-        }
-
-        long diff = startOfDayToday - startOfDayDate;
-        // divide to get how many days
-        return (int) (diff / oneDayMillis);
+    public interface LastLogCallback {
+        /**
+         * @param lastLogMillis The timestamp of the last logged expense, or 0 if none found.
+         */
+        void onLastLogDateRetrieved(long lastLogMillis);
     }
 }

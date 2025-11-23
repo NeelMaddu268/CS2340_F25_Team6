@@ -173,7 +173,8 @@ public class ExpenseCreationViewModel extends ViewModel {
         }
 
         long timestamp = parseDateToMillis(data.getDate());
-        Expense expense = new Expense(data.getName(), amount, normalizedCategory, data.getDate(), data.getNotes());
+        Expense expense = new Expense(data.getName(), amount, normalizedCategory,
+                data.getDate(), data.getNotes());
         expense.setTimestamp(timestamp);
         expense.setContributesToGroupSavings(data.getContributesToGroupSavings());
 
