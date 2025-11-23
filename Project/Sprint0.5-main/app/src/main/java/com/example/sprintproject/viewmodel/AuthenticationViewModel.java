@@ -57,7 +57,6 @@ public class AuthenticationViewModel extends ViewModel {
                     FirebaseUser firebaseUser = task.getResult().getUser();
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
-                    //createUserInFirestore(firebaseUser);
                 } else {
                     Exception e = task.getException();
                     if (e != null) {
