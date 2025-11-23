@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:background="#357DED"
+    android:background="?attr/colorPrimary"
     android:orientation="vertical">
 
     <TextView
@@ -17,7 +17,7 @@
         android:gravity="center"
         android:padding="5dp"
         android:text="Savings Circle"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="30sp"
         android:textStyle="bold"/>
 
@@ -29,7 +29,7 @@
         android:paddingRight="24dp"
         android:text="Group Name"
         android:textSize="20dp"
-        android:textColor="@color/white" />
+        android:textColor="?attr/colorOnPrimary" />
 
     <EditText
         android:id="@+id/GroupName"
@@ -40,7 +40,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
-        android:background="@color/white"
+        android:background="?attr/colorOnPrimary"
         android:inputType="textMultiLine" />
 
     <TextView
@@ -52,7 +52,7 @@
         android:paddingTop="5dp"
         android:textSize="20dp"
         android:text="Saving Challenge Title"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <EditText
         android:id="@+id/GroupChallengeTitle"
@@ -64,7 +64,7 @@
         android:inputType="textMultiLine"
         android:padding="10dp"
         android:textSize="20dp"
-        android:background="@color/white"/>
+        android:background="?attr/colorOnPrimary"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -75,7 +75,7 @@
         android:paddingTop="5dp"
         android:textSize="20dp"
         android:text="Saving Challenge Goal"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <EditText
         android:id="@+id/GroupChallengeGoal"
@@ -86,7 +86,7 @@
         android:layout_marginLeft="24dp"
         android:inputType="numberDecimal"
         android:padding="10dp"
-        android:background="@color/white"/>
+        android:background="?attr/colorOnPrimary"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -97,7 +97,7 @@
         android:paddingTop="5dp"
         android:textSize="20dp"
         android:text="Frequency"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <Spinner
         android:id="@+id/GroupFrequency"
@@ -108,7 +108,7 @@
         android:layout_marginLeft="24dp"
         android:inputType="textMultiLine"
         android:padding="10dp"
-        android:background="@color/white"/>
+        android:background="?attr/colorOnPrimary"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -119,7 +119,7 @@
         android:paddingTop="5dp"
         android:textSize="20dp"
         android:text="Notes"
-        android:textColor="@color/white"/>
+        android:textColor="?attr/colorOnPrimary"/>
 
     <EditText
         android:id="@+id/GroupNotes"
@@ -130,7 +130,7 @@
         android:layout_marginLeft="24dp"
         android:inputType="textMultiLine"
         android:padding="10dp"
-        android:background="@color/white"/>
+        android:background="?attr/colorOnPrimary"/>
 
     <Button
         android:id="@+id/createGroupButton"
@@ -139,10 +139,10 @@
         android:layout_marginTop="20dp"
         android:layout_marginRight="24dp"
         android:layout_marginLeft="24dp"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="?attr/colorOnPrimary"
         android:fontFamily="sans-serif-medium"
         android:text="Create Group"
-        android:textColor="#357DED"
+        android:textColor="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/savings_circle_text" />
 
     <Button
@@ -154,9 +154,9 @@
         android:layout_marginLeft="24dp"
         android:fontFamily="sans-serif-medium"
         android:text="Cancel"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnPrimary"
         app:layout_constraintTop_toBottomOf="@id/createGroupButton"
-        android:backgroundTint="#163566" />
+        android:backgroundTint="?attr/colorPrimary" />
 
 
 </LinearLayout>
