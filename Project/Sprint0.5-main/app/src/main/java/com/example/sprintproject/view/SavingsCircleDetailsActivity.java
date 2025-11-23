@@ -405,7 +405,11 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         statusLineTextView.setVisibility(View.VISIBLE);
     }
 
-    /** Return theme color or hex fallback if missing. */
+    /** Return theme color or hex fallback if missing.
+     * @param resId the resource ID of the color to retrieve
+     * @param fallback the fallback color value to return if the resource is missing
+     * @return theme color
+     * */
     private int safeColor(int resId, int fallback) {
         try {
             return ContextCompat.getColor(this, resId);

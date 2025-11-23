@@ -61,7 +61,9 @@ public class DateViewModel extends AndroidViewModel {
         }
     }
 
-    /** Step the app date by N days (±). */
+    /** Step the app date by N days (±).
+     * @param delta The number of days to add.
+     * */
     public void nudgeDays(int delta) {
         AppDate d = currentDate.getValue();
         if (d == null) {

@@ -73,7 +73,11 @@ public class SavingsCircleAdapter extends ListAdapter<SavingsCircle,
                 onSavingsCircleClickListener.onSavingsCircleClick(circle));
     }
 
-    /** Decide row color from goal/completed flags set in the ViewModel. */
+    /** Decide row color from goal/completed flags set in the ViewModel.
+     * @param circle the savings circle
+     * @param ctx the context
+     * @return the color
+     * */
     private int getGroupStatusColor(SavingsCircle circle, Context ctx) {
         if (circle.isGoalMet()) {
             // Group goal met (after end date)

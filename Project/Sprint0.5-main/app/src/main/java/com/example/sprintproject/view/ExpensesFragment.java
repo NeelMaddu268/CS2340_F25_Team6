@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.ExpenseData;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpensesFragmentViewModel;
@@ -245,14 +246,9 @@ public class ExpensesFragment extends Fragment {
                         }
                     }
 
-                    expenseCreationViewModel.createExpense(
-                            name,
-                            date,
-                            amount,
-                            category,
-                            notes,
-                            contributesToGroupSavings,
-                            circleId,
+                    ExpenseData data = new ExpenseData(name, date, amount, category,
+                            notes, contributesToGroupSavings, circleId);
+                    expenseCreationViewModel.createExpense(data,
                             budgetsFragmentViewModel::loadBudgets
                     );
 

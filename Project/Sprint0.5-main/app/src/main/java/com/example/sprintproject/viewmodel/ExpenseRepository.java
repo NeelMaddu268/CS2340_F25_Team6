@@ -37,7 +37,8 @@ public class ExpenseRepository {
                     if (querySnapshot.isEmpty()) {
                         callback.onLastLogDateRetrieved(0);
                     } else {
-                        Long timestamp = querySnapshot.getDocuments().get(0).getLong(TIMESTAMP_FIELD);
+                        Long timestamp = querySnapshot.getDocuments().get(0)
+                                .getLong(TIMESTAMP_FIELD);
                         long result = timestamp != null ? timestamp : 0;
                         callback.onLastLogDateRetrieved(result);
                     }
