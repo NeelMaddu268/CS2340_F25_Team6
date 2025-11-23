@@ -29,7 +29,7 @@ public class FirestoreManager {
         db = FirebaseFirestore.getInstance();
     }
 
-    public static synchronized FirestoreManager getInstance() {
+    public static FirestoreManager getInstance() {
         if (instance == null) {
             synchronized (FirestoreManager.class) {
                 if (instance == null) {
