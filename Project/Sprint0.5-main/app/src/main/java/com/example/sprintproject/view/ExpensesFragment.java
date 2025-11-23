@@ -261,7 +261,7 @@ public class ExpensesFragment extends Fragment {
                 }
             });
 
-            expenseDate.setOnClickListener(v1 -> {
+            expenseDate.setOnClickListener(v1 ->
                 dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
                     if (appDate == null) {
                         return;
@@ -285,8 +285,8 @@ public class ExpensesFragment extends Fragment {
                     );
                     picker.getDatePicker().setMaxDate(maxCalendar.getTimeInMillis());
                     picker.show();
-                });
-            });
+                })
+            );
 
             dialog.show();
         });

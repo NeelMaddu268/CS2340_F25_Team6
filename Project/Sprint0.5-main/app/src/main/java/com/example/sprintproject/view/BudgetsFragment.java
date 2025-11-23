@@ -46,8 +46,8 @@ public class BudgetsFragment extends Fragment {
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private DateViewModel dateVM;
-    private BudgetAdapter budgetAdapter;
-    private SavingsCircleAdapter savingsCircleAdapter;
+    //private BudgetAdapter budgetAdapter;
+    //private SavingsCircleAdapter savingsCircleAdapter;
 
     public BudgetsFragment() {
         super(R.layout.fragment_budgets);
@@ -73,26 +73,18 @@ public class BudgetsFragment extends Fragment {
                     return insets;
                 });
 
-        setupBudgetRecyclerView(view);
 
         budgetsFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(BudgetsFragmentViewModel.class);
         dateVM = new ViewModelProvider(requireActivity())
                 .get(DateViewModel.class);
-
-        budgetsFragmentViewModel.getBudgets().observe(
-                getViewLifecycleOwner(),
-                list -> budgetAdapter.submitList(list == null ? null : new ArrayList<>(list))
-        );
-
-        setupSavingsCircleRecyclerView(view);
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
+
+        setupBudgetRecyclerView(view);
+        setupSavingsCircleRecyclerView(view);
+
         savingsCircleFragmentViewModel.loadSavingsCircle();
-        savingsCircleFragmentViewModel.getSavingsCircle().observe(
-                getViewLifecycleOwner(),
-                list -> savingsCircleAdapter.submitList(list == null ? null : new ArrayList<>(list))
-        );
 
         AppDate seed = dateVM.getCurrentDate().getValue();
         if (seed == null || isToday(seed)) {
@@ -139,11 +131,9 @@ public class BudgetsFragment extends Fragment {
     }
 
     private void setupBudgetRecyclerView(View view) {
-        RecyclerView budgetRecyclerView;
-
-        budgetRecyclerView = view.findViewById(R.id.budgetsRecyclerView);
+        RecyclerView budgetRecyclerView = view.findViewById(R.id.budgetsRecyclerView);
         budgetRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        budgetAdapter = new BudgetAdapter(budget -> {
+        BudgetAdapter budgetAdapter = new BudgetAdapter(budget -> {
             Intent intent = new Intent(requireContext(), BudgetDetailsActivity.class);
             intent.putExtra("budgetId", budget.getId());
             intent.putExtra("budgetName", budget.getName());
@@ -154,6 +144,11 @@ public class BudgetsFragment extends Fragment {
             startActivity(intent);
         });
         budgetRecyclerView.setAdapter(budgetAdapter);
+
+        budgetsFragmentViewModel.getBudgets().observe(
+                getViewLifecycleOwner(),
+                list -> budgetAdapter.submitList(list == null ? null : new ArrayList<>(list))
+        );
     }
 
     private void setupSavingsCircleRecyclerView(View view) {
@@ -163,7 +158,7 @@ public class BudgetsFragment extends Fragment {
         savingsCircleRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
-        savingsCircleAdapter = new SavingsCircleAdapter(savings -> {
+        SavingsCircleAdapter savingsCircleAdapter = new SavingsCircleAdapter(savings -> {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
@@ -181,6 +176,11 @@ public class BudgetsFragment extends Fragment {
             startActivity(intent);
         });
         savingsCircleRecyclerView.setAdapter(savingsCircleAdapter);
+
+        savingsCircleFragmentViewModel.getSavingsCircle().observe(
+                getViewLifecycleOwner(),
+                list -> savingsCircleAdapter.submitList(list == null ? null : new ArrayList<>(list))
+        );
     }
 
     private void setupAddBudgetDialog() {

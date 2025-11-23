@@ -43,8 +43,6 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         ImageButton backBtn = findViewById(R.id.btnBack);
-        backBtn.setOnClickListener(v -> {
-            finish();
-        });
+        backBtn.setOnClickListener(v -> finish());
     }
 }
