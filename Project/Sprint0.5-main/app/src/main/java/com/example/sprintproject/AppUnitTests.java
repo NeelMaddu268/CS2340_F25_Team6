@@ -330,10 +330,7 @@ public class AppUnitTests {
             if (goalAmount < 0) {
                 return false;
             }
-            if (frequency == null || (!frequency.equals("weekly") && !frequency.equals(MONTHLY))) {
-                return false;
-            }
-            return true;
+            return frequency != null && (frequency.equals("weekly") || frequency.equals(MONTHLY));
         }
     }
 
