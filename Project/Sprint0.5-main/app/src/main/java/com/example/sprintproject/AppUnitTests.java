@@ -14,6 +14,13 @@ import java.util.*;
 
 public class AppUnitTests {
 
+    private static final String PASSWORD = "password";
+    private static final String PASSWORD_TWO = "password123";
+    private static final String ALICE = "Alice";
+    private static final String TITLE = "Challenge Title";
+    private static final String GROUP_NAME = "Group Name";
+    private static final String MONTHLY = "monthly";
+
     @Test
     public void testComputeSurplusPositive() {
         double surplus = BudgetCalculator.computeSurplus(1000, 700);
@@ -77,12 +84,12 @@ public class AppUnitTests {
     public void testRejectEmptyCredentials() {
         assertFalse(AuthValidator.isValidInput("", "pass"));
         assertFalse(AuthValidator.isValidInput(" ", " "));
-        assertFalse(AuthValidator.isValidInput(null, "password"));
+        assertFalse(AuthValidator.isValidInput(null, PASSWORD));
     }
 
     @Test
     public void testAcceptValidCredentials() {
-        assertTrue(AuthValidator.isValidInput("user@email.com", "password123"));
+        assertTrue(AuthValidator.isValidInput("user@email.com", PASSWORD_TWO));
     }
 
     @Test
@@ -92,8 +99,8 @@ public class AppUnitTests {
 
     @Test
     public void testRejectInvalidEmailFormat() {
-        assertFalse(AuthValidator.isValidInput("useremail.com", "password"));
-        assertFalse(AuthValidator.isValidInput("user@", "password"));
+        assertFalse(AuthValidator.isValidInput("useremail.com", PASSWORD));
+        assertFalse(AuthValidator.isValidInput("user@", PASSWORD));
     }
 
     // Mirrors your DashboardFragment.readDouble() behavior without Firebase.
@@ -194,37 +201,37 @@ public class AppUnitTests {
     @Test
     public void testAddContribution() {
         SavingsCircle circle = new SavingsCircle("My Circle");
-        circle.addContribution("Alice", 100);
-        assertEquals(100, circle.getContributions().get("Alice"), 0.001);
+        circle.addContribution(ALICE, 100);
+        assertEquals(100, circle.getContributions().get(ALICE), 0.001);
     }
 
     @Test
     public void testTotalContributions() {
         SavingsCircle circle = new SavingsCircle("My Circle");
-        circle.addContribution("Alice", 100);
+        circle.addContribution(ALICE, 100);
         circle.addContribution("Bob", 50);
         assertEquals(150, circle.totalContributions(), 0.001);
     }
       
     @Test
     public void testAcceptValidSavingsCircleInputs() {
-        assertTrue(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
-                500, "monthly"));
+        assertTrue(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE,
+                500, MONTHLY));
     }
 
     @Test
     public void testRejectInvalidSavingsCircleInputs() {
-        assertFalse(SavingsCircleValidator.isValidInput("", "Challenge Title",
-                100, "monthly"));
-        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+        assertFalse(SavingsCircleValidator.isValidInput("", TITLE,
+                100, MONTHLY));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE,
                 -50, "weekly"));
-        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE,
                 100, "daily"));
     }
 
     @Test
     public void testAddAndRemoveBudget() {
-        User user = new User("john@example.com", "John Doe", "password123",
+        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
                 new ArrayList<>(), new ArrayList<>());
         Budget budget1 = new Budget("Food Budget");
         Budget budget2 = new Budget("Travel Budget");
@@ -242,7 +249,7 @@ public class AppUnitTests {
 
     @Test
     public void testAddAndRemoveExpense() {
-        User user = new User("john@example.com", "John Doe", "password123",
+        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
                 new ArrayList<>(), new ArrayList<>());
         Expense expense1 = new Expense("Dinner");
         user.addExpense(expense1);
@@ -414,7 +421,7 @@ public class AppUnitTests {
             if (goalAmount < 0) {
                 return false;
             }
-            if (frequency == null || !frequency.equals("weekly") && !frequency.equals("monthly")) {
+            if (frequency == null || !frequency.equals("weekly") && !frequency.equals(MONTHLY)) {
                 return false;
             }
             return true;
