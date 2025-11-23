@@ -3,14 +3,14 @@ package com.example.sprintproject;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-
-import java.util.*;
 
 public class AppUnitTests {
 
@@ -20,6 +20,9 @@ public class AppUnitTests {
     private static final String TITLE = "Challenge Title";
     private static final String GROUP_NAME = "Group Name";
     private static final String MONTHLY = "monthly";
+
+    // Shared constant for all utility classes to avoid duplicated literals
+    private static final String UTILITY_CLASS_ERROR = "Utility class";
 
     @Test
     public void testComputeSurplusPositive() {
@@ -117,7 +120,7 @@ public class AppUnitTests {
         if (o instanceof Integer) {
             return ((Integer) o).doubleValue();
         }
-        if (o instanceof Float)   {
+        if (o instanceof Float) {
             return ((Float) o).doubleValue();
         }
         if (o instanceof String) {
@@ -143,11 +146,11 @@ public class AppUnitTests {
     @Test
     public void testReadDoubleLikeHelperparsesNumericsAndStrings() {
         assertEquals(12.5, readDoubleLikeHelper(12.5d), 1e-9);
-        assertEquals(12.0, readDoubleLikeHelper(12L),   1e-9);
-        assertEquals(7.0,  readDoubleLikeHelper(7),     1e-9);
-        assertEquals(2.5,  readDoubleLikeHelper(2.5f),  1e-6);
+        assertEquals(12.0, readDoubleLikeHelper(12L), 1e-9);
+        assertEquals(7.0, readDoubleLikeHelper(7), 1e-9);
+        assertEquals(2.5, readDoubleLikeHelper(2.5f), 1e-6);
         assertEquals(99.75, readDoubleLikeHelper("99.75"), 1e-9);
-        assertEquals(42.0,  readDoubleLikeHelper("42"),    1e-9);
+        assertEquals(42.0, readDoubleLikeHelper("42"), 1e-9);
         assertNull(readDoubleLikeHelper("hello"));
         assertNull(readDoubleLikeHelper(null));
     }
@@ -168,15 +171,19 @@ public class AppUnitTests {
         Map<String, Object> b1 = new HashMap<>();
         b1.put("total", 100);
         budgets.add(b1);
+
         Map<String, Object> b2 = new HashMap<>();
         b2.put("amount", "150.5");
         budgets.add(b2);
+
         Map<String, Object> b3 = new HashMap<>();
         b3.put("limit", 25L);
         budgets.add(b3);
+
         Map<String, Object> b4 = new HashMap<>();
         b4.put("value", 10.25f);
         budgets.add(b4);
+
         Map<String, Object> b5 = new HashMap<>();
         b5.put("budget", "bad");
         budgets.add(b5);
@@ -194,6 +201,7 @@ public class AppUnitTests {
                 budgetSum += t;
             }
         }
+
         assertEquals(285.75, budgetSum, 1e-6);
         assertTrue(budgetSum > spent);
     }
@@ -212,21 +220,17 @@ public class AppUnitTests {
         circle.addContribution("Bob", 50);
         assertEquals(150, circle.totalContributions(), 0.001);
     }
-      
+
     @Test
     public void testAcceptValidSavingsCircleInputs() {
-        assertTrue(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE,
-                500, MONTHLY));
+        assertTrue(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 500, MONTHLY));
     }
 
     @Test
     public void testRejectInvalidSavingsCircleInputs() {
-        assertFalse(SavingsCircleValidator.isValidInput("", TITLE,
-                100, MONTHLY));
-        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE,
-                -50, "weekly"));
-        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE,
-                100, "daily"));
+        assertFalse(SavingsCircleValidator.isValidInput("", TITLE, 100, MONTHLY));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, -50, "weekly"));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 100, "daily"));
     }
 
     @Test
@@ -259,13 +263,17 @@ public class AppUnitTests {
         assertTrue(user.getExpenses().isEmpty());
     }
 
+    // ===== Utility / Validator Classes (Sonar-compliant) =====
+
     public static class BudgetCalculator {
         private BudgetCalculator() {
-            throw new UnsupportedOperationException("Utility class");
+            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
         }
+
         public static double computeSurplus(double total, double spent) {
             return total - spent;
         }
+
         public static int computePercentUsed(double total, double spent) {
             if (total <= 0) {
                 return 0;
@@ -273,6 +281,63 @@ public class AppUnitTests {
             return (int) ((spent / total) * 100);
         }
     }
+
+    public static class AuthValidator {
+        private AuthValidator() {
+            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
+        }
+
+        public static boolean isValidInput(String email, String password) {
+            if (email == null || password == null) {
+                return false;
+            }
+            if (email.trim().isEmpty() || password.trim().isEmpty()) {
+                return false;
+            }
+            if (!email.contains("@") || !email.contains(".")) {
+                return false;
+            }
+            return password.length() >= 3;
+        }
+    }
+
+    public static class ExpenseValidator {
+        private ExpenseValidator() {
+            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
+        }
+
+        public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
+            if (expenseDate == null || currentDate == null) {
+                return false;
+            }
+            return !expenseDate.after(currentDate);
+        }
+    }
+
+    public static class SavingsCircleValidator {
+        private SavingsCircleValidator() {
+            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
+        }
+
+        public static boolean isValidInput(String groupName, String challengeTitle,
+                                           double goalAmount, String frequency) {
+            if (groupName == null || groupName.trim().isEmpty()) {
+                return false;
+            }
+            if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
+                return false;
+            }
+            if (goalAmount < 0) {
+                return false;
+            }
+            if (frequency == null || (!frequency.equals("weekly") && !frequency.equals(MONTHLY))) {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    // ===== Simple model classes used for tests =====
 
     public class User {
         private String email;
@@ -289,9 +354,11 @@ public class AppUnitTests {
             this.budgets = budgets;
             this.expenses = expenses;
         }
+
         public String getEmail() {
             return email;
         }
+
         public void setEmail(String email) {
             this.email = email;
         }
@@ -299,6 +366,7 @@ public class AppUnitTests {
         public String getName() {
             return name;
         }
+
         public void setName(String name) {
             this.name = name;
         }
@@ -342,6 +410,7 @@ public class AppUnitTests {
 
     public class Budget {
         private String name;
+
         public Budget(String name) {
             this.name = name;
         }
@@ -353,6 +422,7 @@ public class AppUnitTests {
 
     public class Expense {
         private String name;
+
         public Expense(String name) {
             this.name = name;
         }
@@ -384,51 +454,10 @@ public class AppUnitTests {
         }
 
         public double totalContributions() {
-            return contributions.values().stream().mapToDouble(Double::doubleValue).sum();
-        }
-    }
-
-    public static class AuthValidator {
-        private AuthValidator() {
-            throw new UnsupportedOperationException("Utility class");
-        }
-        public static boolean isValidInput(String email, String password) {
-            if (email == null || password == null) {
-                return false;
-            }
-            if (email.trim().isEmpty() || password.trim().isEmpty()) {
-                return false;
-            }
-            if (!email.contains("@") || !email.contains(".")) {
-                return false;
-            }
-            return password.length() >= 3;
-        }
-    }
-
-    public static class ExpenseValidator {
-        private ExpenseValidator() {
-            throw new UnsupportedOperationException("Utility class");
-        }
-        public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
-            if (expenseDate == null || currentDate == null) {
-                return false;
-            }
-            return !expenseDate.after(currentDate);
-        }
-    }
-
-    public static class SavingsCircleValidator {
-        private SavingsCircleValidator() {
-            throw new UnsupportedOperationException("Utility class");
-        }
-        public static boolean isValidInput(String groupName, String challengeTitle,
-                                           double goalAmount, String frequency) {
-            return groupName != null && !groupName.trim().isEmpty()
-                    && challengeTitle != null && !challengeTitle.trim().isEmpty()
-                    && goalAmount >= 0
-                    && frequency != null
-                    && (frequency.equals("weekly") || frequency.equals(MONTHLY));
+            return contributions.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
         }
     }
 }
+

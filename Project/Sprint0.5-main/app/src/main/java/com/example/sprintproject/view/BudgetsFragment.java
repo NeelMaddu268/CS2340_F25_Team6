@@ -33,7 +33,6 @@ import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.NotificationQueueManager;
 import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,8 +46,6 @@ public class BudgetsFragment extends Fragment {
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
     private DateViewModel dateVM;
-    private BudgetAdapter budgetAdapter;
-    private SavingsCircleAdapter savingsCircleAdapter;
 
     public BudgetsFragment() {
         super(R.layout.fragment_budgets);
@@ -74,7 +71,10 @@ public class BudgetsFragment extends Fragment {
                     return insets;
                 });
 
-        setupBudgetRecyclerView(view);
+        // --- make adapters local (Sonar fix) ---
+        final BudgetAdapter budgetAdapter = setupBudgetRecyclerView(view);
+        final SavingsCircleAdapter savingsCircleAdapter = setupSavingsCircleRecyclerView(view);
+        // --------------------------------------
 
         budgetsFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(BudgetsFragmentViewModel.class);
@@ -89,7 +89,6 @@ public class BudgetsFragment extends Fragment {
                 }
         );
 
-        setupSavingsCircleRecyclerView(view);
         savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
                 .get(SavingsCircleFragmentViewModel.class);
         savingsCircleFragmentViewModel.loadSavingsCircle();
@@ -121,7 +120,7 @@ public class BudgetsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (dateVM != null) {
-            com.example.sprintproject.model.AppDate d = dateVM.getCurrentDate().getValue();
+            AppDate d = dateVM.getCurrentDate().getValue();
             if (d == null || isToday(d)) {
                 budgetsFragmentViewModel.loadBudgets();
             } else {
@@ -130,24 +129,23 @@ public class BudgetsFragment extends Fragment {
         }
     }
 
-
-    private boolean isToday(com.example.sprintproject.model.AppDate d) {
+    private boolean isToday(AppDate d) {
         if (d == null) {
             return false;
         }
-        java.util.Calendar c = java.util.Calendar.getInstance();
-        int y = c.get(java.util.Calendar.YEAR);
-        int m = c.get(java.util.Calendar.MONTH) + 1; // 1..12
-        int day = c.get(java.util.Calendar.DAY_OF_MONTH);
+        Calendar c = Calendar.getInstance();
+        int y = c.get(Calendar.YEAR);
+        int m = c.get(Calendar.MONTH) + 1; // 1..12
+        int day = c.get(Calendar.DAY_OF_MONTH);
         return d.getYear() == y && d.getMonth() == m && d.getDay() == day;
     }
 
-    private void setupBudgetRecyclerView(View view) {
-        RecyclerView budgetRecyclerView;
-
-        budgetRecyclerView = view.findViewById(R.id.budgetsRecyclerView);
+    // CHANGED: return adapter instead of storing as field
+    private BudgetAdapter setupBudgetRecyclerView(View view) {
+        RecyclerView budgetRecyclerView = view.findViewById(R.id.budgetsRecyclerView);
         budgetRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        budgetAdapter = new BudgetAdapter(budget -> {
+
+        BudgetAdapter budgetAdapter = new BudgetAdapter(budget -> {
             Intent intent = new Intent(requireContext(), BudgetDetailsActivity.class);
             intent.putExtra("budgetId", budget.getId());
             intent.putExtra("budgetName", budget.getName());
@@ -157,17 +155,17 @@ public class BudgetsFragment extends Fragment {
             intent.putExtra("budgetStartDate", budget.getStartDate());
             startActivity(intent);
         });
+
         budgetRecyclerView.setAdapter(budgetAdapter);
+        return budgetAdapter;
     }
 
-    private void setupSavingsCircleRecyclerView(View view) {
-        RecyclerView savingsCircleRecyclerView;
-
-        savingsCircleRecyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
+    // CHANGED: return adapter instead of storing as field
+    private SavingsCircleAdapter setupSavingsCircleRecyclerView(View view) {
+        RecyclerView savingsCircleRecyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
         savingsCircleRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        savingsCircleFragmentViewModel = new ViewModelProvider(requireActivity())
-                .get(SavingsCircleFragmentViewModel.class);
-        savingsCircleAdapter = new SavingsCircleAdapter(savings -> {
+
+        SavingsCircleAdapter savingsCircleAdapter = new SavingsCircleAdapter(savings -> {
             Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
             intent.putExtra("circleId", savings.getId());
             intent.putExtra("groupName", savings.getName());
@@ -184,7 +182,9 @@ public class BudgetsFragment extends Fragment {
             intent.putExtra("creatorId", savings.getCreatorId());
             startActivity(intent);
         });
+
         savingsCircleRecyclerView.setAdapter(savingsCircleAdapter);
+        return savingsCircleAdapter;
     }
 
     private void setupAddBudgetDialog() {
