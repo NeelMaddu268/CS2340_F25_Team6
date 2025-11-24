@@ -1,5 +1,6 @@
 package src.main.java;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class TeamMember implements Member {
@@ -26,7 +27,7 @@ public class TeamMember implements Member {
 
     @Override
     public void identify() {
-        LOGGER.info("Team Member: " + name);
+        LOGGER.log(Level.INFO, "Team Member: {0}", name);
     }
 
     @Override
