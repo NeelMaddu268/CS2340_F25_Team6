@@ -124,7 +124,7 @@ public class NotificationQueueManager {
                 continue;
             }
             int capacityUsed = (int) (spent / total * 100);
-            if (capacityUsed >= 80) {
+            if (capacityUsed < 80) {
                 continue;
             }
             if (repeatedWarnings(budget.getId(), capacityUsed)) {
