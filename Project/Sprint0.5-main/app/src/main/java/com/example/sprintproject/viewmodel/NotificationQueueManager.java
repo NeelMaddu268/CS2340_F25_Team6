@@ -4,13 +4,17 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.NotificationData;
+
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.PriorityQueue;
 
 /**
  * Singleton class in charge of queueing the reminder pop-ups.
- * */
+ */
 public class NotificationQueueManager {
 
     private static NotificationQueueManager instance;
@@ -18,6 +22,8 @@ public class NotificationQueueManager {
     private final PriorityQueue<NotificationData> reminderQueue = new PriorityQueue<>(
             (r1, r2) -> Integer.compare(r2.getPriority(), r1.getPriority())
     );
+
+    private final HashMap<String, Integer> budgetWarningContainer = new HashMap<>();
 
     private final MutableLiveData<NotificationData> currentReminder = new MutableLiveData<>();
 
@@ -87,5 +93,50 @@ public class NotificationQueueManager {
                 checkForMissedExpenseLog(appDate);
             }
         });
+    }
+
+    private boolean repeatedWarnings(String budgetId, int capacityUsed) {
+        if (!budgetWarningContainer.containsKey(budgetId)) {
+            return false;
+        }
+        return budgetWarningContainer.get(budgetId) >= capacityUsed;
+    }
+
+    private void alreadyWarned(String budgetId, int capacityUsed) {
+        budgetWarningContainer.put(budgetId, capacityUsed);
+    }
+
+    /**
+     * Sonar fix: reduce continues/breaks in loop to at most one.
+     * Refactored to use 0 continues/breaks.
+     */
+    public void checkForBudgetWarning(List<Budget> budgets) {
+        if (budgets == null || budgets.isEmpty()) {
+            return;
+        }
+
+        for (Budget budget : budgets) {
+            if (budget != null) {
+                double total = budget.getAmount();
+                double spent = budget.getSpentToDate();
+
+                if (total > 0) {
+                    int capacityUsed = (int) (spent / total * 100);
+
+                    boolean shouldWarn =
+                            capacityUsed >= 80
+                                    && !repeatedWarnings(budget.getId(), capacityUsed);
+
+                    if (shouldWarn) {
+                        NotificationData warning =
+                                NotificationData.createAlmostBudgetFullReminder(
+                                        budget.getName(), capacityUsed
+                                );
+                        submitReminder(warning);
+                        alreadyWarned(budget.getId(), capacityUsed);
+                    }
+                }
+            }
+        }
     }
 }

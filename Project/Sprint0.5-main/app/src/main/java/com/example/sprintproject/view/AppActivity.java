@@ -153,4 +153,5 @@ public class AppActivity extends AppCompatActivity {
             reminderContainer.setVisibility(View.GONE);
         }
     }
+    
 }

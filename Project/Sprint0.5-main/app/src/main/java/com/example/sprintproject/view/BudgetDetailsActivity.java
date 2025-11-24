@@ -1,11 +1,11 @@
 package com.example.sprintproject.view;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.text.TextUtils;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,7 +21,6 @@ import java.util.Locale;
 public class BudgetDetailsActivity extends AppCompatActivity {
 
     private TextView budgetSurplusText;
-
     private ProgressBar budgetProgressBar;
 
     private EditText budgetInputTotal;
@@ -36,17 +35,31 @@ public class BudgetDetailsActivity extends AppCompatActivity {
     private static final String OVER_BUDGET_STRING = "Over budget by: $";
     private static final String SURPLUS_STRING = "Surplus: $";
 
+    private BudgetDetailsViewModel budgetDetailsViewModel;
+    private BudgetsFragmentViewModel budgetsViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        BudgetDetailsViewModel budgetDetailsViewModel;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_budget_details);
 
-        BudgetsFragmentViewModel viewModel;
-        budgetDetailsViewModel = new ViewModelProvider(this).get(BudgetDetailsViewModel.class);
+        initBudgetViews();
+        initViewModels();
+        bindIntentBudgetDetails();
+        setupBackButton();
 
+        observeBudgetAndCalculation();
+
+        setupComputeButton();
+        setupSaveButton();
+    }
+
+    private void initViewModels() {
+        budgetDetailsViewModel = new ViewModelProvider(this).get(BudgetDetailsViewModel.class);
+        budgetsViewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
+    }
+
+    private void bindIntentBudgetDetails() {
         // Get the budget details from the intent
         String budgetName = getIntent().getStringExtra("budgetName");
         double budgetAmount = getIntent().getDoubleExtra("budgetAmount", 0.0);
@@ -62,79 +75,97 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         TextView budgetStartDateTextView = findViewById(R.id.budgetStartDateTextView);
 
         budgetNameTextView.setText(budgetName);
-        budgetAmountTextView.setText(String.format((Locale.US), "$%.2f", budgetAmount));
+        budgetAmountTextView.setText(String.format(Locale.US, "$%.2f", budgetAmount));
         budgetCategoryTextView.setText(budgetCategory);
         budgetFrequencyTextView.setText(budgetFrequency);
         budgetStartDateTextView.setText(budgetStartDate);
+    }
 
+    private void setupBackButton() {
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(view -> finish());
+    }
 
-        initBudgetViews();
-
-        viewModel = new ViewModelProvider(this).get(BudgetsFragmentViewModel.class);
-
+    private void observeBudgetAndCalculation() {
         String budgetID = getIntent().getStringExtra("budgetId");
-        if (budgetID != null) {
-            viewModel.getBudgetById(budgetID).observe(this, budget -> {
-                if (budget != null) {
-                    currentBudget = budget;
-                    updateBudgetUI(budget);
-
-                    budgetDetailsViewModel.loadCalculation(budgetID, (total, spent, remaining) -> {
-                        if (total != null) {
-                            budgetInputTotal.setText(String.valueOf(total));
-                        }
-                        if (spent != null) {
-                            budgetInputSpent.setText(String.valueOf(spent));
-                        }
-                        if (remaining != null) {
-                            budgetInputRemaining.setText(String.valueOf(remaining));
-                        }
-                        if (total != null && spent != null) {
-                            double surplus = total - spent;
-                            if (surplus >= 0) {
-                                budgetSurplusText.setText(
-                                        SURPLUS_STRING + String.format("%.2f", surplus));
-                            } else {
-                                budgetSurplusText.setText(OVER_BUDGET_STRING
-                                        + String.format("%.2f", Math.abs(surplus)));
-                            }
-                        }
-                    });
-                }
-            });
-
+        if (budgetID == null) {
+            return;
         }
 
-        // the 2 input fill the 3 input automatically
-        setupComputeButton();
+        budgetsViewModel.getBudgetById(budgetID).observe(this, budget -> {
+            if (budget == null) {
+                return;
+            }
 
-        // save the calculations
+            currentBudget = budget;
+            updateBudgetUI(budget);
+            loadAndDisplayCalculation(budgetID);
+        });
+    }
+
+    private void loadAndDisplayCalculation(String budgetID) {
+        budgetDetailsViewModel.loadCalculation(budgetID, (total, spent, remaining) -> {
+            setIfNotNull(budgetInputTotal, total);
+            setIfNotNull(budgetInputSpent, spent);
+            setIfNotNull(budgetInputRemaining, remaining);
+            updateSurplusText(total, spent);
+        });
+    }
+
+    private void setIfNotNull(EditText view, Double value) {
+        if (value != null) {
+            view.setText(String.valueOf(value));
+        }
+    }
+
+    private void updateSurplusText(Double total, Double spent) {
+        if (total == null || spent == null) {
+            return;
+        }
+
+        double surplus = total - spent;
+        if (surplus >= 0) {
+            budgetSurplusText.setText(SURPLUS_STRING + String.format("%.2f", surplus));
+        } else {
+            budgetSurplusText.setText(
+                    OVER_BUDGET_STRING + String.format("%.2f", Math.abs(surplus))
+            );
+        }
+    }
+
+    private void setupSaveButton() {
         budgetSaveButton.setOnClickListener(v -> {
             if (currentBudget == null) {
                 Toast.makeText(this, "Budget does not exist.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            try {
-                double total = Double.parseDouble(budgetInputTotal.getText().toString());
-                double spent = Double.parseDouble(budgetInputSpent.getText().toString());
-                double remaining = Double.parseDouble(budgetInputRemaining.getText().toString());
+            Double total = parseDoubleOrNull(budgetInputTotal.getText().toString());
+            Double spent = parseDoubleOrNull(budgetInputSpent.getText().toString());
+            Double remaining = parseDoubleOrNull(budgetInputRemaining.getText().toString());
 
-                budgetDetailsViewModel.saveCalculation(
-                        currentBudget.getId(),
-                        total,
-                        spent,
-                        remaining,
-                        () -> Toast.makeText(this, "Budget saved!", Toast.LENGTH_SHORT).show(),
-                        () -> Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show()
-
-                );
-            } catch (NumberFormatException e) {
+            if (total == null || spent == null || remaining == null) {
                 Toast.makeText(this, "Invalid numbers were entered.", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            budgetDetailsViewModel.saveCalculation(
+                    currentBudget.getId(),
+                    total,
+                    spent,
+                    remaining,
+                    () -> Toast.makeText(this, "Budget saved!", Toast.LENGTH_SHORT).show(),
+                    () -> Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show()
+            );
         });
+    }
+
+    private Double parseDoubleOrNull(String val) {
+        try {
+            return Double.parseDouble(val);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // this is how to update the UI
@@ -225,4 +256,5 @@ public class BudgetDetailsActivity extends AppCompatActivity {
         });
     }
 }
+
 

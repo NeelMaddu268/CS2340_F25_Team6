@@ -31,8 +31,13 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     // UI
     private TextView groupContributionsTextView;
     private TextView groupEmailTextView;
-    // Single-line status under Contributions
     private TextView statusLineTextView;
+    private TextView groupEndingTextView;
+    private TextView groupJoinedTextView;
+
+    private EditText inviteEmailInput;
+    private Button inviteButton;
+    private Button deleteCircleButton;
 
     // ViewModels
     private SavingsCircleDetailsViewModel detailsViewModel;
@@ -41,9 +46,18 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     // Intent data
     private String circleId;
     private String groupName;
+    private String groupChallengeTitle;
     private double groupChallengeGoal;
-    @SuppressWarnings("unchecked") private HashMap<String, String> datesJoined;
-    @SuppressWarnings("unchecked") private HashMap<String, Double> contributions;
+    private String groupFrequency;
+    private String groupNotes;
+    private String creationDate;
+    private String creatorId;
+    private ArrayList<String> groupEmails;
+
+    @SuppressWarnings("unchecked")
+    private HashMap<String, String> datesJoined;
+    @SuppressWarnings("unchecked")
+    private HashMap<String, Double> contributions;
 
     // VM data
     private Map<String, Double> vmContributions; // uid/email -> amount
@@ -55,30 +69,45 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     private String currentEmail;
     private AppDate lastAppDate; // NOT device clock
 
+    // Invite gate state
+    private final AtomicReference<Map<String, String>> lastDatesRef = new AtomicReference<>();
+    // Sonar fix: removed field reevaluateInviteGate
+
+    private static final String WEEKLY_TEXT = "Weekly";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_savingscircle_details);
 
-        String groupChallengeTitle;
-        String groupFrequency;
-        String groupNotes;
-        String creationDate;
-        String creatorId;
-        TextView groupEndingTextView;
-        TextView groupJoinedTextView;
-        TextView groupChallengeGoalTextView;
-        ArrayList<String> groupEmails;
+        initViewModels();
+        readIntentExtras();
+        seedLastAppDateFromIntent();
+        initCurrentUser();
 
-        String weeklyText = "Weekly";
+        wireViews();
+        populateStaticText();
 
+        setupBackButton();
+        setupInviteDeleteControls();
 
+        // Sonar fix: reevaluateInviteGate is LOCAL now
+        Runnable reevaluateInviteGate = setupInviteGateReevaluation();
 
-        // --------- ViewModels ----------
+        setupInviteButton();
+        wireViewModelObservers(reevaluateInviteGate);
+
+        startListeningAndInitialUI();
+    }
+
+    /* ------------------------- init / wiring ------------------------- */
+
+    private void initViewModels() {
         detailsViewModel = new ViewModelProvider(this).get(SavingsCircleDetailsViewModel.class);
         dateViewModel = new ViewModelProvider(this).get(DateViewModel.class);
+    }
 
-        // --------- Intent extras ----------
+    private void readIntentExtras() {
         groupName = getIntent().getStringExtra("groupName");
         groupEmails = getIntent().getStringArrayListExtra("groupEmails");
         groupChallengeTitle = getIntent().getStringExtra("groupChallengeTitle");
@@ -90,23 +119,28 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         contributions = (HashMap<String, Double>) getIntent().getSerializableExtra("contributions");
         circleId = getIntent().getStringExtra("circleId");
         creatorId = getIntent().getStringExtra("creatorId");
+    }
 
+    private void seedLastAppDateFromIntent() {
         int ay = getIntent().getIntExtra("appYear", -1);
         int am = getIntent().getIntExtra("appMonth", -1);
         int ad = getIntent().getIntExtra("appDay", -1);
         if (ay > 0 && am > 0 && ad > 0) {
             lastAppDate = new AppDate(ay, am, ad);
         }
+    }
 
+    private void initCurrentUser() {
         currentUid = FirestoreManager.getInstance().getCurrentUserId();
         currentEmail = (FirebaseAuth.getInstance().getCurrentUser() != null)
                 ? FirebaseAuth.getInstance().getCurrentUser().getEmail()
                 : null;
+    }
 
-        // --------- Wire UI ----------
+    private void wireViews() {
         TextView groupNameTextView = findViewById(R.id.groupNameTextView);
         TextView groupChallengeTitleTextView = findViewById(R.id.groupChallengeTitleTextView);
-        groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
+        TextView groupChallengeGoalTextView = findViewById(R.id.groupChallengeGoalTextView);
         TextView groupFrequencyTextView = findViewById(R.id.groupFrequencyTextView);
         TextView groupNotesTextView = findViewById(R.id.groupNotesTextView);
         TextView groupCreationTextView = findViewById(R.id.groupCreationTextView);
@@ -116,37 +150,48 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         groupEmailTextView = findViewById(R.id.groupEmailTextView);
         statusLineTextView = findViewById(R.id.statusLineTextView);
 
-        statusLineTextView.setText("status ready");
-        statusLineTextView.setVisibility(View.VISIBLE);
+        inviteEmailInput = findViewById(R.id.inviteEmailInput);
+        inviteButton = findViewById(R.id.inviteButton);
+        deleteCircleButton = findViewById(R.id.deleteCircleButton);
 
-        // --------- Populate static text ----------
+        // set static pieces right after wiring
         groupNameTextView.setText(groupName);
         groupChallengeTitleTextView.setText(groupChallengeTitle);
         groupChallengeGoalTextView.setText("$" + groupChallengeGoal);
         groupFrequencyTextView.setText(groupFrequency);
+
         groupNotesTextView.setText(
                 (groupNotes == null || groupNotes.trim().isEmpty())
                         ? "Notes: None"
                         : "Notes: " + groupNotes
         );
         groupCreationTextView.setText(creationDate);
+    }
 
+    private void populateStaticText() {
         if (groupEmails != null) {
             groupEmailTextView.setText(TextUtils.join(", ", groupEmails));
         }
 
-        String dateJoinedInitial = safeGetJoinedDate(datesJoined, currentUid, currentEmail);
-        groupJoinedTextView.setText(dateJoinedInitial != null
-                ? dateJoinedInitial : "Date not available");
+        String joined = safeGetJoinedDate(datesJoined, currentUid, currentEmail);
+        groupJoinedTextView.setText(joined != null ? joined : "Date not available");
 
-        // Initial group end date from creation + frequency
-        if (weeklyText.equals(groupFrequency)) {
+        setInitialEndDateFromCreation();
+        setInitialContributionsText();
+
+        statusLineTextView.setText("status ready");
+        statusLineTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void setInitialEndDateFromCreation() {
+        if (WEEKLY_TEXT.equals(groupFrequency)) {
             groupEndingTextView.setText(AppDate.addDays(creationDate, 7, 0));
         } else if ("Monthly".equals(groupFrequency)) {
             groupEndingTextView.setText(AppDate.addDays(creationDate, 0, 1));
         }
+    }
 
-        // Initial contributions text if we have basic data
+    private void setInitialContributionsText() {
         if (groupEmails != null && contributions != null) {
             StringBuilder sb = new StringBuilder();
             for (String email : groupEmails) {
@@ -155,89 +200,83 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             }
             groupContributionsTextView.setText(sb.toString());
         }
+    }
 
+    private void setupBackButton() {
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(v -> finish());
+    }
 
-        EditText inviteEmailInput = findViewById(R.id.inviteEmailInput);
-        Button inviteButton = findViewById(R.id.inviteButton);
-        Button deleteCircleButton = findViewById(R.id.deleteCircleButton);
-
+    private void setupInviteDeleteControls() {
         // Hide invite/delete for non-creator
         if (creatorId == null || !creatorId.equals(currentUid)) {
             inviteEmailInput.setVisibility(View.GONE);
             inviteButton.setVisibility(View.GONE);
             deleteCircleButton.setVisibility(View.GONE);
-        } else {
-            deleteCircleButton.setVisibility(View.VISIBLE);
-            deleteCircleButton.setOnClickListener(v ->
-                    new AlertDialog.Builder(this)
-                            .setTitle("Delete Savings Circle")
-                            .setMessage("Are you sure you want to delete this savings circle?")
-                            .setPositiveButton("Delete", (dialog, which) ->
-                                    FirestoreManager.getInstance()
-                                            .deleteSavingsCircle(circleId, currentUid)
-                                            .addOnSuccessListener(aVoid -> {
-                                                Toast.makeText(this, "Circle deleted successfully",
-                                                        Toast.LENGTH_SHORT).show();
-                                                finish();
-                                            })
-                                            .addOnFailureListener(e ->
-                                                    Toast.makeText(this, "Failed to delete: "
-                                                            + e.getMessage(),
-                                                            Toast.LENGTH_SHORT).show())
-                            )
-                            .setNegativeButton("Cancel", null)
-                            .show()
-            );
+            return;
         }
 
-        // --------- Invite gate based on AppDate + creator's end date ----------
+        deleteCircleButton.setVisibility(View.VISIBLE);
+        deleteCircleButton.setOnClickListener(v ->
+                new AlertDialog.Builder(this)
+                        .setTitle("Delete Savings Circle")
+                        .setMessage("Are you sure you want to delete this savings circle?")
+                        .setPositiveButton("Delete", (dialog, which) ->
+                                FirestoreManager.getInstance()
+                                        .deleteSavingsCircle(circleId, currentUid)
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(this, "Circle deleted successfully",
+                                                    Toast.LENGTH_SHORT).show();
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(this, "Failed to delete: "
+                                                                + e.getMessage(),
+                                                        Toast.LENGTH_SHORT).show())
+                        )
+                        .setNegativeButton("Cancel", null)
+                        .show()
+        );
+    }
+
+    /* ------------------------- invite gate + invite ------------------------- */
+
+    // Sonar fix: method now RETURNS a Runnable instead of storing a field
+    private Runnable setupInviteGateReevaluation() {
         final String freq = groupFrequency;
         final String circleCreatorId = creatorId;
-        final EditText inviteInputFinal = inviteEmailInput;
-        final Button inviteButtonFinal = inviteButton;
 
-        final AtomicReference<Map<String, String>> lastDatesRef =
-                new AtomicReference<>();
-
-        final Runnable reevaluateInviteGate = new Runnable() {
-            @Override
-            public void run() {
-                // Only creator can invite
-                if (circleCreatorId == null || !circleCreatorId.equals(currentUid)) {
-                    setInviteControls(false, inviteInputFinal, inviteButtonFinal);
-                    return;
-                }
-
-                Map<String, String> dates = lastDatesRef.get();
-                if (dates == null) {
-                    return;
-                }
-
-                AppDate appDate = dateViewModel.getCurrentDate().getValue();
-                if (appDate == null) {
-                    return;
-                }
-
-                String creatorJoinIso = dates.get(circleCreatorId);
-                if (creatorJoinIso == null) {
-                    return;
-                }
-
-                String creatorEndIso = weeklyText.equals(freq)
-                        ? AppDate.addDays(creatorJoinIso, 7, 0)
-                        : AppDate.addDays(creatorJoinIso, 0, 1);
-
-                boolean invitesOpen = appDate.toIso().compareTo(creatorEndIso) <= 0;
-                setInviteControls(invitesOpen, inviteInputFinal, inviteButtonFinal);
+        Runnable reevaluateInviteGate = () -> {
+            // Only creator can invite
+            if (circleCreatorId == null || !circleCreatorId.equals(currentUid)) {
+                setInviteControls(false, inviteEmailInput, inviteButton);
+                return;
             }
+
+            Map<String, String> dates = lastDatesRef.get();
+            if (dates == null) return;
+
+            AppDate appDate = dateViewModel.getCurrentDate().getValue();
+            if (appDate == null) return;
+
+            String creatorJoinIso = dates.get(circleCreatorId);
+            if (creatorJoinIso == null) return;
+
+            String creatorEndIso = WEEKLY_TEXT.equals(freq)
+                    ? AppDate.addDays(creatorJoinIso, 7, 0)
+                    : AppDate.addDays(creatorJoinIso, 0, 1);
+
+            boolean invitesOpen = appDate.toIso().compareTo(creatorEndIso) <= 0;
+            setInviteControls(invitesOpen, inviteEmailInput, inviteButton);
         };
 
         // Reevaluate gate whenever AppDate changes
         dateViewModel.getCurrentDate().observe(this, d -> reevaluateInviteGate.run());
 
-        // --------- Invite button: use AppDate when sending invite ----------
+        return reevaluateInviteGate;
+    }
+
+    private void setupInviteButton() {
         inviteButton.setOnClickListener(v -> {
             String inviteEmail = inviteEmailInput.getText().toString().trim();
             if (inviteEmail.isEmpty()) {
@@ -245,27 +284,34 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
                 return;
             }
 
-            // Get current AppDate once, then send invite with appDate iso string
-            androidx.lifecycle.Observer<AppDate> once = new androidx.lifecycle.Observer<AppDate>() {
-                @Override
-                public void onChanged(AppDate appDate) {
-                    if (appDate == null) {
-                        return;
-                    }
-                    dateViewModel.getCurrentDate().removeObserver(this);
-                    getDetailsVM().sendInvite(circleId, groupName, inviteEmail, appDate.toIso());
-                }
-            };
-            dateViewModel.getCurrentDate().observe(this, once);
+            observeCurrentAppDateOnce(appDate -> {
+                if (appDate == null) return;
+                getDetailsVM().sendInvite(circleId, groupName, inviteEmail, appDate.toIso());
+            });
         });
+    }
 
-        // --------- ViewModels & observers for contributions + status line ----------
+    private void observeCurrentAppDateOnce(Observer<AppDate> consumer) {
+        AtomicReference<Observer<AppDate>> ref = new AtomicReference<>();
+        Observer<AppDate> once = appDate -> {
+            dateViewModel.getCurrentDate().removeObserver(ref.get());
+            consumer.onChanged(appDate);
+        };
+        ref.set(once);
+        dateViewModel.getCurrentDate().observe(this, once);
+    }
+
+    /* ------------------------- vm observers + initial start ------------------------- */
+
+    // Sonar fix: accept local reevaluateInviteGate
+    private void wireViewModelObservers(Runnable reevaluateInviteGate) {
         Observer<Object> dataObserver = ignored -> {
             vmContributions = detailsViewModel.getContributions().getValue();
             vmMembers = detailsViewModel.getMembers().getValue();
             vmMemberUids = detailsViewModel.getMemberUids().getValue();
             updateUIWithAppDate();
         };
+
         detailsViewModel.getContributions().observe(this, dataObserver);
         detailsViewModel.getMembers().observe(this, dataObserver);
         detailsViewModel.getMemberUids().observe(this, dataObserver);
@@ -276,37 +322,40 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             }
         });
 
-        // Member join dates: update end date + reevaluate invite gate
         detailsViewModel.getMemberJoinDates().observe(this, dates -> {
             lastDatesRef.set(dates);
-
-            if (dates != null && !dates.isEmpty()) {
-                String maxEndIso = null;
-                for (String joinIso : dates.values()) {
-                    if (joinIso == null || joinIso.isEmpty()) {
-                        continue;
-                    }
-                    String endIso = "Weekly".equals(freq)
-                            ? AppDate.addDays(joinIso, 7, 0)
-                            : AppDate.addDays(joinIso, 0, 1);
-                    if (maxEndIso == null || endIso.compareTo(maxEndIso) > 0) {
-                        maxEndIso = endIso;
-                    }
-                }
-                if (maxEndIso != null) {
-                    groupEndingTextView.setText(maxEndIso);
-                }
-            }
-
-            reevaluateInviteGate.run();
+            updateMaxEndDateFromJoinDates(dates);
+            if (reevaluateInviteGate != null) reevaluateInviteGate.run();
         });
 
         dateViewModel.getCurrentDate().observe(this, appDate -> {
             lastAppDate = appDate;
             updateUIWithAppDate();
         });
+    }
 
-        // Start listening after observers are wired
+    private void updateMaxEndDateFromJoinDates(Map<String, String> dates) {
+        if (dates == null || dates.isEmpty()) return;
+
+        String maxEndIso = null;
+        for (String joinIso : dates.values()) {
+            if (joinIso == null || joinIso.isEmpty()) continue;
+
+            String endIso = WEEKLY_TEXT.equals(groupFrequency)
+                    ? AppDate.addDays(joinIso, 7, 0)
+                    : AppDate.addDays(joinIso, 0, 1);
+
+            if (maxEndIso == null || endIso.compareTo(maxEndIso) > 0) {
+                maxEndIso = endIso;
+            }
+        }
+
+        if (maxEndIso != null) {
+            groupEndingTextView.setText(maxEndIso);
+        }
+    }
+
+    private void startListeningAndInitialUI() {
         detailsViewModel.listenToSavingsCircle(circleId);
 
         if (lastAppDate == null) {
@@ -315,6 +364,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         updateUIWithAppDate();
         groupContributionsTextView.post(this::updateUIWithAppDate);
     }
+
+    /* ------------------------- existing helpers unchanged ------------------------- */
 
     @Override
     protected void onResume() {
@@ -343,73 +394,82 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         return null;
     }
 
-    /** Re-render contributions and the single colored status TEXT using AppDate. */
+    /** Sonar fix: split into helpers to reduce Cognitive Complexity. */
     private void updateUIWithAppDate() {
-
         if (statusLineTextView == null) {
             return;
         }
 
-        statusLineTextView.setText("Calculating goal status…");
-        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
-        statusLineTextView.setVisibility(View.VISIBLE);
+        showCalculatingStatus();
+        updateContributionsSection();
 
-        // 1) Rebuild contributions list
-        if (groupContributionsTextView != null
-                && vmContributions != null
-                && vmMembers != null
-                && vmMemberUids != null) {
-            StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, String> entry : vmMembers.entrySet()) {
-                String idx = entry.getKey();
-                String label = entry.getValue();
-                String uid = vmMemberUids.get(idx);
-                Double amt = (uid != null) ? vmContributions.get(uid) : null;
-                sb.append(label).append(": $").append(amt != null ? amt : 0.0).append("\n");
-            }
-            groupContributionsTextView.setText(sb.toString());
-            if (groupEmailTextView != null) {
-                groupEmailTextView.setText(TextUtils.join(", ", vmMembers.values()));
-            }
-        }
-
-        // 3) Compute my target and contribution
         int people = (vmMembers != null && !vmMembers.isEmpty()) ? vmMembers.size() : 1;
         double personalTarget = groupChallengeGoal / Math.max(people, 1);
 
-        Double myContribution = null;
-        if (vmContributions != null) {
-            if (currentUid != null) {
-                myContribution = vmContributions.get(currentUid);
-            }
-            if (myContribution == null && currentEmail != null) {
-                myContribution = vmContributions.get(currentEmail);
-            }
-        }
-        double myAmt = myContribution != null ? myContribution : 0.0;
+        double myAmt = computeMyContribution();
+        updateGoalStatus(myAmt, personalTarget);
+    }
 
-        // 4) Build the TEXT and color for statusLineTextView
-        String text;
-        int color;
+    /* ------------------------- UI helpers (new) ------------------------- */
 
-        if (myAmt >= personalTarget) {
-            text = "Goal met";
-            color = safeColor(R.color.green, 0xFF3DB85D);
-        } else {
-            text = "Goal not reached yet";
-            color = safeColor(R.color.red, 0xFFE53935);
+    private void showCalculatingStatus() {
+        statusLineTextView.setText("Calculating goal status…");
+        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
+        statusLineTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void updateContributionsSection() {
+        if (groupContributionsTextView == null
+                || vmContributions == null
+                || vmMembers == null
+                || vmMemberUids == null) {
+            return;
         }
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : vmMembers.entrySet()) {
+            String idx = entry.getKey();
+            String label = entry.getValue();
+            String uid = vmMemberUids.get(idx);
+            Double amt = (uid != null) ? vmContributions.get(uid) : null;
+            sb.append(label).append(": $").append(amt != null ? amt : 0.0).append("\n");
+        }
+        groupContributionsTextView.setText(sb.toString());
+
+        if (groupEmailTextView != null) {
+            groupEmailTextView.setText(TextUtils.join(", ", vmMembers.values()));
+        }
+    }
+
+    private double computeMyContribution() {
+        if (vmContributions == null) {
+            return 0.0;
+        }
+
+        Double amt = null;
+        if (currentUid != null) {
+            amt = vmContributions.get(currentUid);
+        }
+        if (amt == null && currentEmail != null) {
+            amt = vmContributions.get(currentEmail);
+        }
+
+        return amt != null ? amt : 0.0;
+    }
+
+    private void updateGoalStatus(double myAmt, double target) {
+        boolean met = myAmt >= target;
+
+        String text = met ? "Goal met" : "Goal not reached yet";
+        int color = met
+                ? safeColor(R.color.green, 0xFF3DB85D)
+                : safeColor(R.color.red, 0xFFE53935);
 
         statusLineTextView.setText(text);
         statusLineTextView.setTextColor(color);
         statusLineTextView.setVisibility(View.VISIBLE);
     }
 
-    /** Return theme color or hex fallback if missing.
-     * @param resId the resource ID of the color to retrieve
-     * @param fallback the fallback color value to return if the resource is missing
-     * @return theme color
-     * */
     private int safeColor(int resId, int fallback) {
         try {
             return ContextCompat.getColor(this, resId);
@@ -431,6 +491,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
+
+
+
 
 
 

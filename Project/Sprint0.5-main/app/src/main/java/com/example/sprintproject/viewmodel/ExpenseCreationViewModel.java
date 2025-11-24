@@ -25,22 +25,27 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ExpenseCreationViewModel extends ViewModel {
+
+    private static final String TAG = "ExpenseCreationVM";
+
+    // Sample constants
     private static final String EATING = "eating";
-    private static final String DATE20 = "Oct 20, 2025";
     private static final String TRAVEL = "travel";
     private static final String GAMING = "gaming";
+    private static final String DATE20 = "Oct 20, 2025";
     private static final String DATE21 = "Oct 21, 2025";
+
+    // Time constants (avoid magic numbers)
+    private static final long MILLIS_PER_DAY = 24L * 60 * 60 * 1000;
+    private static final int WEEK_DAYS = 7;
+    private static final int MONTH_DAYS = 30;
+
     private final MutableLiveData<String> text = new MutableLiveData<>();
     private final MutableLiveData<List<String>> categoriesLiveData =
             new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<String>> circleNamesLive =
             new MutableLiveData<>(new ArrayList<>());
     private final Map<String, String> circleNameToId = new HashMap<>();
-
-    public ExpenseCreationViewModel() {
-        // Just sets a sample value (not used for logic)
-        text.setValue("Hello from ViewModel (placeholder)");
-    }
 
     public LiveData<String> getText() {
         return text;
@@ -58,151 +63,333 @@ public class ExpenseCreationViewModel extends ViewModel {
         return circleNameToId.get(name);
     }
 
-    public void loadCategories() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    /** ---------------- Categories ---------------- */
 
-        FirestoreManager.getInstance().categoriesReference(uid)
+    public void loadCategories() {
+        String uid = getUidOrFinish(() ->
+                categoriesLiveData.setValue(new ArrayList<>())
+        );
+        if (uid == null) return;
+
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<String> categoryNames = new ArrayList<>();
-                    for (DocumentSnapshot doc: querySnapshot) {
-                        if (doc.getString("name") != null) {
-                            categoryNames.add(doc.getString("name"));
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        String n = doc.getString("name");
+                        if (n != null && !n.trim().isEmpty()) {
+                            categoryNames.add(n);
                         }
                     }
                     categoriesLiveData.setValue(categoryNames);
                 })
                 .addOnFailureListener(e ->
-                    categoriesLiveData.setValue(new ArrayList<>())
-        );
+                        categoriesLiveData.setValue(new ArrayList<>())
+                );
     }
 
+    /** ---------------- Circles (refactored to reduce cognitive complexity) ---------------- */
+
     public void loadUserCircles() {
+        String uid = getUidOrClearCircles();
+        if (uid == null) return;
+
+        FirestoreManager.getInstance()
+                .userSavingsCirclePointers(uid)
+                .get()
+                .addOnSuccessListener(qs -> handlePointerSnapshot(qs))
+                .addOnFailureListener(e -> clearCirclesAndPublish());
+    }
+
+    private String getUidOrClearCircles() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            circleNamesLive.setValue(new ArrayList<>());
-            circleNameToId.clear();
+            clearCirclesAndPublish();
+            return null;
+        }
+        return auth.getCurrentUser().getUid();
+    }
+
+    private void handlePointerSnapshot(QuerySnapshot qs) {
+        List<String> names = new ArrayList<>();
+        circleNameToId.clear();
+
+        if (qs == null || qs.isEmpty()) {
+            circleNamesLive.setValue(names);
             return;
         }
 
-        String uid = auth.getCurrentUser().getUid();
+        PendingCounter pending = new PendingCounter(() ->
+                circleNamesLive.setValue(new ArrayList<>(names))
+        );
 
+        for (DocumentSnapshot doc : qs.getDocuments()) {
+            processPointerDoc(doc, names, pending);
+        }
+
+        pending.maybePublishNow();
+    }
+
+    private void processPointerDoc(
+            DocumentSnapshot doc,
+            List<String> names,
+            PendingCounter pending
+    ) {
+        String circleId = safeTrim(doc.getString("circleId"));
+        if (circleId.isEmpty()) return;
+
+        String pointerName = safeTrim(doc.getString("name"));
+        if (!pointerName.isEmpty()) {
+            addCircleName(pointerName, circleId, names);
+            return;
+        }
+
+        // uid removed because it was unused (Sonar smell)
+        fetchAndAddCircleName(circleId, names, pending);
+    }
+
+    // ✅ uid parameter removed (unused)
+    private void fetchAndAddCircleName(
+            String circleId,
+            List<String> names,
+            PendingCounter pending
+    ) {
+        pending.increment();
         FirestoreManager.getInstance()
-                .userSavingsCirclePointers(uid) // read pointers under the user
+                .savingsCircleDoc(circleId)
                 .get()
-                .addOnSuccessListener(qs -> {
-                    List<String> names = new ArrayList<>();
-                    circleNameToId.clear();
-
-                    if (qs == null || qs.isEmpty()) {
-                        circleNamesLive.setValue(names);
-                        return;
-                    }
-
-                    final int[] pending = {0};
-
-                    for (DocumentSnapshot doc : qs.getDocuments()) {
-                        String circleId = doc.getString("circleId");
-                        // Most pointer docs store "name" (not "circleName")
-                        String pointerName = doc.getString("name");
-
-                        if (circleId == null || circleId.trim().isEmpty()) {
-                            continue;
-                        }
-
-                        if (pointerName != null && !pointerName.trim().isEmpty()) {
-                            // Fast path: pointer already has a name
-                            circleNameToId.put(pointerName, circleId);
-                            names.add(pointerName);
-                        } else {
-                            // Fallback: fetch the name from the global circle doc
-                            pending[0]++;
-                            FirestoreManager.getInstance()
-                                    .savingsCircleDoc(circleId)
-                                    .get()
-                                    .addOnSuccessListener(globalDoc -> {
-                                        String fetched = globalDoc.getString("name");
-                                        if (fetched != null && !fetched.trim().isEmpty()) {
-                                            circleNameToId.put(fetched, circleId);
-                                            names.add(fetched);
-                                        }
-                                    })
-                                    .addOnCompleteListener(task -> {
-                                        // decrement regardless of success/failure
-                                        pending[0]--;
-                                        if (pending[0] == 0) {
-                                            circleNamesLive.setValue(new ArrayList<>(names));
-                                        }
-                                    });
-                        }
-                    }
-
-                    // If there were no fallbacks, publish immediately
-                    if (pending[0] == 0) {
-                        circleNamesLive.setValue(names);
+                .addOnSuccessListener(globalDoc -> {
+                    String fetched = safeTrim(globalDoc.getString("name"));
+                    if (!fetched.isEmpty()) {
+                        addCircleName(fetched, circleId, names);
                     }
                 })
-                .addOnFailureListener(e -> {
-                    circleNameToId.clear();
-                    circleNamesLive.setValue(new ArrayList<>());
-                });
+                .addOnCompleteListener(task -> pending.decrement());
     }
+
+    private void addCircleName(String name, String circleId, List<String> names) {
+        circleNameToId.put(name, circleId);
+        names.add(name);
+    }
+
+    private void clearCirclesAndPublish() {
+        circleNameToId.clear();
+        circleNamesLive.setValue(new ArrayList<>());
+    }
+
+    /** Small utility to track async fallbacks. */
+    private static class PendingCounter {
+        private int count = 0;
+        private final Runnable onZero;
+
+        PendingCounter(Runnable onZero) {
+            this.onZero = onZero;
+        }
+
+        void increment() { count++; }
+
+        void decrement() {
+            count--;
+            if (count == 0) onZero.run();
+        }
+
+        void maybePublishNow() {
+            if (count == 0) onZero.run();
+        }
+    }
+
+    /** ---------------- Expense creation ---------------- */
 
     public void createExpense(
             String name, String date, String amountString,
-            String category, String notes, Runnable onBudgetUpdated) {
-
-        // default: not contributing, no circle
-        ExpenseData data = new ExpenseData(name, date, amountString, category, notes, false, null);
+            String category, String notes, Runnable onBudgetUpdated
+    ) {
+        ExpenseData data = new ExpenseData(
+                name, date, amountString, category, notes, false, null
+        );
         createExpense(data, onBudgetUpdated);
     }
 
-
-    public void createExpense(
-            ExpenseData data,
-            Runnable onBudgetUpdated) {
-
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
+    public void createExpense(ExpenseData data, Runnable onBudgetUpdated) {
+        String uid = getUidOrFinish(null);
+        if (uid == null) {
             text.setValue("User not logged in");
             return;
         }
 
-        String uid = auth.getCurrentUser().getUid();
-        Log.d("EXP", "Writing expense for uid=" + uid);
+        Log.d(TAG, "Writing expense for uid=" + uid);
+
         String normalizedCategory = normalizeCategory(data.getCategory());
         Double amount = parseAmount(data.getAmountString());
-        if (amount == null) {
-            return;
-        }
+        if (amount == null) return;
 
         long timestamp = parseDateToMillis(data.getDate());
-        Expense expense = new Expense(data.getName(), amount, normalizedCategory,
-                data.getDate(), data.getNotes());
+
+        Expense expense = new Expense(
+                data.getName(), amount, normalizedCategory,
+                data.getDate(), data.getNotes()
+        );
         expense.setTimestamp(timestamp);
         expense.setContributesToGroupSavings(data.getContributesToGroupSavings());
 
-        FirestoreManager.getInstance().expensesReference(uid)
+        FirestoreManager.getInstance()
+                .expensesReference(uid)
                 .add(expense)
                 .addOnSuccessListener(docRef -> {
+                    FirestoreManager.getInstance().incrementField(uid, "totalExpenses");
                     handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
                     handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
-                    if (data.getContributesToGroupSavings() && data.getCircleId() != null
-                            && !data.getCircleId().isEmpty()) {
-                        updateGroupSavingsByCircleId(data.getCircleId(), uid, amount);
-                    }
-                });
+                    maybeUpdateGroupSavings(data, uid, amount);
+                })
+                .addOnFailureListener(e ->
+                        text.setValue("Failed to create expense")
+                );
+    }
+
+    private void maybeUpdateGroupSavings(ExpenseData data, String uid, double amount) {
+        if (data.getContributesToGroupSavings()
+                && data.getCircleId() != null
+                && !data.getCircleId().trim().isEmpty()) {
+            updateGroupSavingsByCircleId(data.getCircleId(), uid, amount);
+        }
     }
 
     private void updateGroupSavingsByCircleId(String circleId, String uid, double amount) {
         FirestoreManager.getInstance()
                 .savingsCircleDoc(circleId)
                 .update("spent", FieldValue.increment(amount));
+
         FirestoreManager.getInstance()
                 .savingsCircleDoc(circleId)
                 .update("contributions." + uid, FieldValue.increment(amount));
     }
+
+    /** ---------------- Category / Budget updates ---------------- */
+
+    private void handleCategoryUpdate(String uid, String category, String expenseId) {
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
+                .whereEqualTo("name", category)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!query.isEmpty()) {
+                        query.getDocuments().get(0).getReference()
+                                .update("expenses", FieldValue.arrayUnion(expenseId));
+                    } else {
+                        createNewCategory(uid, category, expenseId);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Log.w(TAG, "Failed to update category", e)
+                );
+    }
+
+    private void createNewCategory(String uid, String category, String expenseId) {
+        Map<String, Object> newCategory = new HashMap<>();
+        newCategory.put("name", category);
+        newCategory.put("budgets", Collections.emptyList());
+        newCategory.put("expenses", Collections.singletonList(expenseId));
+
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
+                .add(newCategory)
+                .addOnFailureListener(e ->
+                        Log.w(TAG, "Failed to create new category", e)
+                );
+    }
+
+    private void handleBudgetUpdate(String uid, String category, Runnable onBudgetUpdated) {
+        FirestoreManager.getInstance()
+                .budgetsReference(uid)
+                .whereEqualTo("category", category)
+                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) return;
+
+                    DocumentSnapshot budgetDoc = query.getDocuments().get(0);
+                    Budget budget = budgetDoc.toObject(Budget.class);
+                    if (budget == null) return;
+
+                    long budgetStart = budget.getStartDateTimestamp();
+                    long budgetEnd = calcBudgetEnd(budgetStart, budget.getFrequency());
+
+                    FirestoreManager.getInstance()
+                            .expensesReference(uid)
+                            .whereEqualTo("category", category)
+                            .get()
+                            .addOnSuccessListener(expenseQuery -> {
+                                double spent = calculateSpentToDate(
+                                        expenseQuery, budgetStart, budgetEnd
+                                );
+                                updateBudgetDoc(uid, budgetDoc, budget, spent, onBudgetUpdated);
+                            })
+                            .addOnFailureListener(e ->
+                                    Log.w(TAG, "Failed to recalc budget spend", e)
+                            );
+                })
+                .addOnFailureListener(e ->
+                        Log.w(TAG, "Failed to fetch budget", e)
+                );
+    }
+
+    private long calcBudgetEnd(long start, String freq) {
+        if ("Weekly".equalsIgnoreCase(freq)) {
+            return start + WEEK_DAYS * MILLIS_PER_DAY;
+        }
+        if ("Monthly".equalsIgnoreCase(freq)) {
+            return start + MONTH_DAYS * MILLIS_PER_DAY;
+        }
+        return start;
+    }
+
+    private double calculateSpentToDate(QuerySnapshot expenseQuery, long start, long end) {
+        double spent = 0;
+        long now = System.currentTimeMillis();
+        long effectiveEnd = Math.min(end, now);
+        long startWindow = start - MILLIS_PER_DAY; // inclusive buffer
+
+        for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
+            Expense e = doc.toObject(Expense.class);
+            if (e == null) continue;
+
+            long t = e.getTimestamp();
+            if (t >= startWindow && t <= effectiveEnd) {
+                spent += e.getAmount();
+            }
+        }
+        return spent;
+    }
+
+    private void updateBudgetDoc(
+            String uid,
+            DocumentSnapshot doc,
+            Budget budget,
+            double spent,
+            Runnable onBudgetUpdated
+    ) {
+        double remaining = budget.getAmount() - spent;
+        boolean overBudget = remaining < 0;
+
+        FirestoreManager.getInstance()
+                .budgetsReference(uid)
+                .document(doc.getId())
+                .update(
+                        "spentToDate", spent,
+                        "moneyRemaining", remaining,
+                        "overBudget", overBudget
+                )
+                .addOnSuccessListener(a -> runOnComplete(onBudgetUpdated))
+                .addOnFailureListener(e ->
+                        Log.w(TAG, "Failed to update budget doc", e)
+                );
+    }
+
+    /** ---------------- Utilities ---------------- */
 
     private String normalizeCategory(String category) {
         return category == null ? "" : category.trim().toLowerCase(Locale.US);
@@ -222,110 +409,35 @@ public class ExpenseCreationViewModel extends ViewModel {
         }
     }
 
-    private void handleCategoryUpdate(String uid, String category, String expenseId) {
-        FirestoreManager.getInstance().categoriesReference(uid)
-                .whereEqualTo("name", category)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(query -> {
-                    if (!query.isEmpty()) {
-                        query.getDocuments().get(0).getReference()
-                                .update("expenses", FieldValue.arrayUnion(expenseId));
-                    } else {
-                        createNewCategory(uid, category, expenseId);
-                    }
-                });
+    private String safeTrim(String s) {
+        return s == null ? "" : s.trim();
     }
 
-    private void createNewCategory(String uid, String category, String expenseId) {
-        Map<String, Object> newCategory = new HashMap<>();
-        newCategory.put("name", category);
-        newCategory.put("budgets", Collections.emptyList());
-        newCategory.put("expenses", Collections.singletonList(expenseId));
-
-        FirestoreManager.getInstance().categoriesReference(uid)
-                .add(newCategory);
-    }
-
-    private void handleBudgetUpdate(String uid, String category, Runnable onBudgetUpdated) {
-        FirestoreManager.getInstance().budgetsReference(uid)
-                .whereEqualTo("category", category)
-                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(query -> {
-                    if (query.isEmpty()) {
-                        return;
-                    }
-
-                    DocumentSnapshot budgetDoc = query.getDocuments().get(0);
-                    Budget budget = budgetDoc.toObject(Budget.class);
-                    if (budget == null) {
-                        return;
-                    }
-
-                    long budgetStart = budget.getStartDateTimestamp();
-                    long budgetEnd = calcBudgetEnd(budgetStart, budget.getFrequency());
-
-                    FirestoreManager.getInstance().expensesReference(uid)
-                            .whereEqualTo("category", category)
-                            .get()
-                            .addOnSuccessListener(expenseQuery -> {
-                                double spent = calculateSpentToDate(
-                                        expenseQuery, budgetStart, budgetEnd);
-                                updateBudgetDoc(uid, budgetDoc, budget, spent, onBudgetUpdated);
-                            });
-                });
-    }
-
-    private long calcBudgetEnd(long start, String freq) {
-        if ("Weekly".equalsIgnoreCase(freq)) {
-            return start + 7L * 24 * 60 * 60 * 1000;
+    private String getUidOrFinish(Runnable onComplete) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            runOnComplete(onComplete);
+            return null;
         }
-        if ("Monthly".equalsIgnoreCase(freq)) {
-            return start + 30L * 24 * 60 * 60 * 1000;
+        return auth.getCurrentUser().getUid();
+    }
+
+    private void runOnComplete(Runnable onComplete) {
+        if (onComplete != null) onComplete.run();
+    }
+
+    private long parseDateToMillis(String dateString) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
+        try {
+            Date date = sdf.parse(dateString);
+            if (date != null) return date.getTime();
+        } catch (Exception e) {
+            Log.w(TAG, "Bad date: " + dateString, e);
         }
-        return start;
+        return System.currentTimeMillis();
     }
 
-    private double calculateSpentToDate(QuerySnapshot expenseQuery, long start, long end) {
-        double spent = 0;
-        long now = System.currentTimeMillis();
-        long effectiveEnd = Math.min(end, now);
-
-        for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
-            Expense e = doc.toObject(Expense.class);
-            if (e == null) {
-                continue;
-            }
-            long t = e.getTimestamp();
-            if (t >= start - 24L * 60 * 60 * 1000 && t <= effectiveEnd) {
-                spent += e.getAmount();
-            }
-        }
-        return spent;
-    }
-
-    private void updateBudgetDoc(String uid, DocumentSnapshot doc, Budget budget,
-                                 double spent, Runnable onBudgetUpdated) {
-        double remaining = budget.getAmount() - spent;
-        boolean overBudget = remaining < 0;
-
-        FirestoreManager.getInstance()
-                .budgetsReference(uid)
-                .document(doc.getId())
-                .update(
-                        "spentToDate", spent,
-                        "moneyRemaining", remaining,
-                        "overBudget", overBudget
-                )
-                .addOnSuccessListener(a -> {
-                    if (onBudgetUpdated != null) {
-                        onBudgetUpdated.run();
-                    }
-                });
-    }
-
+    /** ---------------- Sample data ---------------- */
 
     public void createSampleExpenses() {
         createExpense("Tin Drum", "Oct 15, 2025", "20.00", EATING, null, null);
@@ -338,7 +450,6 @@ public class ExpenseCreationViewModel extends ViewModel {
         createExpense("PS5", "Oct 22, 2025", "800.00", GAMING, "Xbox Broke", null);
 
         createExpense("Loan", "Oct 07, 2025", "1000.00", "other", null, null);
-
     }
 
     public void createSampleDate(Runnable onComplete) {
@@ -353,26 +464,11 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         createExpense("Loan", "Oct 07, 2025", "1000.00", "other", null, null);
 
+        // NOTE: ViewModels should normally be obtained via ViewModelProvider.
+        // This is only used to seed sample data in a non-production path.
         BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
-
-        budgetCreationViewModel.createSampleBudgets(() -> {
-            if (onComplete != null) {
-                onComplete.run();
-            }
-        });
-
-    }
-
-    private long parseDateToMillis(String dateString) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-        try {
-            Date date = sdf.parse(dateString);
-            if (date != null) {
-                return date.getTime();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return System.currentTimeMillis();
+        budgetCreationViewModel.createSampleBudgets(() -> runOnComplete(onComplete));
     }
 }
+
+
