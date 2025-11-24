@@ -71,7 +71,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     // Invite gate state
     private final AtomicReference<Map<String, String>> lastDatesRef = new AtomicReference<>();
-    private Runnable reevaluateInviteGate;
+    // Sonar fix: removed field reevaluateInviteGate
 
     private static final String WEEKLY_TEXT = "Weekly";
 
@@ -91,9 +91,11 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         setupBackButton();
         setupInviteDeleteControls();
 
-        setupInviteGateReevaluation();   // Runnable -> lambda
-        setupInviteButton();            // one-time observer via helper below
-        wireViewModelObservers();
+        // Sonar fix: reevaluateInviteGate is LOCAL now
+        Runnable reevaluateInviteGate = setupInviteGateReevaluation();
+
+        setupInviteButton();
+        wireViewModelObservers(reevaluateInviteGate);
 
         startListeningAndInitialUI();
     }
@@ -239,12 +241,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     /* ------------------------- invite gate + invite ------------------------- */
 
-    private void setupInviteGateReevaluation() {
+    // Sonar fix: method now RETURNS a Runnable instead of storing a field
+    private Runnable setupInviteGateReevaluation() {
         final String freq = groupFrequency;
         final String circleCreatorId = creatorId;
 
-        // ✅ Sonar: anonymous Runnable -> lambda
-        reevaluateInviteGate = () -> {
+        Runnable reevaluateInviteGate = () -> {
             // Only creator can invite
             if (circleCreatorId == null || !circleCreatorId.equals(currentUid)) {
                 setInviteControls(false, inviteEmailInput, inviteButton);
@@ -270,6 +272,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         // Reevaluate gate whenever AppDate changes
         dateViewModel.getCurrentDate().observe(this, d -> reevaluateInviteGate.run());
+
+        return reevaluateInviteGate;
     }
 
     private void setupInviteButton() {
@@ -287,10 +291,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Observe DateViewModel once, then auto-remove observer.
-     * Keeps onCreate small + avoids anonymous inner class in onCreate.
-     */
     private void observeCurrentAppDateOnce(Observer<AppDate> consumer) {
         AtomicReference<Observer<AppDate>> ref = new AtomicReference<>();
         Observer<AppDate> once = appDate -> {
@@ -303,7 +303,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     /* ------------------------- vm observers + initial start ------------------------- */
 
-    private void wireViewModelObservers() {
+    // Sonar fix: accept local reevaluateInviteGate
+    private void wireViewModelObservers(Runnable reevaluateInviteGate) {
         Observer<Object> dataObserver = ignored -> {
             vmContributions = detailsViewModel.getContributions().getValue();
             vmMembers = detailsViewModel.getMembers().getValue();
@@ -393,69 +394,82 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         return null;
     }
 
-    /** Re-render contributions and the single colored status TEXT using AppDate. */
+    /** Sonar fix: split into helpers to reduce Cognitive Complexity. */
     private void updateUIWithAppDate() {
-
         if (statusLineTextView == null) {
             return;
         }
 
-        statusLineTextView.setText("Calculating goal status…");
-        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
-        statusLineTextView.setVisibility(View.VISIBLE);
+        showCalculatingStatus();
+        updateContributionsSection();
 
-        // 1) Rebuild contributions list
-        if (groupContributionsTextView != null
-                && vmContributions != null
-                && vmMembers != null
-                && vmMemberUids != null) {
-            StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, String> entry : vmMembers.entrySet()) {
-                String idx = entry.getKey();
-                String label = entry.getValue();
-                String uid = vmMemberUids.get(idx);
-                Double amt = (uid != null) ? vmContributions.get(uid) : null;
-                sb.append(label).append(": $").append(amt != null ? amt : 0.0).append("\n");
-            }
-            groupContributionsTextView.setText(sb.toString());
-            if (groupEmailTextView != null) {
-                groupEmailTextView.setText(TextUtils.join(", ", vmMembers.values()));
-            }
-        }
-
-        // 3) Compute my target and contribution
         int people = (vmMembers != null && !vmMembers.isEmpty()) ? vmMembers.size() : 1;
         double personalTarget = groupChallengeGoal / Math.max(people, 1);
 
-        Double myContribution = null;
-        if (vmContributions != null) {
-            if (currentUid != null) {
-                myContribution = vmContributions.get(currentUid);
-            }
-            if (myContribution == null && currentEmail != null) {
-                myContribution = vmContributions.get(currentEmail);
-            }
-        }
-        double myAmt = myContribution != null ? myContribution : 0.0;
+        double myAmt = computeMyContribution();
+        updateGoalStatus(myAmt, personalTarget);
+    }
 
-        // 4) Build the TEXT and color for statusLineTextView
-        String text;
-        int color;
+    /* ------------------------- UI helpers (new) ------------------------- */
 
-        if (myAmt >= personalTarget) {
-            text = "Goal met";
-            color = safeColor(R.color.green, 0xFF3DB85D);
-        } else {
-            text = "Goal not reached yet";
-            color = safeColor(R.color.red, 0xFFE53935);
+    private void showCalculatingStatus() {
+        statusLineTextView.setText("Calculating goal status…");
+        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
+        statusLineTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void updateContributionsSection() {
+        if (groupContributionsTextView == null
+                || vmContributions == null
+                || vmMembers == null
+                || vmMemberUids == null) {
+            return;
         }
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : vmMembers.entrySet()) {
+            String idx = entry.getKey();
+            String label = entry.getValue();
+            String uid = vmMemberUids.get(idx);
+            Double amt = (uid != null) ? vmContributions.get(uid) : null;
+            sb.append(label).append(": $").append(amt != null ? amt : 0.0).append("\n");
+        }
+        groupContributionsTextView.setText(sb.toString());
+
+        if (groupEmailTextView != null) {
+            groupEmailTextView.setText(TextUtils.join(", ", vmMembers.values()));
+        }
+    }
+
+    private double computeMyContribution() {
+        if (vmContributions == null) {
+            return 0.0;
+        }
+
+        Double amt = null;
+        if (currentUid != null) {
+            amt = vmContributions.get(currentUid);
+        }
+        if (amt == null && currentEmail != null) {
+            amt = vmContributions.get(currentEmail);
+        }
+
+        return amt != null ? amt : 0.0;
+    }
+
+    private void updateGoalStatus(double myAmt, double target) {
+        boolean met = myAmt >= target;
+
+        String text = met ? "Goal met" : "Goal not reached yet";
+        int color = met
+                ? safeColor(R.color.green, 0xFF3DB85D)
+                : safeColor(R.color.red, 0xFFE53935);
 
         statusLineTextView.setText(text);
         statusLineTextView.setTextColor(color);
         statusLineTextView.setVisibility(View.VISIBLE);
     }
 
-    /** Return theme color or hex fallback if missing. */
     private int safeColor(int resId, int fallback) {
         try {
             return ContextCompat.getColor(this, resId);
@@ -477,6 +491,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
+
+
 
 
 

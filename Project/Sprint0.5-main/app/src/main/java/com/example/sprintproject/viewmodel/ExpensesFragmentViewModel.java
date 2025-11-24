@@ -15,6 +15,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,6 +31,15 @@ public class ExpensesFragmentViewModel extends ViewModel {
             new MutableLiveData<>(new ArrayList<>());
 
     private ListenerRegistration activeListener;
+
+    // Avoid re-allocating these on every parse call (Sonar "avoid repeated allocations")
+    private static final List<String> FULL_DATE_FORMATS = Arrays.asList(
+            "yyyy-MM-dd", "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy",
+            "MMM dd, yyyy", "MMM d, yyyy", "MMMM dd, yyyy", "MMMM d, yyyy"
+    );
+    private static final List<String> MONTH_ONLY_FORMATS = Arrays.asList(
+            "yyyy-MM", "yyyy/MM", "MM-yyyy", "MM/yyyy", "MMM yyyy", "MMMM yyyy"
+    );
 
     public LiveData<List<Expense>> getExpenses() {
         return expensesLiveData;
@@ -50,33 +60,29 @@ public class ExpensesFragmentViewModel extends ViewModel {
 
     /** Load all expenses (no filtering). */
     public void loadExpenses() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
-            expensesLiveData.postValue(new ArrayList<>());
-            return;
-        }
-        String uid = auth.getCurrentUser().getUid();
+        String uid = getUidOrPostEmpty();
+        if (uid == null) return;
 
         detachActiveListener();
 
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
-                .orderBy("timestamp",
-                        Query.Direction.DESCENDING)
-                .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
-                    if (e != null || qs == null) {
-                        expensesLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-                    List<Expense> list = new ArrayList<>();
-                    for (DocumentSnapshot doc : qs.getDocuments()) {
-                        Expense exp = doc.toObject(Expense.class);
-                        if (exp != null) {
-                            list.add(exp);
-                        }
-                    }
-                    expensesLiveData.postValue(list);
-                });
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((qs, e) -> handleAllExpensesSnapshot(qs, e));
+    }
+
+    private void handleAllExpensesSnapshot(QuerySnapshot qs, FirebaseFirestoreException e) {
+        if (hasSnapshotError(qs, e)) {
+            expensesLiveData.postValue(new ArrayList<>());
+            return;
+        }
+
+        List<Expense> list = new ArrayList<>();
+        for (DocumentSnapshot doc : qs.getDocuments()) {
+            Expense exp = doc.toObject(Expense.class);
+            if (exp != null) list.add(exp);
+        }
+        expensesLiveData.postValue(list);
     }
 
     /**
@@ -86,51 +92,83 @@ public class ExpensesFragmentViewModel extends ViewModel {
      * @param appDate The selected date used to filter which expenses to show.
      */
     public void loadExpensesFor(@NonNull AppDate appDate) {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
-            expensesLiveData.postValue(new ArrayList<>());
-            return;
-        }
-        String uid = auth.getCurrentUser().getUid();
+        String uid = getUidOrPostEmpty();
+        if (uid == null) return;
 
         detachActiveListener();
 
         activeListener = FirestoreManager.getInstance()
                 .expensesReference(uid)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .addSnapshotListener((QuerySnapshot qs, FirebaseFirestoreException e) -> {
-                    if (e != null || qs == null) {
-                        expensesLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-                    List<Expense> filtered = new ArrayList<>();
-                    for (DocumentSnapshot doc : qs.getDocuments()) {
-                        Expense exp = doc.toObject(Expense.class);
-                        if (exp == null) {
-                            continue;
-                        }
-
-                        Object raw = doc.get("date");
-                        String fallback = null;
-                        try {
-                            java.lang.reflect.Method m = exp.getClass().getMethod("getDate");
-                            Object val = m.invoke(exp);
-                            if (val instanceof String) {
-                                fallback = (String) val;
-                            }
-                        } catch (Exception ignored) {
-                            //ignore
-                        }
-
-                        YMD when = extractYMD(raw, fallback);
-                        if (when != null && onOrBefore(when, appDate)) {
-                            filtered.add(exp);
-                        }
-                    }
-                    expensesLiveData.postValue(filtered);
-                });
+                .addSnapshotListener((qs, e) -> handleFilteredExpensesSnapshot(qs, e, appDate));
     }
 
+    /** ---------------- Snapshot helpers ---------------- */
+
+    private void handleFilteredExpensesSnapshot(
+            QuerySnapshot qs,
+            FirebaseFirestoreException e,
+            AppDate appDate
+    ) {
+        if (hasSnapshotError(qs, e)) {
+            expensesLiveData.postValue(new ArrayList<>());
+            return;
+        }
+
+        List<Expense> filtered = filterExpenses(qs, appDate);
+        expensesLiveData.postValue(filtered);
+    }
+
+    private boolean hasSnapshotError(QuerySnapshot qs, FirebaseFirestoreException e) {
+        return e != null || qs == null;
+    }
+
+    private String getUidOrPostEmpty() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            expensesLiveData.postValue(new ArrayList<>());
+            return null;
+        }
+        return auth.getCurrentUser().getUid();
+    }
+
+    /** ---------------- Filtering helpers ---------------- */
+
+    private List<Expense> filterExpenses(QuerySnapshot qs, AppDate appDate) {
+        List<Expense> filtered = new ArrayList<>();
+        for (DocumentSnapshot doc : qs.getDocuments()) {
+            Expense exp = doc.toObject(Expense.class);
+            if (exp == null) continue;
+
+            if (shouldIncludeExpense(doc, exp, appDate)) {
+                filtered.add(exp);
+            }
+        }
+        return filtered;
+    }
+
+    private boolean shouldIncludeExpense(DocumentSnapshot doc, Expense exp, AppDate appDate) {
+        YMD when = getExpenseYMD(doc, exp);
+        return when != null && onOrBefore(when, appDate);
+    }
+
+    private YMD getExpenseYMD(DocumentSnapshot doc, Expense exp) {
+        Object raw = doc.get("date");
+        String fallback = getDateFallbackViaReflection(exp);
+        return extractYMD(raw, fallback);
+    }
+
+    private String getDateFallbackViaReflection(Expense exp) {
+        try {
+            Method m = exp.getClass().getMethod("getDate");
+            Object val = m.invoke(exp);
+            return (val instanceof String) ? (String) val : null;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    /** ---------------- Date comparison/parsing ---------------- */
 
     private boolean onOrBefore(YMD item, AppDate selected) {
         Calendar sel = Calendar.getInstance();
@@ -148,22 +186,17 @@ public class ExpensesFragmentViewModel extends ViewModel {
         if (raw instanceof Timestamp) {
             return fromDate(((Timestamp) raw).toDate());
         }
-        if (raw instanceof Date)      {
+        if (raw instanceof Date) {
             return fromDate((Date) raw);
         }
-        if (raw instanceof Long)      {
+        if (raw instanceof Long) {
             return fromDate(new Date((Long) raw));
         }
         if (raw instanceof String) {
             YMD parsed = parseYMDFromString((String) raw);
-            if (parsed != null) {
-                return parsed;
-            }
+            if (parsed != null) return parsed;
         }
-        if (fallbackStr != null) {
-            return parseYMDFromString(fallbackStr);
-        }
-        return null;
+        return (fallbackStr != null) ? parseYMDFromString(fallbackStr) : null;
     }
 
     private YMD fromDate(Date date) {
@@ -184,69 +217,66 @@ public class ExpensesFragmentViewModel extends ViewModel {
      * @return A YMD object if parsing succeeds, or null if parsing fails.
      */
     private YMD parseYMDFromString(String s) {
-        if (s == null) {
-            return null;
-        }
-        String t = s.trim();
-        if (t.isEmpty()) {
-            return null;
-        }
+        String t = safeTrim(s);
+        if (t.isEmpty()) return null;
 
-        List<String> full = Arrays.asList(
-                "yyyy-MM-dd", "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy",
-                "MMM dd, yyyy", "MMM d, yyyy", "MMMM dd, yyyy", "MMMM d, yyyy"
-        );
-        for (String f : full) {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
-                sdf.setLenient(false);
-                Date d = sdf.parse(t);
-                if (d != null) {
-                    return fromDate(d);
-                }
-            } catch (ParseException ignored) {
-                //ignore
-            }
-        }
+        YMD fullParsed = tryParseWithFormats(t, FULL_DATE_FORMATS, false);
+        if (fullParsed != null) return fullParsed;
 
-        List<String> monthOnly = Arrays.asList(
-                "yyyy-MM", "yyyy/MM", "MM-yyyy", "MM/yyyy", "MMM yyyy", "MMMM yyyy"
-        );
-        for (String f : monthOnly) {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat(f, Locale.US);
-                sdf.setLenient(false);
-                Date d = sdf.parse(t);
-                if (d != null) {
-                    Calendar c = Calendar.getInstance();
-                    c.setTime(d);
-                    return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
-                }
-            } catch (ParseException ignored) {
-                //ignore
-            }
-        }
+        YMD monthParsed = tryParseWithFormats(t, MONTH_ONLY_FORMATS, true);
+        if (monthParsed != null) return monthParsed;
 
-        String cleaned = t.replace('/', '-');
-        String[] parts = cleaned.split("-");
-        if (parts.length >= 2) {
-            try {
-                int y = Integer.parseInt(parts[0]);
-                int m = Integer.parseInt(parts[1]);
-                if (m >= 1 && m <= 12) {
-                    return new YMD(y, m, 1);
-                }
-            } catch (NumberFormatException ignored) {
-                //ignore
-            }
+        return tryParseLooselyAsYearMonth(t);
+    }
+
+    private YMD tryParseWithFormats(String t, List<String> formats, boolean monthOnly) {
+        for (String f : formats) {
+            Date d = tryParseDate(t, f);
+            if (d == null) continue;
+
+            if (!monthOnly) return fromDate(d);
+
+            Calendar c = Calendar.getInstance();
+            c.setTime(d);
+            return new YMD(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, 1);
         }
         return null;
     }
 
+    private Date tryParseDate(String t, String format) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
+            sdf.setLenient(false);
+            return sdf.parse(t);
+        } catch (ParseException ignored) {
+            return null;
+        }
+    }
+
+    private YMD tryParseLooselyAsYearMonth(String t) {
+        String cleaned = t.replace('/', '-');
+        String[] parts = cleaned.split("-");
+        if (parts.length < 2) return null;
+
+        try {
+            int y = Integer.parseInt(parts[0]);
+            int m = Integer.parseInt(parts[1]);
+            if (m >= 1 && m <= 12) return new YMD(y, m, 1);
+        } catch (NumberFormatException ignored) {
+            // ignore
+        }
+        return null;
+    }
+
+    private String safeTrim(String s) {
+        return s == null ? "" : s.trim();
+    }
+
     private static final class YMD {
-        private final int  year;
+        private final int year;
         private final int month;
         private final int day;
+
         YMD(int y, int m, int d) {
             year = y;
             month = m;
@@ -254,4 +284,5 @@ public class ExpensesFragmentViewModel extends ViewModel {
         }
     }
 }
+
 

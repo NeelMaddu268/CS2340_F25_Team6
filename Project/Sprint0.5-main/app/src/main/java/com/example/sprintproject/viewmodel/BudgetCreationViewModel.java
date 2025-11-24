@@ -10,6 +10,7 @@ import com.example.sprintproject.model.Expense;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -18,181 +19,257 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class BudgetCreationViewModel extends ViewModel {
 
     private final MutableLiveData<String> text = new MutableLiveData<>();
-
     private static final String BUDGET_STRING = "budgets";
-
 
     public LiveData<String> getText() {
         return text;
     }
 
     public void createBudget(
-            String name, String date, String amountString, String category,
-            String frequency, long timestamp, Runnable onComplete) {
+            String name,
+            String date,
+            String amountString,
+            String category,
+            String frequency,
+            long timestamp,
+            Runnable onComplete
+    ) {
+        String uid = getUidOrFinish(onComplete);
+        if (uid == null) return;
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
-            if (onComplete != null) {
-                onComplete.run();
-            }
-            return;
-        }
+        String normalizedCategory = normalizeCategory(category);
 
-        String uid = auth.getCurrentUser().getUid();
+        Double amount = parseAmountOrFinish(amountString, onComplete);
+        if (amount == null) return;
 
-        final String normalizedCategory = category.trim().toLowerCase(Locale.US);
-
-        double amount;
-        try {
-            amount = Double.parseDouble(amountString);
-        } catch (NumberFormatException e) {
-            text.setValue("Invalid amount");
-            amount = 0.0;
-        }
-
-        double finalAmount = amount;
-
-        FirestoreManager.getInstance().categoriesReference(uid)
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
                 .whereEqualTo("name", normalizedCategory)
                 .limit(1)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    BudgetData budgetData;
-                    if (!querySnapshot.isEmpty()) {
-                        DocumentSnapshot categoryDoc = querySnapshot.getDocuments().get(0);
-                        budgetData = new BudgetData(
-                                name, finalAmount, normalizedCategory,
-                                frequency, date, categoryDoc.getId(), timestamp
-                        );
-                    } else {
-                        budgetData = new BudgetData(
-                                name, finalAmount, normalizedCategory,
-                                frequency, date, null, timestamp
-                        );
-                    }
-
+                    BudgetData budgetData = buildBudgetData(
+                            name,
+                            amount,
+                            normalizedCategory,
+                            frequency,
+                            date,
+                            timestamp,
+                            querySnapshot
+                    );
                     addBudgetToFirestore(uid, budgetData, onComplete);
                 })
-                .addOnFailureListener(e -> {
-                    if (onComplete != null) {
-                        onComplete.run();
-                    }
-                    new BudgetsFragmentViewModel().loadBudgets();
-                });
+                .addOnFailureListener(e -> runOnComplete(onComplete));
     }
 
+    /** ---------------- Refactored to reduce cognitive complexity ---------------- */
 
     private void addBudgetToFirestore(String uid, BudgetData budgetData, Runnable onComplete) {
-        String category = budgetData.getCategory().trim().toLowerCase(Locale.US);
+        String category = normalizeCategory(budgetData.getCategory());
 
-        FirestoreManager.getInstance().expensesReference(uid)
+        FirestoreManager.getInstance()
+                .expensesReference(uid)
                 .whereEqualTo("category", category)
                 .get()
                 .addOnSuccessListener(expenseQuery -> {
-                    double spentToDate = 0.0;
-                    long start = budgetData.getStartDateTimestamp();
-
-                    Calendar normalized = Calendar.getInstance();
-                    normalized.setTimeInMillis(start);
-                    normalized.set(Calendar.HOUR_OF_DAY, 0);
-                    normalized.set(Calendar.MINUTE, 0);
-                    normalized.set(Calendar.SECOND, 0);
-                    normalized.set(Calendar.MILLISECOND, 0);
-                    start = normalized.getTimeInMillis();
-
-                    for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
-                        Expense e = doc.toObject(Expense.class);
-                        if (e != null && e.getTimestamp() >= start) {
-                            spentToDate += e.getAmount();
-                        }
-                    }
-
-                    Budget budget = new Budget(
-                            budgetData.getName(),
-                            budgetData.getAmount(),
-                            category,
-                            budgetData.getFrequency(),
-                            budgetData.getStartDate()
+                    double spentToDate = calculateSpentToDate(
+                            expenseQuery,
+                            budgetData.getStartDateTimestamp()
                     );
-                    budget.setStartDateTimestamp(start);
-                    budget.setSpentToDate(spentToDate);
-                    budget.setMoneyRemaining(budgetData.getAmount() - spentToDate);
-                    budget.setCompleted(false);
-                    budget.setHasPreviousCycle(false);
-                    budget.setPreviousCycleOverBudget(false);
-                    budget.setPreviousCycleEndTimestamp(0L);
 
-                    FirestoreManager.getInstance().budgetsReference(uid)
-                            .add(budget)
-                            .addOnSuccessListener(budgetRef -> {
-                                String budgetId = budgetRef.getId();
+                    Budget budget = buildBudgetFromData(budgetData, category, spentToDate);
 
-                                FirestoreManager.getInstance().incrementField(uid, "totalBudgets");
-
-                                if (budgetData.getCategoryId() != null) {
-                                    FirestoreManager.getInstance()
-                                            .categoriesReference(uid)
-                                            .document(budgetData.getCategoryId())
-                                            .update(BUDGET_STRING, FieldValue.arrayUnion(budgetId))
-                                            .addOnCompleteListener(task -> {
-                                                if (onComplete != null) {
-                                                    onComplete.run();
-                                                }
-                                            });
-                                } else {
-                                    FirestoreManager.getInstance()
-                                            .categoriesReference(uid)
-                                            .whereEqualTo("name", category)
-                                            .limit(1)
-                                            .get()
-                                            .addOnSuccessListener(catSnap -> {
-                                                if (!catSnap.isEmpty()) {
-                                                    // Found existing, add budget
-                                                    DocumentSnapshot existing =
-                                                            catSnap.getDocuments().get(0);
-                                                    existing.getReference().update(
-                                                            BUDGET_STRING,
-                                                            FieldValue.arrayUnion(budgetId)
-                                                    );
-                                                } else {
-                                                    // Create if not found
-                                                    Map<String, Object> cat = new HashMap<>();
-                                                    cat.put("name",
-                                                            category.trim()
-                                                                    .toLowerCase(
-                                                                            Locale.US));
-                                                    cat.put(BUDGET_STRING,
-                                                            Collections.singletonList(budgetId));
-                                                    cat.put("expenses", Collections.emptyList());
-                                                    FirestoreManager.getInstance()
-                                                            .categoriesReference(uid)
-                                                            .add(cat);
-
-                                                }
-                                                if (onComplete != null) {
-                                                    onComplete.run();
-                                                }
-                                            });
-
-                                }
-                            })
-                            .addOnFailureListener(e -> {
-                                if (onComplete != null) {
-                                    onComplete.run();
-                                }
-                            });
+                    saveBudget(uid, budget, budgetData.getCategoryId(), category, onComplete);
                 })
-                .addOnFailureListener(e -> {
-                    if (onComplete != null) {
-                        onComplete.run();
-                    }
-                });
+                .addOnFailureListener(e -> runOnComplete(onComplete));
     }
 
+    /** ---------------- Helpers (keep each tiny & low-branching) ---------------- */
+
+    private String getUidOrFinish(Runnable onComplete) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            runOnComplete(onComplete);
+            return null;
+        }
+        return auth.getCurrentUser().getUid();
+    }
+
+    private String normalizeCategory(String raw) {
+        return raw == null ? "" : raw.trim().toLowerCase(Locale.US);
+    }
+
+    private Double parseAmountOrFinish(String amountString, Runnable onComplete) {
+        try {
+            return Double.parseDouble(amountString);
+        } catch (NumberFormatException e) {
+            text.setValue("Invalid amount");
+            runOnComplete(onComplete);
+            return null;
+        }
+    }
+
+    private BudgetData buildBudgetData(
+            String name,
+            double amount,
+            String normalizedCategory,
+            String frequency,
+            String date,
+            long timestamp,
+            QuerySnapshot categoryQuery
+    ) {
+        String categoryId = null;
+        if (categoryQuery != null && !categoryQuery.isEmpty()) {
+            categoryId = categoryQuery.getDocuments().get(0).getId();
+        }
+        return new BudgetData(
+                name,
+                amount,
+                normalizedCategory,
+                frequency,
+                date,
+                categoryId,
+                timestamp
+        );
+    }
+
+    private long normalizeToStartOfDay(long timestamp) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(timestamp);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
+    }
+
+    private double calculateSpentToDate(QuerySnapshot expenseQuery, long startTimestamp) {
+        double spent = 0.0;
+        long startOfDay = normalizeToStartOfDay(startTimestamp);
+
+        for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
+            Expense e = doc.toObject(Expense.class);
+            if (e != null && e.getTimestamp() >= startOfDay) {
+                spent += e.getAmount();
+            }
+        }
+        return spent;
+    }
+
+    private Budget buildBudgetFromData(BudgetData data, String category, double spentToDate) {
+        long startOfDay = normalizeToStartOfDay(data.getStartDateTimestamp());
+
+        Budget budget = new Budget(
+                data.getName(),
+                data.getAmount(),
+                category,
+                data.getFrequency(),
+                data.getStartDate()
+        );
+
+        budget.setStartDateTimestamp(startOfDay);
+        budget.setSpentToDate(spentToDate);
+        budget.setMoneyRemaining(data.getAmount() - spentToDate);
+        budget.setCompleted(false);
+        budget.setHasPreviousCycle(false);
+        budget.setPreviousCycleOverBudget(false);
+        budget.setPreviousCycleEndTimestamp(0L);
+
+        return budget;
+    }
+
+    private void saveBudget(
+            String uid,
+            Budget budget,
+            String categoryId,
+            String categoryName,
+            Runnable onComplete
+    ) {
+        FirestoreManager.getInstance()
+                .budgetsReference(uid)
+                .add(budget)
+                .addOnSuccessListener(budgetRef -> {
+                    String budgetId = budgetRef.getId();
+                    FirestoreManager.getInstance().incrementField(uid, "totalBudgets");
+                    linkBudgetToCategory(uid, budgetId, categoryId, categoryName, onComplete);
+                })
+                .addOnFailureListener(e -> runOnComplete(onComplete));
+    }
+
+    private void linkBudgetToCategory(
+            String uid,
+            String budgetId,
+            String categoryId,
+            String categoryName,
+            Runnable onComplete
+    ) {
+        if (categoryId != null) {
+            addBudgetIdToCategoryDoc(uid, categoryId, budgetId, onComplete);
+        } else {
+            findOrCreateCategoryByName(uid, categoryName, budgetId, onComplete);
+        }
+    }
+
+    private void addBudgetIdToCategoryDoc(
+            String uid,
+            String categoryId,
+            String budgetId,
+            Runnable onComplete
+    ) {
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
+                .document(categoryId)
+                .update(BUDGET_STRING, FieldValue.arrayUnion(budgetId))
+                .addOnCompleteListener(task -> runOnComplete(onComplete));
+    }
+
+    private void findOrCreateCategoryByName(
+            String uid,
+            String categoryName,
+            String budgetId,
+            Runnable onComplete
+    ) {
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
+                .whereEqualTo("name", categoryName)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(catSnap -> {
+                    if (!catSnap.isEmpty()) {
+                        DocumentSnapshot existing = catSnap.getDocuments().get(0);
+                        existing.getReference().update(
+                                BUDGET_STRING,
+                                FieldValue.arrayUnion(budgetId)
+                        );
+                    } else {
+                        createCategory(uid, categoryName, budgetId);
+                    }
+                    runOnComplete(onComplete);
+                })
+                .addOnFailureListener(e -> runOnComplete(onComplete));
+    }
+
+    private void createCategory(String uid, String categoryName, String budgetId) {
+        Map<String, Object> cat = new HashMap<>();
+        cat.put("name", categoryName);
+        cat.put(BUDGET_STRING, Collections.singletonList(budgetId));
+        cat.put("expenses", Collections.emptyList());
+
+        FirestoreManager.getInstance()
+                .categoriesReference(uid)
+                .add(cat);
+    }
+
+    private void runOnComplete(Runnable onComplete) {
+        if (onComplete != null) onComplete.run();
+    }
+
+    /** ---------------- Sample budgets ---------------- */
 
     public void createSampleBudgets(Runnable onComplete) {
         String[][] sampleBudgets = {
@@ -207,16 +284,16 @@ public class BudgetCreationViewModel extends ViewModel {
         for (String[] budgetData : sampleBudgets) {
             long timestamp = parseDateToMillis(budgetData[1]);
             createBudget(
-                    budgetData[0], // name
-                    budgetData[1], // date
-                    budgetData[2], // amount
-                    budgetData[3], // category
-                    budgetData[4], // frequency
+                    budgetData[0],
+                    budgetData[1],
+                    budgetData[2],
+                    budgetData[3],
+                    budgetData[4],
                     timestamp,
                     () -> {
                         completedCount[0]++;
-                        if (completedCount[0] == totalBudgets && onComplete != null) {
-                            onComplete.run();
+                        if (completedCount[0] == totalBudgets) {
+                            runOnComplete(onComplete);
                         }
                     }
             );
@@ -225,13 +302,11 @@ public class BudgetCreationViewModel extends ViewModel {
 
     private long parseDateToMillis(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-        sdf.setTimeZone(java.util.TimeZone.getDefault());
+        sdf.setTimeZone(TimeZone.getDefault());
 
         try {
             Date date = sdf.parse(dateString);
-            if (date != null) {
-                return date.getTime();
-            }
+            if (date != null) return date.getTime();
         } catch (Exception e) {
             e.printStackTrace();
         }
