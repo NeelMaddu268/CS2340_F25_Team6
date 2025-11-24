@@ -71,7 +71,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     // Invite gate state
     private final AtomicReference<Map<String, String>> lastDatesRef = new AtomicReference<>();
-    private Runnable reevaluateInviteGate;
+    // Sonar fix: removed field reevaluateInviteGate
 
     private static final String WEEKLY_TEXT = "Weekly";
 
@@ -91,9 +91,11 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         setupBackButton();
         setupInviteDeleteControls();
 
-        setupInviteGateReevaluation();   // Runnable -> lambda
-        setupInviteButton();            // one-time observer via helper below
-        wireViewModelObservers();
+        // Sonar fix: reevaluateInviteGate is LOCAL now
+        Runnable reevaluateInviteGate = setupInviteGateReevaluation();
+
+        setupInviteButton();
+        wireViewModelObservers(reevaluateInviteGate);
 
         startListeningAndInitialUI();
     }
@@ -239,12 +241,12 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     /* ------------------------- invite gate + invite ------------------------- */
 
-    private void setupInviteGateReevaluation() {
+    // Sonar fix: method now RETURNS a Runnable instead of storing a field
+    private Runnable setupInviteGateReevaluation() {
         final String freq = groupFrequency;
         final String circleCreatorId = creatorId;
 
-        // ✅ Sonar: anonymous Runnable -> lambda
-        reevaluateInviteGate = () -> {
+        Runnable reevaluateInviteGate = () -> {
             // Only creator can invite
             if (circleCreatorId == null || !circleCreatorId.equals(currentUid)) {
                 setInviteControls(false, inviteEmailInput, inviteButton);
@@ -270,6 +272,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
         // Reevaluate gate whenever AppDate changes
         dateViewModel.getCurrentDate().observe(this, d -> reevaluateInviteGate.run());
+
+        return reevaluateInviteGate;
     }
 
     private void setupInviteButton() {
@@ -287,10 +291,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Observe DateViewModel once, then auto-remove observer.
-     * Keeps onCreate small + avoids anonymous inner class in onCreate.
-     */
     private void observeCurrentAppDateOnce(Observer<AppDate> consumer) {
         AtomicReference<Observer<AppDate>> ref = new AtomicReference<>();
         Observer<AppDate> once = appDate -> {
@@ -303,7 +303,8 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
 
     /* ------------------------- vm observers + initial start ------------------------- */
 
-    private void wireViewModelObservers() {
+    // Sonar fix: accept local reevaluateInviteGate
+    private void wireViewModelObservers(Runnable reevaluateInviteGate) {
         Observer<Object> dataObserver = ignored -> {
             vmContributions = detailsViewModel.getContributions().getValue();
             vmMembers = detailsViewModel.getMembers().getValue();
@@ -393,7 +394,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         return null;
     }
 
-    /** Re-render contributions and the single colored status TEXT using AppDate. */
     private void updateUIWithAppDate() {
 
         if (statusLineTextView == null) {
@@ -404,7 +404,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
         statusLineTextView.setVisibility(View.VISIBLE);
 
-        // 1) Rebuild contributions list
         if (groupContributionsTextView != null
                 && vmContributions != null
                 && vmMembers != null
@@ -423,7 +422,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             }
         }
 
-        // 3) Compute my target and contribution
         int people = (vmMembers != null && !vmMembers.isEmpty()) ? vmMembers.size() : 1;
         double personalTarget = groupChallengeGoal / Math.max(people, 1);
 
@@ -438,7 +436,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
         double myAmt = myContribution != null ? myContribution : 0.0;
 
-        // 4) Build the TEXT and color for statusLineTextView
         String text;
         int color;
 
@@ -455,7 +452,6 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         statusLineTextView.setVisibility(View.VISIBLE);
     }
 
-    /** Return theme color or hex fallback if missing. */
     private int safeColor(int resId, int fallback) {
         try {
             return ContextCompat.getColor(this, resId);
@@ -477,6 +473,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
+
 
 
 

@@ -43,7 +43,7 @@ public class ExpensesFragment extends Fragment {
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
     private ExpenseCreationViewModel expenseCreationViewModel;
     private DateViewModel dateVM;
-    private ExpenseAdapter adapter;
+    // Sonar fix: removed field adapter
 
     public ExpensesFragment() {
         super(R.layout.fragment_expenses);
@@ -60,9 +60,12 @@ public class ExpensesFragment extends Fragment {
 
         setupInsets(view);
         initViewModels();
-        setupRecycler(view);
-        observeExpenses();
-        observeDateAndLoadInitial();
+
+        // adapter is LOCAL now (Sonar fix)
+        ExpenseAdapter adapter = setupRecycler(view);
+
+        observeExpenses(adapter);
+        observeDateAndLoadInitial(adapter);
         setupAddExpenseButton(view);
 
         return view;
@@ -91,11 +94,12 @@ public class ExpensesFragment extends Fragment {
                 .get(DateViewModel.class);
     }
 
-    private void setupRecycler(View view) {
+    // CHANGED: return adapter instead of storing as field
+    private ExpenseAdapter setupRecycler(View view) {
         RecyclerView recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new ExpenseAdapter(expense -> {
+        ExpenseAdapter adapter = new ExpenseAdapter(expense -> {
             Intent intent = new Intent(requireContext(), ExpenseDetailsActivity.class);
             intent.putExtra("expenseName", expense.getName());
             intent.putExtra("expenseAmount", expense.getAmount());
@@ -106,16 +110,19 @@ public class ExpensesFragment extends Fragment {
         });
 
         recyclerView.setAdapter(adapter);
+        return adapter;
     }
 
-    private void observeExpenses() {
+    // CHANGED: take adapter as param
+    private void observeExpenses(ExpenseAdapter adapter) {
         expensesFragmentViewModel.getExpenses().observe(
                 getViewLifecycleOwner(),
                 list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
         );
     }
 
-    private void observeDateAndLoadInitial() {
+    // CHANGED: take adapter as param (even though only load calls, keeps signature consistent)
+    private void observeDateAndLoadInitial(ExpenseAdapter adapter) {
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
             if (selected != null) {
                 expensesFragmentViewModel.loadExpensesFor(selected);
@@ -184,7 +191,6 @@ public class ExpensesFragment extends Fragment {
                     @Override
                     public void onItemSelected(AdapterView<?> parent,
                                                View view, int position, long id) {
-                        // Sonar: remove useless assignments by inlining
                         boolean isYes = "Yes".equalsIgnoreCase(
                                 String.valueOf(parent.getItemAtPosition(position)));
 
@@ -340,7 +346,6 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void setupExpenseDatePicker(EditText expenseDate) {
-        // Sonar: remove useless braces around a single statement lambda
         expenseDate.setOnClickListener(v1 ->
                 dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
                     if (appDate == null) {
@@ -386,4 +391,5 @@ public class ExpensesFragment extends Fragment {
         Spinner chooseCircleSpinner;
     }
 }
+
 
