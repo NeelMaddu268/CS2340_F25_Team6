@@ -17,7 +17,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -99,7 +98,7 @@ public class ExpenseCreationViewModel extends ViewModel {
         FirestoreManager.getInstance()
                 .userSavingsCirclePointers(uid)
                 .get()
-                .addOnSuccessListener(qs -> handlePointerSnapshot(uid, qs))
+                .addOnSuccessListener(qs -> handlePointerSnapshot(qs))
                 .addOnFailureListener(e -> clearCirclesAndPublish());
     }
 
@@ -112,7 +111,7 @@ public class ExpenseCreationViewModel extends ViewModel {
         return auth.getCurrentUser().getUid();
     }
 
-    private void handlePointerSnapshot(String uid, QuerySnapshot qs) {
+    private void handlePointerSnapshot(QuerySnapshot qs) {
         List<String> names = new ArrayList<>();
         circleNameToId.clear();
 
@@ -126,14 +125,13 @@ public class ExpenseCreationViewModel extends ViewModel {
         );
 
         for (DocumentSnapshot doc : qs.getDocuments()) {
-            processPointerDoc(uid, doc, names, pending);
+            processPointerDoc(doc, names, pending);
         }
 
         pending.maybePublishNow();
     }
 
     private void processPointerDoc(
-            String uid,
             DocumentSnapshot doc,
             List<String> names,
             PendingCounter pending
@@ -147,11 +145,12 @@ public class ExpenseCreationViewModel extends ViewModel {
             return;
         }
 
-        fetchAndAddCircleName(uid, circleId, names, pending);
+        // uid removed because it was unused (Sonar smell)
+        fetchAndAddCircleName(circleId, names, pending);
     }
 
+    // ✅ uid parameter removed (unused)
     private void fetchAndAddCircleName(
-            String uid,
             String circleId,
             List<String> names,
             PendingCounter pending
@@ -471,4 +470,5 @@ public class ExpenseCreationViewModel extends ViewModel {
         budgetCreationViewModel.createSampleBudgets(() -> runOnComplete(onComplete));
     }
 }
+
 

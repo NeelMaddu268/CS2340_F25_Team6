@@ -26,11 +26,8 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
     private ListenerRegistration activeListener;
 
-    // Cache to recompute against new AppDate without requerying
     private final List<SavingsCircle> cache = new ArrayList<>();
     private String currentUidCached = null;
-
-    // App-controlled date (NOT system time). If null, nothing is “ended”.
     private AppDate currentAppDate = null;
 
     public LiveData<List<SavingsCircle>> getSavingsCircle() {
@@ -50,242 +47,260 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         detachActiveListener();
     }
 
-    /** Load without forcing an AppDate (keeps previous AppDate if set). */
+    /** Load with previous AppDate */
     public void loadSavingsCircle() {
         loadSavingsCircleFor(currentAppDate);
     }
 
-    /** Load and evaluate circles for a specific AppDate.
-     * @param appDate the appDate
-     * */
+    /** --------------------------------------------
+     *  MAIN PUBLIC API – NOW LOW COMPLEXITY
+     * -------------------------------------------- */
     public void loadSavingsCircleFor(AppDate appDate) {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() == null) {
-            cache.clear();
-            savingsCircleLiveData.postValue(new ArrayList<>());
-            return;
-        }
-        currentUidCached = auth.getCurrentUser().getUid();
+
+        String uid = getUidOrClear();
+        if (uid == null) return;
+
+        currentUidCached = uid;
         currentAppDate = appDate;
 
         detachActiveListener();
 
         activeListener = FirestoreManager.getInstance()
-                .userSavingsCirclePointers(currentUidCached)
-                .addSnapshotListener((QuerySnapshot qs,
-                                      com.google.firebase.firestore
-                                              .FirebaseFirestoreException e) -> {
-                    if (e != null || qs == null) {
-                        cache.clear();
-                        savingsCircleLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-                    if (qs.isEmpty()) {
-                        cache.clear();
-                        savingsCircleLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-
-                    List<DocumentSnapshot> docs = qs.getDocuments();
-
-                    // Count valid pointers
-                    int tmp = 0;
-                    for (DocumentSnapshot d : docs) {
-                        if (d.getString("circleId") != null) {
-                            tmp++;
-                        }
-                    }
-                    if (tmp == 0) {
-                        cache.clear();
-                        savingsCircleLiveData.postValue(new ArrayList<>());
-                        return;
-                    }
-
-                    final int expectedFinal = tmp; // effectively final for lambdas
-                    final int[] seen = {0};
-                    final List<SavingsCircle> acc = new ArrayList<>();
-
-                    for (DocumentSnapshot pointerDoc : docs) {
-                        String circleId = pointerDoc.getString("circleId");
-                        if (circleId == null) {
-                            continue;
-                        }
-
-                        FirestoreManager.getInstance()
-                                .savingsCirclesGlobalReference()
-                                .document(circleId)
-                                .get()
-                                .addOnSuccessListener(circleSnap -> {
-                                    SavingsCircle circle = circleSnap.toObject(SavingsCircle.class);
-                                    if (circle != null) {
-                                        circle.setId(circleSnap.getId());
-
-                                        Map<String, Double> contrib =
-                                                circle.getContributions();
-                                        if (contrib == null || contrib.isEmpty()) {
-                                            @SuppressWarnings("unchecked")
-                                            Map<String, Object> raw =
-                                                    (Map<String, Object>) circleSnap
-                                                            .get("contributions");
-                                            Map<String, Double> coerced = new HashMap<>();
-                                            if (raw != null) {
-                                                for (Map.Entry<String, Object> en
-                                                        : raw.entrySet()) {
-                                                    Object v = en.getValue();
-                                                    if (v instanceof Number) {
-                                                        coerced.put(en.getKey(),
-                                                                ((Number) v).doubleValue());
-                                                    }
-                                                }
-                                            }
-                                            circle.setContributions(coerced);
-                                        }
-
-                                        // Evaluate per-user goal status
-                                        // against AppDate (join + 7 days rule)
-                                        evaluatePersonalAgainstAppDate(circle,
-                                                currentUidCached, currentAppDate);
-
-                                        acc.add(circle);
-                                    }
-
-                                    if (++seen[0] == expectedFinal) {
-                                        cache.clear();
-                                        cache.addAll(acc);
-                                        savingsCircleLiveData.postValue(new ArrayList<>(cache));
-                                    }
-                                })
-                                .addOnFailureListener(err -> {
-                                    if (++seen[0] == expectedFinal) {
-                                        cache.clear();
-                                        cache.addAll(acc);
-                                        savingsCircleLiveData.postValue(new ArrayList<>(cache));
-                                    }
-                                });
-                    }
-                });
+                .userSavingsCirclePointers(uid)
+                .addSnapshotListener(this::handleSnapshot);
     }
 
-    /** Update AppDate and recompute flags on the cached list.
-     * @param appDate The new AppDate.
-     * */
+    /* ---------------- snapshot entrypoint ---------------- */
+
+    private void handleSnapshot(QuerySnapshot qs,
+                                com.google.firebase.firestore.FirebaseFirestoreException e) {
+
+        if (snapshotInvalid(qs, e)) {
+            publishEmpty();
+            return;
+        }
+
+        List<String> circleIds = extractValidCircleIds(qs.getDocuments());
+        if (circleIds.isEmpty()) {
+            publishEmpty();
+            return;
+        }
+
+        fetchAllCircles(circleIds);
+    }
+
+    private boolean snapshotInvalid(QuerySnapshot qs,
+                                    com.google.firebase.firestore.FirebaseFirestoreException e) {
+        return e != null || qs == null || qs.isEmpty();
+    }
+
+    /* ---------------- extract IDs ---------------- */
+
+    private List<String> extractValidCircleIds(List<DocumentSnapshot> docs) {
+        List<String> ids = new ArrayList<>();
+        for (DocumentSnapshot d : docs) {
+            String id = d.getString("circleId");
+            if (id != null && !id.trim().isEmpty()) ids.add(id);
+        }
+        return ids;
+    }
+
+    /* ---------------- async fetch pipeline ---------------- */
+
+    private void fetchAllCircles(List<String> circleIds) {
+        List<SavingsCircle> acc = new ArrayList<>();
+        Pending p = new Pending(circleIds.size(), () -> publish(acc));
+
+        for (String id : circleIds) {
+            fetchOneCircle(id, acc, p);
+        }
+    }
+
+    private void fetchOneCircle(String id,
+                                List<SavingsCircle> acc,
+                                Pending p) {
+        FirestoreManager.getInstance()
+                .savingsCirclesGlobalReference()
+                .document(id)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    SavingsCircle c = buildCircle(snap);
+                    if (c != null) acc.add(c);
+                    p.done();
+                })
+                .addOnFailureListener(err -> p.done());
+    }
+
+    /* ---------------- circle assembly ---------------- */
+
+    private SavingsCircle buildCircle(DocumentSnapshot snap) {
+        SavingsCircle c = snap.toObject(SavingsCircle.class);
+        if (c == null) return null;
+
+        c.setId(snap.getId());
+        c.setContributions(resolveContrib(c.getContributions(), snap));
+
+        evaluatePersonalAgainstAppDate(c, currentUidCached, currentAppDate);
+        return c;
+    }
+
+    private Map<String, Double> resolveContrib(Map<String, Double> existing,
+                                               DocumentSnapshot snap) {
+
+        if (existing != null && !existing.isEmpty()) return existing;
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> raw = (Map<String, Object>) snap.get("contributions");
+
+        Map<String, Double> coerced = new HashMap<>();
+        if (raw != null) {
+            for (Map.Entry<String, Object> e : raw.entrySet()) {
+                Object v = e.getValue();
+                if (v instanceof Number) {
+                    coerced.put(e.getKey(), ((Number) v).doubleValue());
+                }
+            }
+        }
+        return coerced;
+    }
+
+    /* ---------------- publication ---------------- */
+
+    private void publish(List<SavingsCircle> list) {
+        cache.clear();
+        cache.addAll(list);
+        savingsCircleLiveData.postValue(new ArrayList<>(list));
+    }
+
+    private void publishEmpty() {
+        cache.clear();
+        savingsCircleLiveData.postValue(new ArrayList<>());
+    }
+
+    private String getUidOrClear() {
+        FirebaseAuth a = FirebaseAuth.getInstance();
+        if (a.getCurrentUser() == null) {
+            publishEmpty();
+            return null;
+        }
+        return a.getCurrentUser().getUid();
+    }
+
+    /* ---------------- local recompute ---------------- */
+
     public void setAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
         recomputeFor(appDate);
     }
 
-    /** Re-evaluate using the provided AppDate (no network).
-     * @param appDate The new AppDate.
-     * */
     public void recomputeFor(AppDate appDate) {
         if (cache.isEmpty()) {
-            savingsCircleLiveData.postValue(new ArrayList<>());
+            publishEmpty();
             return;
         }
+
         String uid = currentUidCached;
         if (uid == null) {
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            if (auth.getCurrentUser() != null) {
-                uid = auth.getCurrentUser().getUid();
-            }
+            FirebaseAuth a = FirebaseAuth.getInstance();
+            if (a.getCurrentUser() != null) uid = a.getCurrentUser().getUid();
         }
+
         for (SavingsCircle c : cache) {
             evaluatePersonalAgainstAppDate(c, uid, appDate);
         }
         savingsCircleLiveData.postValue(new ArrayList<>(cache));
     }
 
-    /**
-     * Personal rule (per member):
-     *  - Window ends at (joinDate + 7 days).
-     *  - "Ended" is true iff AppDate >= (joinDate + 7 days).
-     *  - Target = totalGoal / memberCount (fallback to contributions.size or 1).
-     *  - Flags:
-     *      completed = ended
-     *      goalMet   = ended && (myContribution >= personalTarget)
-     * @param circle the savingscircle
-     * @param currentUid users id
-     * @param appDate the appDate
-     */
-    private void evaluatePersonalAgainstAppDate(SavingsCircle circle,
-                                                String currentUid, AppDate appDate) {
-        if (circle == null || currentUid == null) {
-            return;
-        }
+    /* ---------------- goal logic ---------------- */
 
-        // 1) personal end timestamp from datesJoined[currentUid] + 7 days
-        String joinedStr = null;
-        Map<String, String> joinedMap = circle.getDatesJoined();
-        if (joinedMap != null) {
-            joinedStr = joinedMap.get(currentUid);
-        }
+    private void evaluatePersonalAgainstAppDate(
+            SavingsCircle circle,
+            String uid,
+            AppDate appDate
+    ) {
+        if (circle == null || uid == null) return;
 
-        long personalEndTs = (joinedStr != null) ? add7Days(joinedStr) : 0L;
+        // 1) personal end (joined + 7 days)
+        long personalEndTs = computePersonalWindowEnd(circle, uid);
 
-        // 2) AppDate -> millis (midnight local)
+        // 2) AppDate -> millis midnight
         long appTs = (appDate != null) ? appDateStartMillis(appDate) : 0L;
 
         boolean ended = (personalEndTs > 0) && (appTs >= personalEndTs);
         circle.setCompleted(ended);
 
-        // 3) GROUP goal logic: sum all contributions
-        double totalContributed = 0.0;
-        if (circle.getContributions() != null) {
-            for (Double v : circle.getContributions().values()) {
-                if (v != null) {
-                    totalContributed += v;
-                }
-            }
-        }
+        // 3) sum contributions
+        double total = sumContributions(circle);
+        boolean groupMet = total >= circle.getGoal();
 
-        boolean groupMet = totalContributed >= circle.getGoal();
-
-        // 4) Only mark goalMet when the 7-day window has ended AND group goal is met
         circle.setGoalMet(ended && groupMet);
     }
 
+    private long computePersonalWindowEnd(SavingsCircle c, String uid) {
+        Map<String, String> joinedMap = c.getDatesJoined();
+        if (joinedMap == null) return 0L;
 
-    /** yyyy-MM-dd -> millis for (date + 7 days), DST-safe.
-     * @param ymd the date
-     * @return the millis after adding 7 days
-     * */
-    private long add7Days(String ymd) {
-        if (ymd == null) {
-            return 0L;
+        String joined = joinedMap.get(uid);
+        return (joined != null) ? add7Days(joined) : 0L;
+    }
+
+    private double sumContributions(SavingsCircle c) {
+        double total = 0;
+        if (c.getContributions() != null) {
+            for (Double v : c.getContributions().values()) {
+                if (v != null) total += v;
+            }
         }
+        return total;
+    }
+
+    /* ---------------- date helpers ---------------- */
+
+    private long add7Days(String ymd) {
+        if (ymd == null) return 0L;
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             sdf.setLenient(false);
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(ymd));
-            cal.set(Calendar.HOUR_OF_DAY, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
+            midnight(cal);
             cal.add(Calendar.DAY_OF_YEAR, 7);
             return cal.getTimeInMillis();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             return 0L;
         }
     }
 
-    /** Convert AppDate (Y,M,D) to millis at local 00:00.
-     * @param a the appDate
-     * @return the millis
-     * */
     private long appDateStartMillis(AppDate a) {
-        if (a == null) {
-            return 0L;
+        if (a == null) return 0L;
+        Calendar c = Calendar.getInstance();
+        c.set(a.getYear(), a.getMonth() - 1, a.getDay());
+        midnight(c);
+        return c.getTimeInMillis();
+    }
+
+    private void midnight(Calendar c) {
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+    }
+
+    /* ---------------- tiny helper ---------------- */
+
+    private static class Pending {
+        private int left;
+        private final Runnable onZero;
+
+        Pending(int count, Runnable onZero) {
+            this.left = count;
+            this.onZero = onZero;
+            if (left == 0) onZero.run();
         }
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, a.getYear());
-        cal.set(Calendar.MONTH, a.getMonth() - 1);
-        cal.set(Calendar.DAY_OF_MONTH, a.getDay());
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTimeInMillis();
+
+        void done() {
+            left--;
+            if (left == 0) onZero.run();
+        }
     }
 }
-
