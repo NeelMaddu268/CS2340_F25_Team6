@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 
+import androidx.appcompat.app.AppCompatDelegate;
+
 public class ThemeManager {
 
     private static final String PREFS_NAME = "theme_prefs";
@@ -20,7 +22,18 @@ public class ThemeManager {
 
     public static boolean loadTheme(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(KEY_THEME, false); // default to light mode
+        return prefs.getBoolean(KEY_THEME, false); // default = light
+    }
+
+    public static void applyTheme(boolean isDarkMode) {
+        AppCompatDelegate.setDefaultNightMode(
+                isDarkMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+        );
+    }
+
+    public static void clearTheme(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().clear().apply();
     }
 }
 
