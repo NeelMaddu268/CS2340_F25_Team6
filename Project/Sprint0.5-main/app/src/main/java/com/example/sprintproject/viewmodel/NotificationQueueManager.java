@@ -108,34 +108,33 @@ public class NotificationQueueManager {
 
     /**
      * Sonar fix: reduce continues/breaks in loop to at most one.
+     * (Refactored to use 0 continues.)
      */
     public void checkForBudgetWarning(List<Budget> budgets) {
         if (budgets == null || budgets.isEmpty()) {
             return;
         }
-        for (Budget budget : budgets) {
-            if (budget == null) {
-                continue;
-            }
-            double total = budget.getAmount();
-            double spent = budget.getSpentToDate();
 
-            if (total <= 0) {
-                continue;
+        for (Budget budget : budgets) {
+            if (budget != null) {
+                double total = budget.getAmount();
+                double spent = budget.getSpentToDate();
+
+                if (total > 0) {
+                    int capacityUsed = (int) (spent / total * 100);
+
+                    if (capacityUsed >= 80) {
+                        if (!repeatedWarnings(budget.getId(), capacityUsed)) {
+                            NotificationData warning =
+                                    NotificationData.createAlmostBudgetFullReminder(
+                                            budget.getName(), capacityUsed
+                                    );
+                            submitReminder(warning);
+                            alreadyWarned(budget.getId(), capacityUsed);
+                        }
+                    }
+                }
             }
-            int capacityUsed = (int) (spent / total * 100);
-            if (capacityUsed < 80) {
-                continue;
-            }
-            if (repeatedWarnings(budget.getId(), capacityUsed)) {
-                continue;
-            }
-            NotificationData warning =
-                    NotificationData.createAlmostBudgetFullReminder(
-                            budget.getName(), capacityUsed
-                    );
-            submitReminder(warning);
-            alreadyWarned(budget.getId(), capacityUsed);
         }
     }
 }
