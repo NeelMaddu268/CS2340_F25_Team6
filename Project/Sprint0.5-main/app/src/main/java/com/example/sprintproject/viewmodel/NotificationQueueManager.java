@@ -142,10 +142,6 @@ public class NotificationQueueManager {
                     }
                 }
             }
-
-            if (skip) {
-                continue; // only ONE continue in the loop
-            }
         }
     }
 }

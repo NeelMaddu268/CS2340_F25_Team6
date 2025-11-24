@@ -184,7 +184,7 @@ public class FirestoreManager {
     }
 
     public void incrementField(String uid, String fieldName) {
-        db.collection("users")
+        db.collection(USERS_STRING)
                 .document(uid)
                 .update(fieldName, FieldValue.increment(1));
     }
