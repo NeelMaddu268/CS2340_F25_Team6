@@ -108,7 +108,7 @@ public class NotificationQueueManager {
 
     /**
      * Sonar fix: reduce continues/breaks in loop to at most one.
-     * (Refactored to use 0 continues.)
+     * Refactored to use 0 continues/breaks.
      */
     public void checkForBudgetWarning(List<Budget> budgets) {
         if (budgets == null || budgets.isEmpty()) {
@@ -116,35 +116,27 @@ public class NotificationQueueManager {
         }
 
         for (Budget budget : budgets) {
-            if (budget == null) {
-                continue; // <= only continue in the loop
+            if (budget != null) {
+                double total = budget.getAmount();
+                double spent = budget.getSpentToDate();
+
+                if (total > 0) {
+                    int capacityUsed = (int) (spent / total * 100);
+
+                    boolean shouldWarn =
+                            capacityUsed >= 80
+                                    && !repeatedWarnings(budget.getId(), capacityUsed);
+
+                    if (shouldWarn) {
+                        NotificationData warning =
+                                NotificationData.createAlmostBudgetFullReminder(
+                                        budget.getName(), capacityUsed
+                                );
+                        submitReminder(warning);
+                        alreadyWarned(budget.getId(), capacityUsed);
+                    }
+                }
             }
-
-            double total = budget.getAmount();
-            double spent = budget.getSpentToDate();
-
-            if (total <= 0) {
-                continue;
-            }
-
-            int capacityUsed = (int) (spent / total * 100);
-
-            boolean shouldWarn =
-                    capacityUsed >= 80
-                            && !repeatedWarnings(budget.getId(), capacityUsed);
-
-            if (!shouldWarn) {
-                continue;
-            }
-
-            NotificationData warning =
-                    NotificationData.createAlmostBudgetFullReminder(
-                            budget.getName(), capacityUsed
-                    );
-
-            submitReminder(warning);
-            alreadyWarned(budget.getId(), capacityUsed);
         }
     }
-
 }
