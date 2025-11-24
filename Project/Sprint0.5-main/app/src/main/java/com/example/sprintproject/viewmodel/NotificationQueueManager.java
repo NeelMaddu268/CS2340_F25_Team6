@@ -108,6 +108,7 @@ public class NotificationQueueManager {
 
     /**
      * Sonar fix: reduce continues/breaks in loop to at most one.
+     * (Refactored to use 0 continues.)
      */
     public void checkForBudgetWarning(List<Budget> budgets) {
         if (budgets == null || budgets.isEmpty()) {
