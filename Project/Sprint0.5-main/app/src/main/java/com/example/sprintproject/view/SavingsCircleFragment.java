@@ -13,6 +13,8 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,10 +31,12 @@ import com.example.sprintproject.viewmodel.SavingsCircleFragmentViewModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SavingsCircleFragment extends Fragment {
 
     private SavingsCircleFragmentViewModel savingsCircleFragmentViewModel;
+    private SavingsCircleCreationViewModel savingsCircleCreationViewModel;
     private DateViewModel dateViewModel;
 
     public SavingsCircleFragment() {
@@ -41,182 +45,23 @@ public class SavingsCircleFragment extends Fragment {
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater,
-            ViewGroup container,
-            Bundle savedInstanceState
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState
     ) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
+        if (view == null) return null;
 
-        EdgeToEdge.enable(requireActivity());
-        ViewCompat.setOnApplyWindowInsetsListener(
-                view.findViewById(R.id.savings_circle_layout),
-                (v, insets) -> {
-                    Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                    v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-                    return insets;
-                });
+        setupInsets(view);
+        initViewModels();
+        SavingsCircleAdapter adapter = setupRecycler(view);
 
-        SavingsCircleCreationViewModel savingsCircleCreationViewModel;
+        observeSavingsCircles(adapter);
+        observeAppDateForRowUpdates();
+        loadInitialCircles();
+        observeCreationMessages();   // observe once, not inside click
 
-        RecyclerView recyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
-        SavingsCircleAdapter adapter;
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        // ViewModels
-        savingsCircleFragmentViewModel =
-                new ViewModelProvider(requireActivity()).get(SavingsCircleFragmentViewModel.class);
-        savingsCircleCreationViewModel =
-                new ViewModelProvider(this).get(SavingsCircleCreationViewModel.class);
-        dateViewModel =
-                new ViewModelProvider(requireActivity()).get(DateViewModel.class);
-
-        // Adapter
-        adapter = new SavingsCircleAdapter(savings -> {
-            Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
-            intent.putExtra("circleId", savings.getId());
-            intent.putExtra("groupName", savings.getName());
-
-            // Null-safe memberEmails handling (your version)
-            intent.putStringArrayListExtra(
-                    "groupEmails",
-                    savings.getMemberEmails() == null
-                            ? new ArrayList<>()
-                            : new ArrayList<>(savings.getMemberEmails())
-            );
-
-            intent.putExtra("groupInvite", savings.getInvite());
-            intent.putExtra("groupChallengeTitle", savings.getTitle());
-            intent.putExtra("groupChallengeGoal", savings.getGoal());
-            intent.putExtra("groupFrequency", savings.getFrequency());
-            intent.putExtra("groupNotes", savings.getNotes());
-            if (savings.getCreatorDateJoined() != null) {
-                intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
-            }
-            intent.putExtra("datesJoined", (Serializable) savings.getDatesJoined());
-            intent.putExtra("contributions", (Serializable) savings.getContributions());
-            intent.putExtra("creatorId", savings.getCreatorId());
-
-            // Pass AppDate so details page evaluates against the same driving date
-            AppDate cur = dateViewModel.getCurrentDate().getValue();
-            if (cur != null) {
-                intent.putExtra("appYear", cur.getYear());
-                intent.putExtra("appMonth", cur.getMonth());
-                intent.putExtra("appDay", cur.getDay());
-            }
-
-            startActivity(intent);
-        });
-        recyclerView.setAdapter(adapter);
-
-        // Observe list → update adapter
-        savingsCircleFragmentViewModel.getSavingsCircle().observe(
-                getViewLifecycleOwner(),
-                list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
-        );
-
-        // Recompute row flags/colors whenever AppDate changes
-        dateViewModel.getCurrentDate().observe(getViewLifecycleOwner(), appDate ->
-            savingsCircleFragmentViewModel.setAppDate(appDate)
-        );
-
-        // Initial load using current AppDate (if present)
-        AppDate initial = dateViewModel.getCurrentDate().getValue();
-        if (initial != null) {
-            savingsCircleFragmentViewModel.loadSavingsCircleFor(initial);
-        } else {
-            savingsCircleFragmentViewModel.loadSavingsCircle();
-        }
-
-        // Create new group
-        Button addGroup = view.findViewById(R.id.addGroup);
-        addGroup.setOnClickListener(v -> {
-            View popupView = getLayoutInflater()
-                    .inflate(R.layout.popup_savingscircle_creation, null);
-            AlertDialog dialog = new AlertDialog.Builder(requireActivity())
-                    .setView(popupView)
-                    .create();
-
-            EditText groupName = popupView.findViewById(R.id.GroupName);
-            EditText groupChallengeTitle = popupView.findViewById(R.id.GroupChallengeTitle);
-            EditText groupChallengeGoal = popupView.findViewById(R.id.GroupChallengeGoal);
-            EditText groupNotes = popupView.findViewById(R.id.GroupNotes);
-            Spinner groupFrequency = popupView.findViewById(R.id.GroupFrequency);
-
-            ArrayAdapter<String> frequencyAdapter = new ArrayAdapter<>(
-                    requireContext(),
-                    android.R.layout.simple_spinner_item,
-                    new String[]{"Weekly", "Monthly"}
-            );
-            frequencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            groupFrequency.setAdapter(frequencyAdapter);
-
-            Button createBtn = popupView.findViewById(R.id.createGroupButton);
-            Button closeButton = popupView.findViewById(R.id.closeButton);
-            closeButton.setOnClickListener(view1 -> dialog.dismiss());
-
-            createBtn.setOnClickListener(view1 -> {
-                String name = groupName.getText().toString().trim();
-                String title = groupChallengeTitle.getText().toString().trim();
-                String goal = groupChallengeGoal.getText().toString().trim();
-                String frequency = groupFrequency.getSelectedItem().toString();
-                String notes = groupNotes.getText().toString().trim();
-
-                if (!frequency.equals("Weekly") && !frequency.equals("Monthly")) {
-                    Toast.makeText(requireContext(), "Invalid frequency",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (name.isEmpty()) {
-                    groupName.setError("Please enter a name");
-                    return;
-                }
-                if (title.isEmpty()) {
-                    groupChallengeTitle.setError("Please enter a challenge title");
-                    return;
-                }
-                if (goal.isEmpty()) {
-                    groupChallengeGoal.setError("Please enter a challenge goal");
-                    return;
-                }
-                try {
-                    double goalAmount = Double.parseDouble(goal);
-                    if (goalAmount <= 0) {
-                        groupChallengeGoal.setError("Amount must be greater than 0");
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    groupChallengeGoal.setError("Invalid number");
-                    return;
-                }
-
-                // Your AppDate-aware creation logic (single read, no extra observers)
-                AppDate appDate = dateViewModel.getCurrentDate().getValue();
-                if (appDate == null) {
-                    Toast.makeText(requireContext(), "Date not ready. Try again.",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                savingsCircleCreationViewModel.createUserSavingsCircle(
-                        name, title, goal, frequency, notes, appDate
-                );
-
-                savingsCircleCreationViewModel.getText()
-                        .observe(getViewLifecycleOwner(), message -> {
-                            if (message != null && !message.isEmpty()) {
-                                Toast.makeText(requireContext(), message,
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                Toast.makeText(requireContext(), "Savings Circle created!",
-                        Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-            });
-
-            dialog.show();
-        });
+        setupAddGroupButton(view);
 
         return view;
     }
@@ -225,9 +70,257 @@ public class SavingsCircleFragment extends Fragment {
     public void onResume() {
         super.onResume();
         AppDate d = (dateViewModel != null) ? dateViewModel.getCurrentDate().getValue() : null;
-        savingsCircleFragmentViewModel.setAppDate(d);
+        if (savingsCircleFragmentViewModel != null) {
+            savingsCircleFragmentViewModel.setAppDate(d);
+        }
+    }
+
+    /* ------------------------- setup helpers ------------------------- */
+
+    private void setupInsets(View view) {
+        EdgeToEdge.enable(requireActivity());
+        ViewCompat.setOnApplyWindowInsetsListener(
+                view.findViewById(R.id.savings_circle_layout),
+                (v, insets) -> {
+                    Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                    return insets;
+                }
+        );
+    }
+
+    private void initViewModels() {
+        savingsCircleFragmentViewModel =
+                new ViewModelProvider(requireActivity()).get(SavingsCircleFragmentViewModel.class);
+        savingsCircleCreationViewModel =
+                new ViewModelProvider(this).get(SavingsCircleCreationViewModel.class);
+        dateViewModel =
+                new ViewModelProvider(requireActivity()).get(DateViewModel.class);
+    }
+
+    private SavingsCircleAdapter setupRecycler(View view) {
+        RecyclerView recyclerView = view.findViewById(R.id.savingsCircleRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        SavingsCircleAdapter adapter = new SavingsCircleAdapter(savings -> {
+            Intent intent = new Intent(requireContext(), SavingsCircleDetailsActivity.class);
+            putSavingsCircleExtras(intent, savings);
+            putCurrentAppDateExtras(intent);
+            startActivity(intent);
+        });
+
+        recyclerView.setAdapter(adapter);
+        return adapter;
+    }
+
+    private void observeSavingsCircles(SavingsCircleAdapter adapter) {
+        savingsCircleFragmentViewModel.getSavingsCircle().observe(
+                getViewLifecycleOwner(),
+                list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
+        );
+    }
+
+    private void observeAppDateForRowUpdates() {
+        dateViewModel.getCurrentDate().observe(
+                getViewLifecycleOwner(),
+                appDate -> savingsCircleFragmentViewModel.setAppDate(appDate)
+        );
+    }
+
+    private void loadInitialCircles() {
+        AppDate initial = dateViewModel.getCurrentDate().getValue();
+        if (initial != null) {
+            savingsCircleFragmentViewModel.loadSavingsCircleFor(initial);
+        } else {
+            savingsCircleFragmentViewModel.loadSavingsCircle();
+        }
+    }
+
+    private void setupAddGroupButton(View view) {
+        Button addGroup = view.findViewById(R.id.addGroup);
+        addGroup.setOnClickListener(v -> showCreateGroupDialog());
+    }
+
+    private void observeCreationMessages() {
+        savingsCircleCreationViewModel.getText()
+                .observe(getViewLifecycleOwner(), message -> {
+                    if (message != null && !message.isEmpty()) {
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    /* ------------------------- navigation extras ------------------------- */
+
+    private void putSavingsCircleExtras(Intent intent,
+                                        com.example.sprintproject.model.SavingsCircle savings) {
+        intent.putExtra("circleId", savings.getId());
+        intent.putExtra("groupName", savings.getName());
+
+        intent.putStringArrayListExtra(
+                "groupEmails",
+                savings.getMemberEmails() == null
+                        ? new ArrayList<>()
+                        : new ArrayList<>(savings.getMemberEmails())
+        );
+
+        intent.putExtra("groupInvite", savings.getInvite());
+        intent.putExtra("groupChallengeTitle", savings.getTitle());
+        intent.putExtra("groupChallengeGoal", savings.getGoal());
+        intent.putExtra("groupFrequency", savings.getFrequency());
+        intent.putExtra("groupNotes", savings.getNotes());
+
+        if (savings.getCreatorDateJoined() != null) {
+            intent.putExtra("creationDate", savings.getCreatorDateJoined().toIso());
+        }
+
+        intent.putExtra("datesJoined", (Serializable) savings.getDatesJoined());
+        intent.putExtra("contributions", (Serializable) savings.getContributions());
+        intent.putExtra("creatorId", savings.getCreatorId());
+    }
+
+    private void putCurrentAppDateExtras(Intent intent) {
+        AppDate cur = dateViewModel.getCurrentDate().getValue();
+        if (cur == null) return;
+
+        intent.putExtra("appYear", cur.getYear());
+        intent.putExtra("appMonth", cur.getMonth());
+        intent.putExtra("appDay", cur.getDay());
+    }
+
+    /* ------------------------- create group dialog ------------------------- */
+
+    private void showCreateGroupDialog() {
+        View popupView = getLayoutInflater()
+                .inflate(R.layout.popup_savingscircle_creation, null);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireActivity())
+                .setView(popupView)
+                .create();
+
+        CreateDialogViews dv = bindCreateDialogViews(popupView);
+        setupFrequencySpinner(dv.groupFrequency);
+
+        dv.closeButton.setOnClickListener(v -> dialog.dismiss());
+        dv.createBtn.setOnClickListener(v -> onCreateGroupClicked(dv, dialog));
+
+        dialog.show();
+    }
+
+    private CreateDialogViews bindCreateDialogViews(View popupView) {
+        CreateDialogViews dv = new CreateDialogViews();
+        dv.groupName = popupView.findViewById(R.id.GroupName);
+        dv.groupChallengeTitle = popupView.findViewById(R.id.GroupChallengeTitle);
+        dv.groupChallengeGoal = popupView.findViewById(R.id.GroupChallengeGoal);
+        dv.groupNotes = popupView.findViewById(R.id.GroupNotes);
+        dv.groupFrequency = popupView.findViewById(R.id.GroupFrequency);
+        dv.createBtn = popupView.findViewById(R.id.createGroupButton);
+        dv.closeButton = popupView.findViewById(R.id.closeButton);
+        return dv;
+    }
+
+    private void setupFrequencySpinner(Spinner groupFrequency) {
+        List<String> freqs = new ArrayList<>();
+        freqs.add("Weekly");
+        freqs.add("Monthly");
+
+        ArrayAdapter<String> frequencyAdapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                freqs
+        );
+        frequencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        groupFrequency.setAdapter(frequencyAdapter);
+    }
+
+    private void onCreateGroupClicked(CreateDialogViews dv, AlertDialog dialog) {
+        String name = dv.groupName.getText().toString().trim();
+        String title = dv.groupChallengeTitle.getText().toString().trim();
+        String goal = dv.groupChallengeGoal.getText().toString().trim();
+        String frequency = String.valueOf(dv.groupFrequency.getSelectedItem());
+        String notes = dv.groupNotes.getText().toString().trim();
+
+        if (!validateCreateInputs(dv, name, title, goal, frequency)) {
+            return;
+        }
+
+        AppDate appDate = dateViewModel.getCurrentDate().getValue();
+        if (appDate == null) {
+            Toast.makeText(requireContext(),
+                    "Date not ready. Try again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        savingsCircleCreationViewModel.createUserSavingsCircle(
+                name, title, goal, frequency, notes, appDate
+        );
+
+        Toast.makeText(requireContext(),
+                "Savings Circle created!", Toast.LENGTH_SHORT).show();
+
+        dialog.dismiss();
+        clearCreateInputs(dv);
+    }
+
+    private boolean validateCreateInputs(CreateDialogViews dv,
+                                         String name,
+                                         String title,
+                                         String goal,
+                                         String frequency) {
+        if (!"Weekly".equals(frequency) && !"Monthly".equals(frequency)) {
+            Toast.makeText(requireContext(),
+                    "Invalid frequency", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (name.isEmpty()) {
+            dv.groupName.setError("Please enter a name");
+            return false;
+        }
+
+        if (title.isEmpty()) {
+            dv.groupChallengeTitle.setError("Please enter a challenge title");
+            return false;
+        }
+
+        if (goal.isEmpty()) {
+            dv.groupChallengeGoal.setError("Please enter a challenge goal");
+            return false;
+        }
+
+        try {
+            double goalAmount = Double.parseDouble(goal);
+            if (goalAmount <= 0) {
+                dv.groupChallengeGoal.setError("Amount must be greater than 0");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            dv.groupChallengeGoal.setError("Invalid number");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void clearCreateInputs(CreateDialogViews dv) {
+        dv.groupName.setText("");
+        dv.groupChallengeTitle.setText("");
+        dv.groupChallengeGoal.setText("");
+        dv.groupNotes.setText("");
+        dv.groupFrequency.setSelection(0);
+    }
+
+    private static class CreateDialogViews {
+        EditText groupName;
+        EditText groupChallengeTitle;
+        EditText groupChallengeGoal;
+        EditText groupNotes;
+        Spinner groupFrequency;
+        Button createBtn;
+        Button closeButton;
     }
 }
+
 
 
 

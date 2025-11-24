@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.ExpenseData;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
@@ -65,7 +66,7 @@ public class ExpensesFragment extends Fragment {
         ExpenseAdapter adapter = setupRecycler(view);
 
         observeExpenses(adapter);
-        observeDateAndLoadInitial(adapter);
+        observeDateAndLoadInitial(); // ✅ Sonar fix: removed unused adapter param
         setupAddExpenseButton(view);
 
         return view;
@@ -121,16 +122,17 @@ public class ExpensesFragment extends Fragment {
         );
     }
 
-    // CHANGED: take adapter as param (even though only load calls, keeps signature consistent)
-    private void observeDateAndLoadInitial(ExpenseAdapter adapter) {
+    // ✅ Sonar fix: removed unused parameter
+    private void observeDateAndLoadInitial() {
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
             if (selected != null) {
                 expensesFragmentViewModel.loadExpensesFor(selected);
             }
         });
 
-        if (dateVM.getCurrentDate().getValue() != null) {
-            expensesFragmentViewModel.loadExpensesFor(dateVM.getCurrentDate().getValue());
+        AppDate current = dateVM.getCurrentDate().getValue();
+        if (current != null) {
+            expensesFragmentViewModel.loadExpensesFor(current);
         } else {
             expensesFragmentViewModel.loadExpenses();
         }
@@ -391,5 +393,3 @@ public class ExpensesFragment extends Fragment {
         Spinner chooseCircleSpinner;
     }
 }
-
-

@@ -394,58 +394,76 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         return null;
     }
 
+    /** Sonar fix: split into helpers to reduce Cognitive Complexity. */
     private void updateUIWithAppDate() {
-
         if (statusLineTextView == null) {
             return;
         }
 
-        statusLineTextView.setText("Calculating goal status…");
-        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
-        statusLineTextView.setVisibility(View.VISIBLE);
-
-        if (groupContributionsTextView != null
-                && vmContributions != null
-                && vmMembers != null
-                && vmMemberUids != null) {
-            StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, String> entry : vmMembers.entrySet()) {
-                String idx = entry.getKey();
-                String label = entry.getValue();
-                String uid = vmMemberUids.get(idx);
-                Double amt = (uid != null) ? vmContributions.get(uid) : null;
-                sb.append(label).append(": $").append(amt != null ? amt : 0.0).append("\n");
-            }
-            groupContributionsTextView.setText(sb.toString());
-            if (groupEmailTextView != null) {
-                groupEmailTextView.setText(TextUtils.join(", ", vmMembers.values()));
-            }
-        }
+        showCalculatingStatus();
+        updateContributionsSection();
 
         int people = (vmMembers != null && !vmMembers.isEmpty()) ? vmMembers.size() : 1;
         double personalTarget = groupChallengeGoal / Math.max(people, 1);
 
-        Double myContribution = null;
-        if (vmContributions != null) {
-            if (currentUid != null) {
-                myContribution = vmContributions.get(currentUid);
-            }
-            if (myContribution == null && currentEmail != null) {
-                myContribution = vmContributions.get(currentEmail);
-            }
-        }
-        double myAmt = myContribution != null ? myContribution : 0.0;
+        double myAmt = computeMyContribution();
+        updateGoalStatus(myAmt, personalTarget);
+    }
 
-        String text;
-        int color;
+    /* ------------------------- UI helpers (new) ------------------------- */
 
-        if (myAmt >= personalTarget) {
-            text = "Goal met";
-            color = safeColor(R.color.green, 0xFF3DB85D);
-        } else {
-            text = "Goal not reached yet";
-            color = safeColor(R.color.red, 0xFFE53935);
+    private void showCalculatingStatus() {
+        statusLineTextView.setText("Calculating goal status…");
+        statusLineTextView.setTextColor(ContextCompat.getColor(this, R.color.Accent));
+        statusLineTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void updateContributionsSection() {
+        if (groupContributionsTextView == null
+                || vmContributions == null
+                || vmMembers == null
+                || vmMemberUids == null) {
+            return;
         }
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : vmMembers.entrySet()) {
+            String idx = entry.getKey();
+            String label = entry.getValue();
+            String uid = vmMemberUids.get(idx);
+            Double amt = (uid != null) ? vmContributions.get(uid) : null;
+            sb.append(label).append(": $").append(amt != null ? amt : 0.0).append("\n");
+        }
+        groupContributionsTextView.setText(sb.toString());
+
+        if (groupEmailTextView != null) {
+            groupEmailTextView.setText(TextUtils.join(", ", vmMembers.values()));
+        }
+    }
+
+    private double computeMyContribution() {
+        if (vmContributions == null) {
+            return 0.0;
+        }
+
+        Double amt = null;
+        if (currentUid != null) {
+            amt = vmContributions.get(currentUid);
+        }
+        if (amt == null && currentEmail != null) {
+            amt = vmContributions.get(currentEmail);
+        }
+
+        return amt != null ? amt : 0.0;
+    }
+
+    private void updateGoalStatus(double myAmt, double target) {
+        boolean met = myAmt >= target;
+
+        String text = met ? "Goal met" : "Goal not reached yet";
+        int color = met
+                ? safeColor(R.color.green, 0xFF3DB85D)
+                : safeColor(R.color.red, 0xFFE53935);
 
         statusLineTextView.setText(text);
         statusLineTextView.setTextColor(color);
@@ -473,6 +491,7 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
+
 
 
 
