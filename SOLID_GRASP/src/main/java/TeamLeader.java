@@ -1,6 +1,9 @@
 package src.main.java;
 
+import java.util.logging.Logger;
+
 public class TeamLeader implements Member {
+    private static final Logger LOGGER = Logger.getLogger(TeamLeader.class.getName());
     private String name;
     private String email;
 
@@ -21,7 +24,7 @@ public class TeamLeader implements Member {
 
     @Override
     public void identify() {
-        System.out.println(name + " is a Team Leader.");
+        LOGGER.info("Team Leader: " + name);
     }
 
     @Override
@@ -35,6 +38,6 @@ public class TeamLeader implements Member {
     }
 
     public void provideFeedback(TeamMember member, String feedback) {
-        System.out.println("Feedback for " + member.getName() + ": " + feedback);
+        LOGGER.info("Feedback provided by Team Leader: " + feedback);
     }
 }
