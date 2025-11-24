@@ -113,35 +113,29 @@ public class NotificationQueueManager {
         if (budgets == null || budgets.isEmpty()) {
             return;
         }
-
         for (Budget budget : budgets) {
-
-            boolean skip = false; // consolidate all early-continue conditions
-
             if (budget == null) {
-                skip = true;
-            } else {
-                double total = budget.getAmount();
-                double spent = budget.getSpentToDate();
-
-                if (total <= 0) {
-                    skip = true;
-                } else {
-                    int capacityUsed = (int) (spent / total * 100);
-
-                    if (capacityUsed >= 80) {
-                        if (repeatedWarnings(budget.getId(), capacityUsed)) {
-                            skip = true;
-                        } else {
-                            NotificationData warning =
-                                    NotificationData.createAlmostBudgetFullReminder(
-                                            budget.getName(), capacityUsed);
-                            submitReminder(warning);
-                            alreadyWarned(budget.getId(), capacityUsed);
-                        }
-                    }
-                }
+                continue;
             }
+            double total = budget.getAmount();
+            double spent = budget.getSpentToDate();
+
+            if (total <= 0) {
+                continue;
+            }
+            int capacityUsed = (int) (spent / total * 100);
+            if (capacityUsed < 80) {
+                continue;
+            }
+            if (repeatedWarnings(budget.getId(), capacityUsed)) {
+                continue;
+            }
+            NotificationData warning =
+                    NotificationData.createAlmostBudgetFullReminder(
+                            budget.getName(), capacityUsed
+                    );
+            submitReminder(warning);
+            alreadyWarned(budget.getId(), capacityUsed);
         }
     }
 }
