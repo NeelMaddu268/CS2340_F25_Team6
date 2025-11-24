@@ -12,7 +12,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +57,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         return statusMessage;
     }
 
-    /** ------------------------ Smell #1 fixed: low cognitive complexity ------------------------ */
+    /** ---------------- Smell #1 fixed: cognitive complexity for listenToSavingsCircle ---------------- */
     public void listenToSavingsCircle(String circleId) {
         DocumentReference circleRef = db.collection(SAVINGS_CIRCLES).document(circleId);
         listener = circleRef.addSnapshotListener(this::handleCircleSnapshot);
@@ -70,15 +69,16 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         publishIfPresent(snapshot, "contributions", contributionsLiveData);
         publishIfPresent(snapshot, "datesJoined", memberJoinDatesLiveData);
 
+        // Smell #2 fix relies on empty-map return, so check emptiness (not null)
         Map<String, String> members =
                 coerceMapOrListToStringMap(snapshot.get("memberEmails"));
-        if (members != null) {
+        if (!members.isEmpty()) {
             membersLiveData.setValue(members);
         }
 
         Map<String, String> memberUids =
                 coerceMapOrListToStringMap(snapshot.get("memberIds"));
-        if (memberUids != null) {
+        if (!memberUids.isEmpty()) {
             memberUidLiveData.setValue(memberUids);
         }
     }
@@ -103,15 +103,20 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
      * Accepts either:
      *  - Map<?,?> already (casts keys/values to String),
      *  - List<?> (indexes -> String keys),
-     *  - or null/other (returns null).
+     *  - or null/other (returns empty map).
+     *
+     * Smell #2 fixed: never returns null.
      */
     @SuppressWarnings("unchecked")
     private Map<String, String> coerceMapOrListToStringMap(Object raw) {
-        if (raw == null) return null;
+        Map<String, String> out = new HashMap<>();
+
+        if (raw == null) {
+            return out; // empty instead of null
+        }
 
         if (raw instanceof Map) {
             Map<Object, Object> m = (Map<Object, Object>) raw;
-            Map<String, String> out = new HashMap<>();
             for (Map.Entry<Object, Object> en : m.entrySet()) {
                 Object k = en.getKey();
                 Object v = en.getValue();
@@ -124,7 +129,6 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
 
         if (raw instanceof List) {
             List<?> list = (List<?>) raw;
-            Map<String, String> out = new HashMap<>();
             for (int i = 0; i < list.size(); i++) {
                 Object v = list.get(i);
                 if (v != null) {
@@ -134,7 +138,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
             return out;
         }
 
-        return null;
+        return out; // empty for unexpected type
     }
 
     @Override
@@ -146,7 +150,7 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         }
     }
 
-    /** ------------------------ Smell #2 fixed: low cognitive complexity ------------------------ */
+    /** ---------------- Smell #1 fixed: cognitive complexity for sendInvite ---------------- */
     public void sendInvite(String circleId,
                            String circleName,
                            String inviteeEmail,
