@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!-- an animator that scales the view of the app from 0 to 80% on X and Y axis. -->
 
-<?xml version="1.0" encoding="utf-8"?>
 <objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
     android:duration="1000">
 
