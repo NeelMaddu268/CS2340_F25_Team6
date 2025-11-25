@@ -1,7 +1,6 @@
-// This fragment displays the users budgets and the savings circles
-// the user is a part of.
-// This fragment also manages the navigation to detailed views of the different
-// budgets,and allows users to add new budgets.
+// This fragment displays the users budgets and the savings circles the user is a part of.
+// This fragment also manages the navigation to detailed views of the different budgets,
+// and allows users to add new budgets.
 
 package com.example.sprintproject.view;
 
@@ -205,9 +204,6 @@ public class BudgetsFragment extends Fragment {
         });
     }
 
-    /**
-     * Sonar fix: reduce Cognitive Complexity by splitting into helpers.
-     */
     private void setupDialogContents(View popupView, AlertDialog dialog) {
         DialogViews dv = bindBudgetDialogViews(popupView);
 
@@ -424,21 +420,59 @@ public class BudgetsFragment extends Fragment {
 
     // ---- tiny structs to support dialog helpers ----
     private static class DialogViews {
-        EditText budgetNameEntry;
-        EditText budgetAmountEntry;
-        Spinner budgetFrequencyEntry;
-        EditText budgetDateEntry;
-        EditText budgetCategoryEntry;
-        Button createBudgetButton;
-        Button cancelButton;
+        private EditText budgetNameEntry;
+        private EditText budgetAmountEntry;
+        private Spinner budgetFrequencyEntry;
+        private EditText budgetDateEntry;
+        private EditText budgetCategoryEntry;
+        private Button createBudgetButton;
+        private Button cancelButton;
+
+        public EditText getBudgetNameEntry() {
+            return budgetNameEntry;
+        }
+        public EditText getBudgetAmountEntry() {
+            return budgetAmountEntry;
+        }
+        public Spinner getBudgetFrequencyEntry() {
+            return budgetFrequencyEntry;
+        }
+        public EditText getBudgetDateEntry() {
+            return budgetDateEntry;
+        }
+        public EditText getBudgetCategoryEntry() {
+            return budgetCategoryEntry;
+        }
+        public Button getCreateBudgetButton() {
+            return createBudgetButton;
+        }
+        public Button getCancelButton() {
+            return cancelButton;
+        }
     }
 
     private static class BudgetInputs {
-        String name;
-        String date;
-        String amount;
-        String category;
-        String frequency;
+        private String name;
+        private String date;
+        private String amount;
+        private String category;
+        private String frequency;
+
+        public String getName() {
+            return name;
+        }
+        public String getDate() {
+            return date;
+        }
+        public String getAmount() {
+            return amount;
+        }
+        public String getCategory() {
+            return category;
+        }
+        public String getFrequency() {
+            return frequency;
+        }
     }
 }
 

@@ -1,7 +1,7 @@
-// The fragment displays all of the savings circles that the user is a part of
-// and updates each circle based on the app's data
-// and lets the user view more details for each circle through clicks.
-// It also allows the user to create new circles.
+// The fragment displays all of the savings
+// circles that the user is a part of and updates each circle based on the app's data
+// and lets the user view more details for
+// each circle through clicks. It also allows the user to create new circles.
 
 package com.example.sprintproject.view;
 
@@ -55,7 +55,9 @@ public class SavingsCircleFragment extends Fragment {
             @Nullable Bundle savedInstanceState
     ) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-        if (view == null) return null;
+        if (view == null) {
+            return null;
+        }
 
         setupInsets(view);
         initViewModels();
@@ -186,7 +188,9 @@ public class SavingsCircleFragment extends Fragment {
 
     private void putCurrentAppDateExtras(Intent intent) {
         AppDate cur = dateViewModel.getCurrentDate().getValue();
-        if (cur == null) return;
+        if (cur == null) {
+            return;
+        }
 
         intent.putExtra("appYear", cur.getYear());
         intent.putExtra("appMonth", cur.getMonth());
@@ -316,13 +320,35 @@ public class SavingsCircleFragment extends Fragment {
     }
 
     private static class CreateDialogViews {
-        EditText groupName;
-        EditText groupChallengeTitle;
-        EditText groupChallengeGoal;
-        EditText groupNotes;
-        Spinner groupFrequency;
-        Button createBtn;
-        Button closeButton;
+        private EditText groupName;
+        private EditText groupChallengeTitle;
+        private EditText groupChallengeGoal;
+        private EditText groupNotes;
+        private Spinner groupFrequency;
+        private Button createBtn;
+        private Button closeButton;
+
+        public EditText getGroupName() {
+            return groupName;
+        }
+        public EditText getGroupChallengeTitle() {
+            return groupChallengeTitle;
+        }
+        public EditText getGroupChallengeGoal() {
+            return groupChallengeGoal;
+        }
+        public EditText getGroupNotes() {
+            return groupNotes;
+        }
+        public Spinner getGroupFrequency() {
+            return groupFrequency;
+        }
+        public Button getCreateBtn() {
+            return createBtn;
+        }
+        public Button getCloseButton() {
+            return closeButton;
+        }
     }
 }
 

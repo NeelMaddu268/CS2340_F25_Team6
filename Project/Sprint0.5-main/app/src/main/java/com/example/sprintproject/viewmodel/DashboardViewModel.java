@@ -1,7 +1,7 @@
-// This ViewModel uses the BudgetsFragmentViewModel to provide data such as
-// dashboard totals and budget lists.
-// Its role is to be a simple wrapper that loads budgets for the specific
-// date period or all time.
+// This ViewModel uses the BudgetsFragmentViewModel
+// to provide data such as dashboard totals and budget lists.
+// Its role is to be a simple wrapper that loads budgets for the
+// specific date period or all time.
 
 package com.example.sprintproject.viewmodel;
 

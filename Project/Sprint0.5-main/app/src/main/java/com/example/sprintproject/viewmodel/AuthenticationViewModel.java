@@ -1,14 +1,13 @@
-// ViewModel that handles the firebase login, registration with email and
-// password and displays errors through LiveData.
-// On successful registrations it instanciates the user profile in
-// firestore and triggers creation of sample budgets and expenses.
+// ViewModel that handles the firebase login, registration
+// with email and password and displays errors through LiveData.
+// On successful registrations it instanciates the user profile in firestore
+// and triggers creation of sample budgets and expenses.
 
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.model.ThemeManager;
 import com.google.firebase.auth.FirebaseAuth;
@@ -121,7 +120,8 @@ public class AuthenticationViewModel extends ViewModel {
                         db.collection(USERS).document(firebaseUser.getUid())
                                 .update(DARK_MODE, false)
                                 .addOnSuccessListener(aVoid -> Log.d("AuthVM", "Default theme set"))
-                                .addOnFailureListener(e -> Log.w("AuthVM", "Failed to set default theme", e));
+                                .addOnFailureListener(e -> Log.w("AuthVM",
+                                        "Failed to set default theme", e));
                     }
                     BudgetCreationViewModel budgetCreationViewModel =
                             new BudgetCreationViewModel();

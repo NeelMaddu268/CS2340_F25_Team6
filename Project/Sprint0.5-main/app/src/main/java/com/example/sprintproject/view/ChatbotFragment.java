@@ -95,7 +95,9 @@ public class ChatbotFragment extends Fragment {
 
         sendBtn.setOnClickListener(v -> {
             String text = input.getText().toString().trim();
-            if (text.isEmpty()) return;
+            if (text.isEmpty()) {
+                return;
+            }
 
             askIncludePreviousThenSend(text);
         });
@@ -127,7 +129,7 @@ public class ChatbotFragment extends Fragment {
 
             for (int i = 0; i < docs.size(); i++) {
                 ChatRepository.ChatDoc doc = docs.get(i);
-                titles[i] = doc.title == null ? "Chat" : doc.title;
+                titles[i] = doc.getTitle() == null ? "Chat" : doc.getTitle();
             }
 
             new AlertDialog.Builder(requireContext())
@@ -138,7 +140,7 @@ public class ChatbotFragment extends Fragment {
                         List<String> selected = new ArrayList<>();
                         for (int i = 0; i < checked.length; i++) {
                             if (checked[i]) {
-                                selected.add(docs.get(i).id);
+                                selected.add(docs.get(i).getId());
                             }
                         }
                         vm.setReferenceChats(selected);

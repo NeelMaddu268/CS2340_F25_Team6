@@ -1,7 +1,7 @@
-// This class is a data collection for any budgets that are created and
-// stored before its saved onto firebase.
-// This class also stores category id and timestamps (date) so that
-// the budget can be referenced later on.
+// This class is a data collection for any budgets
+// that are created and stored before its saved onto firebase.
+// This class also stores category id and timestamps
+// (date) so that the budget can be referenced later on.
 
 package com.example.sprintproject.model;
 

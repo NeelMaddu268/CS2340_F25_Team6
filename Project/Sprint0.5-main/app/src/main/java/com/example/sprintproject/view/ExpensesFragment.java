@@ -1,7 +1,7 @@
-// This fragment displays the expenses in the app. It allows the user to also
-// add more expenses using a popup.
-// The fragment observes the view models
-// to load expenses for the selected date, updates related budgets, and more.
+// This fragment displays the expenses in the app.
+// It allows the user to also add more expenses using a popup.
+// The fragment observes the view models to load expenses
+// for the selected date, updates related budgets, and more.
 
 package com.example.sprintproject.view;
 
@@ -386,15 +386,55 @@ public class ExpensesFragment extends Fragment {
     }
 
     private static class DialogViews {
-        EditText expenseName;
-        EditText expenseAmount;
-        EditText expenseDate;
-        EditText expenseNotes;
-        Button createBtn;
-        Button closeButton;
-        Spinner categorySpinner;
-        Spinner groupSavingsContributionSpinner;
-        TextView chooseCircle;
-        Spinner chooseCircleSpinner;
+        private EditText expenseName;
+        private EditText expenseAmount;
+        private EditText expenseDate;
+        private EditText expenseNotes;
+        private Button createBtn;
+        private Button closeButton;
+        private Spinner categorySpinner;
+        private Spinner groupSavingsContributionSpinner;
+        private TextView chooseCircle;
+        private Spinner chooseCircleSpinner;
+
+        public EditText getExpenseName() {
+            return expenseName;
+        }
+
+        public EditText getExpenseAmount() {
+            return expenseAmount;
+        }
+
+        public EditText getExpenseDate() {
+            return expenseDate;
+        }
+
+        public EditText getExpenseNotes() {
+            return expenseNotes;
+        }
+
+        public Button getCreateBtn() {
+            return createBtn;
+        }
+
+        public Button getCloseButton() {
+            return closeButton;
+        }
+
+        public Spinner getCategorySpinner() {
+            return categorySpinner;
+        }
+
+        public Spinner getGroupSavingsContributionSpinner() {
+            return groupSavingsContributionSpinner;
+        }
+
+        public TextView getChooseCircle() {
+            return chooseCircle;
+        }
+
+        public Spinner getChooseCircleSpinner() {
+            return chooseCircleSpinner;
+        }
     }
 }

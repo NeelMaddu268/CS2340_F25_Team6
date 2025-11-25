@@ -1,5 +1,4 @@
-// This ViewModel gets the user's most recent expense and hosts a
-// method that helps compute
+// This ViewModel gets the user's most recent expense and hosts a method that helps compute
 // how many days have passed since the last expense log.
 // It is used for reminder logic for example missed log detection.
 

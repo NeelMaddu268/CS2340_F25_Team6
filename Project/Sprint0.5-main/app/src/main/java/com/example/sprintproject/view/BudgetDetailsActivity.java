@@ -1,7 +1,9 @@
-// This activity displays the information about the chosen budget and lets
-// the user calculate different metrics such as totals, spent amount, etc.
-// The activity observes the budget data through the view models and updates
-// the UI accordingly, and lets the user save previous calculations.
+// This activity displays the information
+// about the chosen budget and lets the user
+// calculate different metrics such as totals, spent amount, etc.
+// The activity observes the budget data
+// through the view models and updates the UI
+// accordingly, and lets the user save previous calculations.
 
 package com.example.sprintproject.view;
 

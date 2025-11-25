@@ -1,7 +1,6 @@
-// This class helps create a chart that compares the users total spending
-// and their total budget.
-// This class helps configure the appearance of the chart and
-// updates the chart with the new data whenever render() is called.
+// This class helps create a chart that compares the users total
+// spending and their total budget. This class helps configure the appearance of
+// the chart and updates the chart with the new data if render() is called.
 
 package com.example.sprintproject.charts;
 

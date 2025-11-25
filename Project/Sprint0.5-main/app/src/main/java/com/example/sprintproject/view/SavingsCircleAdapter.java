@@ -1,6 +1,6 @@
 // This adapter showcases a list of savings circles and its respctive details.
-// It also displays the progress of each saving circle based on colors and
-// lets the user view more details on click actions.
+// It also displays the progress of each saving circle based on
+// colors and lets the user view more details on click actions.
 
 package com.example.sprintproject.view;
 

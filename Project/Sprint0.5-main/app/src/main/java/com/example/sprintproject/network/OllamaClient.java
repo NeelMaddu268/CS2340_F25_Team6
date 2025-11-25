@@ -25,17 +25,6 @@ import okio.BufferedSource;
 
 public class OllamaClient {
 
-    public interface ChatCallback {
-        void onSuccess(String reply);
-        void onError(String error);
-    }
-
-    public interface StreamCallback {
-        void onToken(String token);
-        void onComplete(String fullReply);
-        void onError(String error);
-    }
-
     private static final String TAG = "OllamaClient";
 
     private static final MediaType JSON
@@ -250,7 +239,9 @@ public class OllamaClient {
     }
 
     private String safeBodyString(Response response) throws IOException {
-        if (response.body() == null) return null;
+        if (response.body() == null) {
+            return null;
+        }
         return response.body().string();
     }
 
@@ -258,11 +249,24 @@ public class OllamaClient {
         try {
             JSONObject root = new JSONObject(responseText);
             JSONObject messageObj = root.optJSONObject("message");
-            if (messageObj == null) return null;
+            if (messageObj == null) {
+                return null;
+            }
             return messageObj.optString("content", null);
         } catch (JSONException e) {
             Log.e(TAG, "parseNonStreamReply JSON error", e);
             return null;
         }
+    }
+
+    public interface ChatCallback {
+        void onSuccess(String reply);
+        void onError(String error);
+    }
+
+    public interface StreamCallback {
+        void onToken(String token);
+        void onComplete(String fullReply);
+        void onError(String error);
     }
 }

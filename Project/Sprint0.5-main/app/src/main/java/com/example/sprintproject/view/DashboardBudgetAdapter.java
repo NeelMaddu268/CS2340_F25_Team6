@@ -1,7 +1,8 @@
-// This adapter showcases a list of budgets on the dashboard, showing
-// each budgets details such as name, spent amount, etc.
-// The adapter automatically updates the internally managed list
-// whenever there is new data.
+// This adapter showcases a list of
+// budgets on the dashboard, showing each budgets details such
+// as name, spent amount, etc.
+// The adapter automatically updates the internally
+// managed list whenever there is new data.
 
 package com.example.sprintproject.view;
 

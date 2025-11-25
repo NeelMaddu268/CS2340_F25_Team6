@@ -1,7 +1,7 @@
-// This ViewModel loads all the expenses and filters them by a selected AppDate,
-// using FireStore operations to stay updated.
-// Includes flexible date-parsing logic so that expenses are
-// handled correctly even if stored in different formats.
+// This ViewModel loads all the expenses and
+// filters them by a selected AppDate, using FireStore operations
+// to stay updated. Includes flexible date-parsing logic so that
+// expenses are handled correctly even if stored in different formats.
 
 package com.example.sprintproject.viewmodel;
 
@@ -66,7 +66,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
     /** Load all expenses (no filtering). */
     public void loadExpenses() {
         String uid = getUidOrPostEmpty();
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         detachActiveListener();
 
@@ -85,7 +87,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
         List<Expense> list = new ArrayList<>();
         for (DocumentSnapshot doc : qs.getDocuments()) {
             Expense exp = doc.toObject(Expense.class);
-            if (exp != null) list.add(exp);
+            if (exp != null) {
+                list.add(exp);
+            }
         }
         expensesLiveData.postValue(list);
     }
@@ -98,7 +102,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
      */
     public void loadExpensesFor(@NonNull AppDate appDate) {
         String uid = getUidOrPostEmpty();
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         detachActiveListener();
 
@@ -108,7 +114,6 @@ public class ExpensesFragmentViewModel extends ViewModel {
                 .addSnapshotListener((qs, e) -> handleFilteredExpensesSnapshot(qs, e, appDate));
     }
 
-    /** ---------------- Snapshot helpers ---------------- */
 
     private void handleFilteredExpensesSnapshot(
             QuerySnapshot qs,
@@ -137,13 +142,14 @@ public class ExpensesFragmentViewModel extends ViewModel {
         return auth.getCurrentUser().getUid();
     }
 
-    /** ---------------- Filtering helpers ---------------- */
 
     private List<Expense> filterExpenses(QuerySnapshot qs, AppDate appDate) {
         List<Expense> filtered = new ArrayList<>();
         for (DocumentSnapshot doc : qs.getDocuments()) {
             Expense exp = doc.toObject(Expense.class);
-            if (exp == null) continue;
+            if (exp == null) {
+                continue;
+            }
 
             if (shouldIncludeExpense(doc, exp, appDate)) {
                 filtered.add(exp);
@@ -173,8 +179,6 @@ public class ExpensesFragmentViewModel extends ViewModel {
         }
     }
 
-    /** ---------------- Date comparison/parsing ---------------- */
-
     private boolean onOrBefore(YMD item, AppDate selected) {
         Calendar sel = Calendar.getInstance();
         sel.set(selected.getYear(), selected.getMonth() - 1, selected.getDay(), 0, 0, 0);
@@ -199,7 +203,9 @@ public class ExpensesFragmentViewModel extends ViewModel {
         }
         if (raw instanceof String) {
             YMD parsed = parseYMDFromString((String) raw);
-            if (parsed != null) return parsed;
+            if (parsed != null) {
+                return parsed;
+            }
         }
         return (fallbackStr != null) ? parseYMDFromString(fallbackStr) : null;
     }
@@ -223,13 +229,19 @@ public class ExpensesFragmentViewModel extends ViewModel {
      */
     private YMD parseYMDFromString(String s) {
         String t = safeTrim(s);
-        if (t.isEmpty()) return null;
+        if (t.isEmpty()) {
+            return null;
+        }
 
         YMD fullParsed = tryParseWithFormats(t, FULL_DATE_FORMATS, false);
-        if (fullParsed != null) return fullParsed;
+        if (fullParsed != null) {
+            return fullParsed;
+        }
 
         YMD monthParsed = tryParseWithFormats(t, MONTH_ONLY_FORMATS, true);
-        if (monthParsed != null) return monthParsed;
+        if (monthParsed != null) {
+            return monthParsed;
+        }
 
         return tryParseLooselyAsYearMonth(t);
     }
@@ -237,9 +249,13 @@ public class ExpensesFragmentViewModel extends ViewModel {
     private YMD tryParseWithFormats(String t, List<String> formats, boolean monthOnly) {
         for (String f : formats) {
             Date d = tryParseDate(t, f);
-            if (d == null) continue;
+            if (d == null) {
+                continue;
+            }
 
-            if (!monthOnly) return fromDate(d);
+            if (!monthOnly) {
+                return fromDate(d);
+            }
 
             Calendar c = Calendar.getInstance();
             c.setTime(d);
@@ -261,12 +277,16 @@ public class ExpensesFragmentViewModel extends ViewModel {
     private YMD tryParseLooselyAsYearMonth(String t) {
         String cleaned = t.replace('/', '-');
         String[] parts = cleaned.split("-");
-        if (parts.length < 2) return null;
+        if (parts.length < 2) {
+            return null;
+        }
 
         try {
             int y = Integer.parseInt(parts[0]);
             int m = Integer.parseInt(parts[1]);
-            if (m >= 1 && m <= 12) return new YMD(y, m, 1);
+            if (m >= 1 && m <= 12) {
+                return new YMD(y, m, 1);
+            }
         } catch (NumberFormatException ignored) {
             // ignore
         }

@@ -28,8 +28,8 @@ public class ChatAdapter extends ListAdapter<ChatViewModel.UiMessage, RecyclerVi
                         @NonNull ChatViewModel.UiMessage oldItem,
                         @NonNull ChatViewModel.UiMessage newItem
                 ) {
-                    return oldItem.localTime == newItem.localTime
-                            && Objects.equals(oldItem.role, newItem.role);
+                    return oldItem.getLocalTime() == newItem.getLocalTime()
+                            && Objects.equals(oldItem.getRole(), newItem.getRole());
                 }
 
                 @Override
@@ -37,15 +37,15 @@ public class ChatAdapter extends ListAdapter<ChatViewModel.UiMessage, RecyclerVi
                         @NonNull ChatViewModel.UiMessage oldItem,
                         @NonNull ChatViewModel.UiMessage newItem
                 ) {
-                    return Objects.equals(oldItem.content, newItem.content)
-                            && Objects.equals(oldItem.role, newItem.role);
+                    return Objects.equals(oldItem.getContent(), newItem.getContent())
+                            && Objects.equals(oldItem.getRole(), newItem.getRole());
                 }
             };
 
     @Override
     public int getItemViewType(int position) {
         ChatViewModel.UiMessage m = getItem(position);
-        boolean isAssistant = m.role != null && m.role.startsWith("assistant");
+        boolean isAssistant = m.getRole() != null && m.getRole().startsWith("assistant");
         return isAssistant ? ASSISTANT : USER;
     }
 
@@ -70,14 +70,17 @@ public class ChatAdapter extends ListAdapter<ChatViewModel.UiMessage, RecyclerVi
     ) {
         BubbleVH vh = (BubbleVH) holder;
         ChatViewModel.UiMessage m = getItem(position);
-        vh.txt.setText(m.content == null ? "" : m.content);
+        vh.txt.setText(m.getContent() == null ? "" : m.getContent());
     }
 
     static class BubbleVH extends RecyclerView.ViewHolder {
-        TextView txt;
+        private TextView txt;
         BubbleVH(@NonNull View itemView) {
             super(itemView);
             txt = itemView.findViewById(R.id.txtBubble);
+        }
+        public TextView getTxt() {
+            return txt;
         }
     }
 }
