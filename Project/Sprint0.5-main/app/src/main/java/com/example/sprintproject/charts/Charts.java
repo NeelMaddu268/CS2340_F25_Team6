@@ -1,3 +1,6 @@
+// this class contains both the pie and bar charts in one place
+// Helps make it easier for the app to update the pie and bar charts.
+
 package com.example.sprintproject.charts;
 
 public class Charts {

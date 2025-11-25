@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The registration screen which takes user to main app functionality afterwards. -->
+
 <!--
   Non-visual refactor:
   - Added accessibility, autofill, and focus-order hints

@@ -1,3 +1,7 @@
+// This activity manages the user registration by taking the inputted email and password and passing it
+// to the authentication view model to create a new account. The activity observes the registration results
+// displays errors and successes accordingly.
+
 package com.example.sprintproject.view;
 
 import android.content.Intent;

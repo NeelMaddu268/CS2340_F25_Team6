@@ -1,3 +1,6 @@
+// This ViewModel provides a placeholder for the DashboardFragment.
+// Its purpose is to be a dummy method and sample value for UI binding.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

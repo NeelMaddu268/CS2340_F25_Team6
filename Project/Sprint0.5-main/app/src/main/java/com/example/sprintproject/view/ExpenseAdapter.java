@@ -1,3 +1,6 @@
+// This adapter lists the expenses in a RecyclerView and displays the data for each expense in a row format.
+// The adapter updates the expense list in real time and allows the to user to view and edit the expenses through on click actions.
+
 package com.example.sprintproject.view;
 
 import android.view.LayoutInflater;

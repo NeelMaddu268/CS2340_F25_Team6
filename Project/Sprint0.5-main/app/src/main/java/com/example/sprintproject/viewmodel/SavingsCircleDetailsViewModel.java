@@ -1,3 +1,6 @@
+// This ViewModel reads from the saving circle's firestore document and updates UI data in real time.
+// Also validates and sends circle invites to existing users before writing an invitation doc on firestore.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;
