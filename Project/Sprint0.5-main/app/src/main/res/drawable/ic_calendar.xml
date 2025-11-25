@@ -1,6 +1,7 @@
 <!-- Drawable icon for a calendar, representing the calendar feature. -->
 
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Drawable icon for a calendar, representing the calendar feature. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
