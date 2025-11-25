@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChatViewModel extends ViewModel {
-
+    public static final String ASSISTANT_PARTIAL = "assistant_partial";
+    public static final String CONTENT = "content";
+    public static final String ASSISTANT = "assistant";
     public static class UiMessage {
         public final String role;
         public final String content;
@@ -70,7 +72,7 @@ public class ChatViewModel extends ViewModel {
     private void updateLastPartial(String newContent, String role) {
         List<UiMessage> copy = currentListOrEmpty();
         int last = copy.size() - 1;
-        if (last >= 0 && "assistant_partial".equals(copy.get(last).role)) {
+        if (last >= 0 && ASSISTANT_PARTIAL.equals(copy.get(last).role)) {
             copy.set(last, new UiMessage(role, newContent));
         } else {
             copy.add(new UiMessage(role, newContent));
@@ -127,7 +129,7 @@ public class ChatViewModel extends ViewModel {
                     List<UiMessage> ui = new ArrayList<>();
                     for (DocumentSnapshot d : snapshot.getDocuments()) {
                         String role = d.getString("role");
-                        String content = d.getString("content");
+                        String content = d.getString(CONTENT);
                         if (role != null && content != null) {
                             ui.add(new UiMessage(role, content));
                         }
@@ -213,7 +215,7 @@ public class ChatViewModel extends ViewModel {
         try {
             JSONObject sys = new JSONObject();
             sys.put("role", "system");
-            sys.put("content",
+            sys.put(CONTENT,
                     "You are SpendWise, a concise financial advisor. " +
                             "Only use the numeric facts provided. Give practical tips.");
             arr.put(sys);
@@ -225,9 +227,9 @@ public class ChatViewModel extends ViewModel {
                     UiMessage m = ui.get(i);
                     JSONObject o = new JSONObject();
 
-                    boolean isAssistant = m.role != null && m.role.startsWith("assistant");
-                    o.put("role", isAssistant ? "assistant" : "user");
-                    o.put("content", m.content);
+                    boolean isAssistant = m.role != null && m.role.startsWith(ASSISTANT);
+                    o.put("role", isAssistant ? ASSISTANT : "user");
+                    o.put(CONTENT, m.content);
 
                     arr.put(o);
                 }
@@ -235,10 +237,12 @@ public class ChatViewModel extends ViewModel {
 
             JSONObject user = new JSONObject();
             user.put("role", "user");
-            user.put("content", fullPrompt);
+            user.put(CONTENT, fullPrompt);
             arr.put(user);
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // intentionally ignored - invalid JSON format should not stop the execution
+        }
         return arr;
     }
 
@@ -249,7 +253,7 @@ public class ChatViewModel extends ViewModel {
             return;
         }
 
-        addLocalMessage("assistant_partial", "");
+        addLocalMessage(ASSISTANT_PARTIAL, "");
 
         final StringBuilder streaming = new StringBuilder();
 
@@ -257,7 +261,7 @@ public class ChatViewModel extends ViewModel {
             @Override
             public void onToken(String token) {
                 streaming.append(token);
-                updateLastPartial(streaming.toString(), "assistant_partial");
+                updateLastPartial(streaming.toString(), ASSISTANT_PARTIAL);
             }
 
             @Override
@@ -268,9 +272,9 @@ public class ChatViewModel extends ViewModel {
                     fullReply = "Sorry, I couldn’t fetch a response. Try again.";
                 }
 
-                updateLastPartial(fullReply, "assistant");
+                updateLastPartial(fullReply, ASSISTANT);
 
-                repo.addMessage(activeChatId, "assistant", fullReply);
+                repo.addMessage(activeChatId, ASSISTANT, fullReply);
 
                 if (!titleGenerated) {
                     titleGenerated = true;
@@ -285,9 +289,9 @@ public class ChatViewModel extends ViewModel {
                 loading.postValue(false);
                 error.postValue("AI response failed.");
 
-                updateLastPartial("I couldn’t reach the AI right now.", "assistant");
+                updateLastPartial("I couldn’t reach the AI right now.", ASSISTANT);
 
-                repo.addMessage(activeChatId, "assistant",
+                repo.addMessage(activeChatId, ASSISTANT,
                         "I couldn’t reach the AI right now.");
             }
         });
@@ -299,7 +303,7 @@ public class ChatViewModel extends ViewModel {
             JSONArray arr = new JSONArray();
             arr.put(new JSONObject()
                     .put("role", "user")
-                    .put("content",
+                    .put(CONTENT,
                             "Create a short 2-5 word title for this chat based on: "
                                     + firstPrompt));
 
@@ -308,10 +312,14 @@ public class ChatViewModel extends ViewModel {
                     String title = reply == null ? "Chat" : reply.trim();
                     repo.updateChatTitle(activeChatId, title);
                 }
-                @Override public void onError(String error) { }
+                @Override public void onError(String error) {
+                    // intentionally ignored - title generation is not critical
+                }
             });
 
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+            // intentionally ignored - invalid JSON format should not stop the execution
+        }
     }
 
     private void generateAndStoreSummary() {
@@ -329,7 +337,7 @@ public class ChatViewModel extends ViewModel {
             JSONArray arr = new JSONArray();
             arr.put(new JSONObject()
                     .put("role", "user")
-                    .put("content",
+                    .put(CONTENT,
                             "Summarize this conversation in 1-2 sentences " +
                                     "for memory. Be factual:\n" + convo));
 
@@ -337,10 +345,14 @@ public class ChatViewModel extends ViewModel {
                 @Override public void onSuccess(String reply) {
                     if (reply != null) repo.updateChatSummary(activeChatId, reply.trim());
                 }
-                @Override public void onError(String error) { }
+                @Override public void onError(String error) {
+                    // intentionally ignored - summary generation is not critical
+                }
             });
 
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+            // intentionally ignored - invalid JSON format should not stop the execution
+        }
     }
 
     @Override

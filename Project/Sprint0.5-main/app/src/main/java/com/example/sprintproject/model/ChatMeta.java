@@ -11,7 +11,7 @@ public class ChatMeta {
     private List<String> referencedChatIds;
 
     public ChatMeta() {
-
+        // Default constructor required for Firebase
     }
 
     public String getTitle() { return title; }

@@ -66,12 +66,10 @@ public class FirestoreManager {
                 .collection(CHATS_STRING);
     }
 
-    // users/{uid}/chats/{chatId}
     public DocumentReference userChatDoc(String uid, String chatId) {
         return userChatsReference(uid).document(chatId);
     }
 
-    // users/{uid}/chats/{chatId}/messages
     public CollectionReference chatMessagesReference(String uid, String chatId) {
         return userChatDoc(uid, chatId).collection("messages");
     }
@@ -82,8 +80,6 @@ public class FirestoreManager {
                 .document(uid)
                 .collection("goals");
     }
-
-    /** ---------------- References ---------------- */
 
     public CollectionReference savingsCircleReference(String uid) {
         return db.collection(USERS_STRING).document(uid).collection(SAVINGS_CIRCLE_STRING);
@@ -116,8 +112,6 @@ public class FirestoreManager {
     public CollectionReference invitationsReference() {
         return db.collection(INVITATIONS_STRING);
     }
-
-    /** ---------------- Basic ops ---------------- */
 
     public void addUser(String uid, Map<String, Object> userData) {
         db.collection(USERS_STRING).document(uid).set(userData);
@@ -167,8 +161,6 @@ public class FirestoreManager {
 
         return tcs.getTask();
     }
-
-    /** ---------------- deleteSavingsCircle helpers ---------------- */
 
     private boolean validateCircleAndPermission(
             DocumentSnapshot snapshot,
@@ -258,8 +250,6 @@ public class FirestoreManager {
             }
         }
     }
-
-    /** ---------------- Budget/Expense ops ---------------- */
 
     public void addBudget(String uid, Budget budget) {
         budgetsReference(uid).add(budget);

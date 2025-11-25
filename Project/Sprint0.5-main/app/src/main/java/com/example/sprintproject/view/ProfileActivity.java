@@ -21,13 +21,13 @@ import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class ProfileActivity extends AppCompatActivity {
-    //private static final int IMAGE_REQUEST = 1;
-    //private static final int PERMISSION_REQUEST = 101;
+    private static final String USERS = "users";
     private int[] animalIcons = {
             R.drawable.cat, R.drawable.monkey, R.drawable.panda,
             R.drawable.lion, R.drawable.bear, R.drawable.dog,
             R.drawable.mouse, R.drawable.bunny
     };
+    // needs to be global field as it is updated in onCreate() and iconPicker()
     private ImageView profileImage;
     private int placeholderIcon = R.drawable.baseline_account_circle_24;
 
@@ -86,7 +86,7 @@ public class ProfileActivity extends AppCompatActivity {
         String iconName = getResources().getResourceEntryName(iconId);
 
         FirebaseFirestore.getInstance()
-                .collection("users")
+                .collection(USERS)
                 .document(uid)
                 .update("profileIcon", iconName)
                 .addOnSuccessListener(e -> Toast.makeText(this, "Profile icon updated", Toast.LENGTH_SHORT).show())
@@ -99,7 +99,7 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
         FirebaseFirestore.getInstance()
-                .collection("users")
+                .collection(USERS)
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
@@ -127,7 +127,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         FirestoreManager.getInstance().getDb()
-                .collection("users")
+                .collection(USERS)
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
