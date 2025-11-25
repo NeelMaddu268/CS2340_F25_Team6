@@ -1,3 +1,6 @@
+// The activity displays the app's main splash and landing screen, giving the users the
+// option to start the login operation or quit the app. The splash screen is active very briefly and then routes to the landing page.
+
 package com.example.sprintproject.view;
 
 import android.content.Intent;

@@ -1,3 +1,5 @@
+// This fragment displays the chatbot in the app.
+
 package com.example.sprintproject.view;
 
 import android.os.Bundle;

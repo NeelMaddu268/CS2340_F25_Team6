@@ -1,3 +1,6 @@
+// This activity handles the users profile info that is pulled from firestore.
+// Provides a back button to return to the previous screen.
+
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;

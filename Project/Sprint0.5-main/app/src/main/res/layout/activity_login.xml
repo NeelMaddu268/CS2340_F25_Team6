@@ -1,3 +1,5 @@
+<!-- The login screen hosting the login or create account buttons. -->
+
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Login screen layout: visually identical, refactored for a large PR diff -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

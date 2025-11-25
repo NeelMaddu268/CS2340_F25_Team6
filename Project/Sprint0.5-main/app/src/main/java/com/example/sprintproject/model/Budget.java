@@ -1,3 +1,7 @@
+// This class represents a budget and stores all of its details. It also tracks ther the budget
+// is nearing completion and if it went over budget in previous cycles. It also provides helper methods
+// for checking budget status and calculating the completion progress.
+
 package com.example.sprintproject.model;
 
 public class Budget {

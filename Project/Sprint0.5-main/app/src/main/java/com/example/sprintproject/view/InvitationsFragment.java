@@ -1,3 +1,6 @@
+// The fragment shos the user's invitations using a RecyclerView and updates the UI as the invites are accepted or declined.
+// Listens for real time invite changes and updates the UI accordingly.
+
 package com.example.sprintproject.view;
 
 import android.os.Bundle;
