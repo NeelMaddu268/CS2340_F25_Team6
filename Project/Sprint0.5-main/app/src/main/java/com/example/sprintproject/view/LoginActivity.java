@@ -12,8 +12,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.ThemeManager;
 import com.example.sprintproject.viewmodel.AuthenticationViewModel;
 
 public class LoginActivity extends AppCompatActivity {
@@ -25,6 +27,12 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        boolean darkMode = ThemeManager.isDarkModeEnabled(this);
+
+        AppCompatDelegate.setDefaultNightMode(
+                darkMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+        );
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -44,7 +52,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(v -> {
             email = emailInput.getText().toString();
             password = passwordInput.getText().toString();
-            authenticationViewModel.login(email, password);
+            authenticationViewModel.login(email, password, this);
         });
 
         createAccount.setOnClickListener(v ->

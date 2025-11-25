@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -26,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.model.AppDate;
+import com.example.sprintproject.model.ThemeManager;
 import com.example.sprintproject.viewmodel.AuthenticationViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.DashboardViewModel;
@@ -74,6 +76,7 @@ public class DashboardFragment extends Fragment {
 
         ImageButton btnCalendar;
         ImageButton btnProfile;
+        SwitchCompat themeSwitch;
         TextView headerText;
         TextView totalSpentText;
         TextView totalRemainingText;
@@ -83,6 +86,7 @@ public class DashboardFragment extends Fragment {
 
         btnCalendar = view.findViewById(R.id.btnCalendar);
         btnProfile = view.findViewById(R.id.btnProfile);
+        themeSwitch = view.findViewById(R.id.themeSwitch);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
         totalSpentText = view.findViewById(R.id.textTotalSpent);
@@ -135,9 +139,16 @@ public class DashboardFragment extends Fragment {
             });
         }
 
+        boolean isDarkMode = ThemeManager.isDarkModeEnabled(requireContext());
+        themeSwitch.setChecked(isDarkMode);
+
+        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            ThemeManager.applyTheme(isChecked, requireContext());
+        });
+
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
-                authenticationViewModel.logout();
+                authenticationViewModel.logout(requireContext());
                 startActivity(new Intent(getActivity(), MainActivity.class));
                 requireActivity().finish();
             });

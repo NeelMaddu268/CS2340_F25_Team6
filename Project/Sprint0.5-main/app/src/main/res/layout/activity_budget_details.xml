@@ -229,7 +229,7 @@
             android:text="Compute Budget"
             android:fontFamily="@font/montserrat_regular"
             android:backgroundTint="?attr/colorOnPrimary"
-            android:textColor="#357DED"
+            android:textColor="?attr/colorPrimary"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
@@ -240,7 +240,7 @@
             android:text="Save Budget"
             android:fontFamily="@font/montserrat_regular"
             android:backgroundTint="?attr/colorOnPrimary"
-            android:textColor="#357DED"
+            android:textColor="?attr/colorPrimary"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
@@ -251,7 +251,7 @@
             android:text="Back"
             android:fontFamily="@font/montserrat_regular"
             android:backgroundTint="?attr/colorOnPrimary"
-            android:textColor="#357DED"
+            android:textColor="?attr/colorPrimary"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"/>
