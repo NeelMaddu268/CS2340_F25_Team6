@@ -1,3 +1,6 @@
+// This class shows a user account and stores the user's basic information.
+// This class also tracks the users activity such as creating budgets and expenses.
+
 package com.example.sprintproject.model;
 
 public class User {

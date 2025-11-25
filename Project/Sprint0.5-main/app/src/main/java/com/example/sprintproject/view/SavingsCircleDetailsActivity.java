@@ -1,3 +1,7 @@
+// The activity displays info about a specific savings circle. It also manages the invitation process
+// of new members to the savings circle along with other features such as deleting the circle, and reacts to
+// live updates through firestore.
+
 package com.example.sprintproject.view;
 
 import android.os.Bundle;
@@ -491,17 +495,3 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

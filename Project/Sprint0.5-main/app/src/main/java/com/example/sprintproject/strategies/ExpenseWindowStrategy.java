@@ -1,3 +1,8 @@
+// This is an abstract class that defines the logic that is used to load the expense and budgets
+// within a chosen period of time and updating the charts accordingly. It helps build database queries and allows other subclasses
+// to choose which expenses are included in the result.
+
+
 package com.example.sprintproject.strategies;
 
 import com.example.sprintproject.charts.BarChartController;

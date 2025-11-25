@@ -1,3 +1,6 @@
+// This class manages the app's color theme - light and dark mode by saving the preference and loading the
+// selected mode using SharedPreferences. This class provides helper methods that allows the user's theme preference to be used in any part of the app.
+
 package com.example.sprintproject.model;
 
 import android.content.Context;

@@ -1,3 +1,6 @@
+// This class stores the year/month/day date. It also has helper methods
+// that allow the shifting of dates by days and months and can create new AppDate objects.
+
 package com.example.sprintproject.model;
 
 import java.text.SimpleDateFormat;

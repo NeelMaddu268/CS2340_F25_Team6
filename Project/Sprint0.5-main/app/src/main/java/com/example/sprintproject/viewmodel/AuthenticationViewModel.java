@@ -1,3 +1,6 @@
+// ViewModel that handles the firebase login, registration with email and password and displays errors through LiveData.
+// On successful registrations it instanciates the user profile in firestore and triggers creation of sample budgets and expenses.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

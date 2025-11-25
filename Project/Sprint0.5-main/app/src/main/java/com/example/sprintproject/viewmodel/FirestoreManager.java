@@ -1,3 +1,6 @@
+// This singleton class handles all the firestore read and write operations for the app.
+// Supports the deletion of circles.
+
 package com.example.sprintproject.viewmodel;
 
 import com.example.sprintproject.model.Budget;
@@ -35,6 +38,7 @@ public class FirestoreManager {
     private static final String CATEGORIES_STRING = "categories";
     private static final String POINTERS_STRING = "savingsCirclePointers";
     private static final String INVITATIONS_STRING = "invitations";
+    private static final String CHATS_STRING = "chats";
 
     private FirestoreManager() {
         db = FirebaseFirestore.getInstance();
@@ -51,6 +55,32 @@ public class FirestoreManager {
 
     public FirebaseFirestore getDb() {
         return db;
+    }
+
+    // Chatbot related stuff
+
+    // users/{uid}/chats
+    public CollectionReference userChatsReference(String uid) {
+        return db.collection(USERS_STRING)
+                .document(uid)
+                .collection(CHATS_STRING);
+    }
+
+    // users/{uid}/chats/{chatId}
+    public DocumentReference userChatDoc(String uid, String chatId) {
+        return userChatsReference(uid).document(chatId);
+    }
+
+    // users/{uid}/chats/{chatId}/messages
+    public CollectionReference chatMessagesReference(String uid, String chatId) {
+        return userChatDoc(uid, chatId).collection("messages");
+    }
+
+    // goals (if not already present)
+    public CollectionReference goalsReference(String uid) {
+        return db.collection(USERS_STRING)
+                .document(uid)
+                .collection("goals");
     }
 
     /** ---------------- References ---------------- */
