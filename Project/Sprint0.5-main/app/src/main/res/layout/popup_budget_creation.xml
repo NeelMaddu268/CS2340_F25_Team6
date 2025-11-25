@@ -40,7 +40,7 @@
         android:id="@+id/BudgetNameEntry"
         android:textSize="25sp"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="#357DED"
+        android:textColor="?attr/colorPrimary"
         android:background="?attr/colorOnPrimary"
         android:layout_marginTop="12dp"
         android:layout_marginLeft="24dp"

@@ -3,6 +3,8 @@
 
 package com.example.sprintproject.charts;
 
+import android.graphics.Color;
+
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -32,9 +34,14 @@ public class BarChartController {
             x.setAxisMinimum(-0.5f);
             x.setAxisMaximum(1.5f);
 
+            x.setTextColor(Color.WHITE);
+
             YAxis left = bar.getAxisLeft();
             left.setDrawGridLines(true);
             left.setAxisMinimum(0f);
+
+            left.setTextColor(Color.WHITE);
+
             bar.getAxisRight().setEnabled(false);
         }
     }
@@ -58,6 +65,7 @@ public class BarChartController {
         BarDataSet set = new BarDataSet(entries, "");
         set.setColors(ColorTemplate.MATERIAL_COLORS[3], ColorTemplate.MATERIAL_COLORS[0]);
         set.setValueTextSize(12f);
+        set.setValueTextColor(Color.WHITE);
 
         BarData data = new BarData(set);
         data.setBarWidth(0.5f);

@@ -7,7 +7,7 @@
     android:id="@+id/dashboard_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#357DED"
+    android:background="?attr/colorPrimary"
     android:fillViewport="true"
     tools:context=".view.DashboardFragment">
 
