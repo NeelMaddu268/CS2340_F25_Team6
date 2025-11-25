@@ -1,5 +1,7 @@
-// The fragment displays all of the savings circles that the user is a part of and updates each circle based on the app's data
-// and lets the user view more details for each circle through clicks. It also allows the user to create new circles.
+// The fragment displays all of the savings circles that the user is a part of
+// and updates each circle based on the app's data
+// and lets the user view more details for each circle through clicks.
+// It also allows the user to create new circles.
 
 package com.example.sprintproject.view;
 

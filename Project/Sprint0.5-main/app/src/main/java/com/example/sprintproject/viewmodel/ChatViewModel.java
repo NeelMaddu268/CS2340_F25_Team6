@@ -1,3 +1,6 @@
+// This view model manages the chatbots full work flow from loading
+// the app data, to generating insights and building AI prompts.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

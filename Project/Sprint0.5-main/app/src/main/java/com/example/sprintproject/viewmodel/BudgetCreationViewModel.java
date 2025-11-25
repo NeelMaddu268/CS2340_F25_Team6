@@ -1,5 +1,7 @@
-// Handles the creation of budgets by taking in certain parameters given by the sprint modules.
-// The data inputted as the parameters for creating the budgets are then linked to categories and other features.
+// Handles the creation of budgets by taking in certain parameters
+// given by the sprint modules.
+// The data inputted as the parameters for creating the budgets
+// are then linked to categories and other features.
 
 package com.example.sprintproject.viewmodel;
 

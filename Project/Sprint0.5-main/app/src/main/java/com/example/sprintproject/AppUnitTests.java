@@ -1,5 +1,5 @@
-// This class includes the logic to perform tests on several features by ensuring the driven
-// results match the expected output.
+// This class includes the logic to perform tests on
+// several features by ensuring the driven results match the expected output.
 
 package com.example.sprintproject;
 

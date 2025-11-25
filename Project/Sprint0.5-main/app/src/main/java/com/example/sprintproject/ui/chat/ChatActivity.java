@@ -1,3 +1,7 @@
+// This activity shos the chat UI and sets up the viewModel.
+// It also shos the messages in a recyclerView and handles sending any
+// new messages. It also provides summaries from previous chats.
+
 package com.example.sprintproject.ui.chat;
 
 import android.os.Bundle;

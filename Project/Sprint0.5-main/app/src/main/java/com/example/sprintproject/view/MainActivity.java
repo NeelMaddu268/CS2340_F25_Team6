@@ -1,3 +1,8 @@
+// This activity loads up the app's splash page and the
+// main menu which includes the start and quit button.
+// It also launches the login process once start is clicked or
+// terminates the app when quit is clicked.
+
 package com.example.sprintproject.view;
 
 import android.content.Intent;

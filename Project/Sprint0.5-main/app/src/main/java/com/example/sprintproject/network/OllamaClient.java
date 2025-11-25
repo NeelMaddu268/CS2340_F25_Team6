@@ -1,3 +1,6 @@
+// This class handles all of the communication between the app and
+// the local Ollama server using OkHttp.
+
 package com.example.sprintproject.network;
 
 import android.util.Log;

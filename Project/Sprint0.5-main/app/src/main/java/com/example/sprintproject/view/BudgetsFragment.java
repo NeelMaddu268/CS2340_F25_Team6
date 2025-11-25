@@ -1,5 +1,7 @@
-// This fragment displays the users budgets and the savings circles the user is a part of.
-// This fragment also manages the navigation to detailed views of the different budgets, and allows users to add new budgets.
+// This fragment displays the users budgets and the savings circles
+// the user is a part of.
+// This fragment also manages the navigation to detailed views of the different
+// budgets,and allows users to add new budgets.
 
 package com.example.sprintproject.view;
 

@@ -1,5 +1,7 @@
-// The adapter manages the display of all the budgets in a scrollable manner in recyclerview by binding each budgets data into rows.
-// This adapter also manages the colors indicating the progress of the budgets, status messages and on click behaviors
+// The adapter manages the display of all the budgets in a scrollable manner in
+// recyclerview by binding each budgets data into rows.
+// This adapter also manages the colors indicating the progress of the budgets,
+// status messages and on click behaviors
 // to let the users see their budget status and more details.
 
 package com.example.sprintproject.view;

@@ -1,3 +1,8 @@
+// This file manages a priority based notification queue, where
+// reminders are generated to warn the user about missed expense logs
+// and nearly full budgets. This class also tracks warnings that have already
+// been displayed to avoid repeated warnings.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LifecycleOwner;

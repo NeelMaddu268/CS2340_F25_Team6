@@ -1,5 +1,7 @@
-// This activity displays the details of the selected expense and it reads the data from the intent, fills
-// the corresponding UI with the data, and has a back button to let the user navigate back to the expense list.
+// This activity displays the details of the selected expense and
+// it reads the data from the intent, fills
+// the corresponding UI with the data, and has a back button to let
+// the user navigate back to the expense list.
 
 package com.example.sprintproject.view;
 

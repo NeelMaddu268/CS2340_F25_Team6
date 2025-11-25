@@ -1,3 +1,5 @@
+// This class shows the chat UI and sets up the viewModel.
+
 package com.example.sprintproject.ui.chat;
 
 import android.view.*;

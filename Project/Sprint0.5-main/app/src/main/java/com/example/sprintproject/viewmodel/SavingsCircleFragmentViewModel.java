@@ -1,5 +1,7 @@
-// This ViewModel tracks all of the saving circles the user is a part of and keeps them updated in real time,
-// while filtering their status based on the selected AppDate. Also calculates each circles progress and updates
+// This ViewModel tracks all of the saving circles the user is a part
+// of and keeps them updated in real time,
+// while filtering their status based on the selected AppDate.
+// Also calculates each circles progress and updates
 // the circle's goal has been met.
 
 package com.example.sprintproject.viewmodel;

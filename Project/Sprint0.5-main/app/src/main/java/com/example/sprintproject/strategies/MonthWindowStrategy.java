@@ -1,5 +1,8 @@
-// This class filters the expenses based on their date data to expenses that occur within a month time period.
-// It configures the query used by the expense window system so that the charts only show the relevant data for the set month time period.
+// This class filters the expenses based on their date data to expenses that occur
+// within a month time period.
+// It configures the query used by the expense window
+// system so that the charts only show the relevant data for the
+// set month time period.
 
 package com.example.sprintproject.strategies;
 
