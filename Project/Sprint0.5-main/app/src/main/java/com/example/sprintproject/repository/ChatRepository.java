@@ -1,6 +1,10 @@
 package com.example.sprintproject.repository;
 
+import androidx.annotation.Nullable;
+
+import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,6 +37,12 @@ public class ChatRepository {
         return user.getUid();
     }
 
+    private @Nullable String getUid() {
+        return auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+    }
+
+
+
     private CollectionReference chatsCollection() {
         return db.collection(USERS)
                 .document(requireUid())
@@ -63,24 +73,30 @@ public class ChatRepository {
         }
     }
 
-    public Task<DocumentReference> createChatSkeleton() {
-        try {
-            CollectionReference chats = chatsCollection();
-            DocumentReference ref = chats.document();
-
-            long now = System.currentTimeMillis();
-
-            Map<String, Object> data = new HashMap<>();
-            data.put(TITLE, "New chat");
-            data.put(SUMMARY, "");
-            data.put("createdAt", now);
-            data.put(UPDATEDAT, now);
-            data.put("referencedChatIds", new ArrayList<String>());
-
-            return ref.set(data).continueWith(t -> ref);
-        } catch (IllegalStateException e) {
-            return Tasks.forException(e);
+    /** Creates a new chat document with a placeholder title. */
+    public Task<String> createNewChat(String isoTimestamp) {
+        String uid = getUid();
+        if (uid == null) {
+            TaskCompletionSource<String> tcs = new TaskCompletionSource<>();
+            tcs.setException(new IllegalStateException("User not logged in"));
+            return tcs.getTask();
         }
+
+        DocumentReference chatRef = FirestoreManager.getInstance()
+                .userChatsReference(uid)
+                .document(); // auto id
+
+        String chatId = chatRef.getId();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("title", "New Chat");
+        data.put("createdAt", isoTimestamp);
+        data.put("updatedAt", isoTimestamp);
+
+        return chatRef.set(data).continueWith(task -> {
+            if (!task.isSuccessful()) throw task.getException();
+            return chatId;
+        });
     }
 
     public Task<List<ChatDoc>> loadChatDocs() {
@@ -152,6 +168,20 @@ public class ChatRepository {
         }
     }
 
+    /** Saves a generated title into an existing chat. */
+    public Task<Void> saveChatTitle(String chatId, String title, String isoTimestamp) {
+        String uid = getUid();
+        if (uid == null) return Tasks.forException(new IllegalStateException("User not logged in"));
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("title", title);
+        update.put("updatedAt", isoTimestamp);
+
+        return FirestoreManager.getInstance()
+                .userChatDoc(uid, chatId)
+                .update(update);
+    }
+
 
     public Task<QuerySnapshot> loadExpenses() {
         try {
@@ -195,6 +225,93 @@ public class ChatRepository {
         } catch (IllegalStateException ignored) {
             // Intentionally ignored due to Firebase limitations
         }
+    }
+
+    /** Adds a user text message with AppDate-based timestamp. */
+    public Task<Void> addUserMessage(String chatId, String content, String isoTimestamp) {
+        return addMessage(chatId, content, "user", isoTimestamp);
+    }
+
+    /** Adds an assistant message with AppDate-based timestamp. */
+    public Task<Void> addAssistantMessage(String chatId, String content, String isoTimestamp) {
+        return addMessage(chatId, content, "assistant", isoTimestamp);
+    }
+
+    private Task<Void> addMessage(String chatId, String content, String role, String isoTimestamp) {
+        String uid = getUid();
+        if (uid == null) return Tasks.forException(new IllegalStateException("User not logged in"));
+
+        CollectionReference msgRef = FirestoreManager.getInstance()
+                .chatMessagesReference(uid, chatId);
+
+        DocumentReference msgDoc = msgRef.document();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("role", role);
+        data.put("content", content);
+        data.put("timestamp", isoTimestamp);
+
+        return msgDoc.set(data);
+    }
+
+    /** Allows ChatViewModel to save a summary of the conversation for reference. */
+    public Task<Void> saveChatSummary(String chatId, String summary, String isoTimestamp) {
+        String uid = getUid();
+        if (uid == null) return Tasks.forException(new IllegalStateException("User not logged in"));
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("summary", summary);
+        update.put("updatedAt", isoTimestamp);
+
+        return FirestoreManager.getInstance()
+                .userChatDoc(uid, chatId)
+                .update(update);
+    }
+
+    /** Loads all chats for the user (used for sidebar/chat list). */
+    public ListenerRegistration listenToChats(
+            EventListener<QuerySnapshot> listener
+    ) {
+        String uid = getUid();
+        if (uid == null) return null;
+
+        return FirestoreManager.getInstance()
+                .userChatsReference(uid)
+                .orderBy("updatedAt", Query.Direction.DESCENDING)
+                .addSnapshotListener(listener);
+    }
+
+    /** Loads messages in a specific chat in real time. */
+    public ListenerRegistration listenToMessages(
+            String chatId,
+            EventListener<QuerySnapshot> listener
+    ) {
+        String uid = getUid();
+        if (uid == null) return null;
+
+        return FirestoreManager.getInstance()
+                .chatMessagesReference(uid, chatId)
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener(listener);
+    }
+
+    /** Fetches a chat’s summary (if any). */
+    public Task<String> fetchChatSummary(String chatId) {
+        String uid = getUid();
+        if (uid == null) {
+            TaskCompletionSource<String> tcs = new TaskCompletionSource<>();
+            tcs.setException(new IllegalStateException("User not logged in"));
+            return tcs.getTask();
+        }
+
+        return FirestoreManager.getInstance()
+                .userChatDoc(uid, chatId)
+                .get()
+                .continueWith(task -> {
+                    if (!task.isSuccessful()) throw task.getException();
+                    DocumentSnapshot snap = task.getResult();
+                    return snap.contains("summary") ? snap.getString("summary") : null;
+                });
     }
 
     public void updateChatSummary(String chatId, String summary) {

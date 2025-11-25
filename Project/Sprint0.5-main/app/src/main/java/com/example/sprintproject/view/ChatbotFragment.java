@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,138 +12,146 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.ui.chat.ChatAdapter;
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.viewmodel.ChatViewModel;
-import com.example.sprintproject.repository.ChatRepository;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.example.sprintproject.viewmodel.DateViewModel;
 
 public class ChatbotFragment extends Fragment {
 
-    private ChatViewModel vm;
-    // input needs to remain a global field as it is accessed by multiple methods
-    private EditText input;
+    private ChatViewModel chatVM;
+    private DateViewModel dateVM;
+
+    private com.example.sprintproject.ui.chat.ChatAdapter adapter;
+    private RecyclerView recycler;
+    private ProgressBar progress;
+    private TextView txtError;
+    private EditText editInput;
+    private View commandRow;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState
+    ) {
         return inflater.inflate(R.layout.fragment_chatbot, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view,
-                              @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(
+            @NonNull View view,
+            @Nullable Bundle savedInstanceState
+    ) {
         super.onViewCreated(view, savedInstanceState);
 
-        vm = new ViewModelProvider(this).get(ChatViewModel.class);
+        chatVM = new ViewModelProvider(requireActivity()).get(ChatViewModel.class);
+        dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
 
-        final RecyclerView recycler   = view.findViewById(R.id.recyclerChat);
-        final TextView errorText  = view.findViewById(R.id.txtChatError);
-        input = view.findViewById(R.id.editChatInput);
-        final ProgressBar progress   = view.findViewById(R.id.progressChat);
-        final Button sendBtn    = view.findViewById(R.id.btnSend);
-        final Button newChatBtn = view.findViewById(R.id.btnNewChat);
+        recycler = view.findViewById(R.id.recyclerChat);
+        progress = view.findViewById(R.id.progressChat);
+        txtError = view.findViewById(R.id.txtChatError);
+        editInput = view.findViewById(R.id.editChatInput);
+        commandRow = view.findViewById(R.id.layoutCommandRow);
 
-        final ChatAdapter adapter = new ChatAdapter();
-        recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        Button btnSend = view.findViewById(R.id.btnSend);
+        Button btnNewChat = view.findViewById(R.id.btnNewChat);
+        Button btnCmdWeekly = view.findViewById(R.id.btnCmdWeekly);
+        Button btnCmdHousing = view.findViewById(R.id.btnCmdHousing);
+        Button btnCmdEssentials = view.findViewById(R.id.btnCmdEssentials);
+
+        adapter = new com.example.sprintproject.ui.chat.ChatAdapter();
+        LinearLayoutManager lm = new LinearLayoutManager(requireContext());
+        lm.setStackFromEnd(true);
+        recycler.setLayoutManager(lm);
         recycler.setAdapter(adapter);
 
-        vm.getMessages().observe(getViewLifecycleOwner(), msgs -> {
-            adapter.submitList(msgs == null ? new ArrayList<>() : new ArrayList<>(msgs));
-            if (msgs != null && !msgs.isEmpty()) {
-                recycler.scrollToPosition(msgs.size() - 1);
+        // Keep ChatViewModel synced with the current app date (for timestamps)
+        dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
+            chatVM.setCurrentAppDate(appDate);
+        });
+
+        chatVM.getMessages().observe(getViewLifecycleOwner(), msgs -> {
+            adapter.submitList(msgs);
+            if (adapter.getItemCount() > 0) {
+                recycler.scrollToPosition(adapter.getItemCount() - 1);
+            }
+
+            // show starter commands only if there are no messages in this chat
+            if (commandRow != null) {
+                if (msgs == null || msgs.isEmpty()) {
+                    commandRow.setVisibility(View.VISIBLE);
+                } else {
+                    commandRow.setVisibility(View.GONE);
+                }
             }
         });
 
-        vm.getLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            if (isLoading != null && isLoading) {
-                progress.setVisibility(View.VISIBLE);
+        chatVM.getLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            progress.setVisibility(Boolean.TRUE.equals(isLoading) ? View.VISIBLE : View.GONE);
+        });
+
+        chatVM.getError().observe(getViewLifecycleOwner(), err -> {
+            if (TextUtils.isEmpty(err)) {
+                txtError.setVisibility(View.GONE);
             } else {
-                progress.setVisibility(View.GONE);
+                txtError.setVisibility(View.VISIBLE);
+                txtError.setText(err);
             }
         });
 
-        vm.getError().observe(getViewLifecycleOwner(), err -> {
-            if (err == null || err.trim().isEmpty()) {
-                errorText.setVisibility(View.GONE);
-                errorText.setText("");
-            } else {
-                errorText.setVisibility(View.VISIBLE);
-                errorText.setText(err);
-            }
-        });
-
-        vm.startNewChat();
-
-        newChatBtn.setOnClickListener(v -> {
-            vm.startNewChat();
-            input.setText("");
-        });
-
-        sendBtn.setOnClickListener(v -> {
-            String text = input.getText().toString().trim();
-            if (text.isEmpty()) return;
-
-            askIncludePreviousThenSend(text);
-        });
-    }
-
-    private void askIncludePreviousThenSend(String userText) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Include previous context?")
-                .setMessage("Use a previous chat summary to help the AI?")
-                .setPositiveButton("Yes", (d, w) -> showChatPicker(userText))
-                .setNegativeButton("No", (d, w) -> {
-                    vm.setReferenceChats(new ArrayList<>());
-                    vm.sendUserMessage(userText);
-                    input.setText("");
-                })
-                .show();
-    }
-
-    private void showChatPicker(String userText) {
-        vm.getChatDocs().addOnSuccessListener(docs -> {
-            if (docs == null || docs.isEmpty()) {
-                vm.sendUserMessage(userText);
-                input.setText("");
+        btnSend.setOnClickListener(v -> {
+            String text = editInput.getText().toString().trim();
+            if (text.isEmpty()) {
                 return;
             }
+            chatVM.sendUserMessage(text);
+            editInput.setText("");
+        });
 
-            String[] titles = new String[docs.size()];
-            boolean[] checked = new boolean[docs.size()];
+        btnNewChat.setOnClickListener(v -> {
+            chatVM.startNewChat();
+            editInput.setText("");
+        });
 
-            for (int i = 0; i < docs.size(); i++) {
-                ChatRepository.ChatDoc doc = docs.get(i);
-                titles[i] = doc.title == null ? "Chat" : doc.title;
-            }
+        // Command buttons: all personal prompts, no fake numbers
+        btnCmdWeekly.setOnClickListener(v -> {
+            AppDate appDate = dateVM.getCurrentDate().getValue();
+            String prompt =
+                    "Using ONLY my real SpendWise data, help me track my weekly expenses. " +
+                            "Focus on this app date: " +
+                            (appDate != null ? appDate.toIso() : "today") +
+                            ". Don’t invent sample numbers; work only with my budgets and expenses.";
+            editInput.setText("");
+            chatVM.sendUserMessage(prompt);
+        });
 
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("Pick chats")
-                    .setMultiChoiceItems(titles, checked,
-                            (dlg, idx, isChecked) -> checked[idx] = isChecked)
-                    .setPositiveButton("Use Selected", (dlg, w) -> {
-                        List<String> selected = new ArrayList<>();
-                        for (int i = 0; i < checked.length; i++) {
-                            if (checked[i]) {
-                                selected.add(docs.get(i).id);
-                            }
-                        }
-                        vm.setReferenceChats(selected);
-                        vm.sendUserMessage(userText);
-                        input.setText("");
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+        btnCmdHousing.setOnClickListener(v -> {
+            AppDate appDate = dateVM.getCurrentDate().getValue();
+            String prompt =
+                    "Using my current income and real expense history in SpendWise, " +
+                            "help me create a sustainable housing budget for the app date " +
+                            (appDate != null ? appDate.toIso() : "today") +
+                            ". Do NOT make up any dollar amounts; base everything on my existing data.";
+            editInput.setText("");
+            chatVM.sendUserMessage(prompt);
+        });
+
+        btnCmdEssentials.setOnClickListener(v -> {
+            AppDate appDate = dateVM.getCurrentDate().getValue();
+            String prompt =
+                    "Plan my daily essentials (food, transport, basic needs) using only my " +
+                            "actual SpendWise budgets and expenses for " +
+                            (appDate != null ? appDate.toIso() : "today") +
+                            ". No sample numbers—only the data you can infer from my account.";
+            editInput.setText("");
+            chatVM.sendUserMessage(prompt);
         });
     }
 }

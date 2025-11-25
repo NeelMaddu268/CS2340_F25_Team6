@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.ui.chat.ChatAdapter;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 
 import java.util.ArrayList;

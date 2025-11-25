@@ -323,7 +323,3 @@ public class SavingsCircleFragment extends Fragment {
         Button closeButton;
     }
 }
-
-
-
-

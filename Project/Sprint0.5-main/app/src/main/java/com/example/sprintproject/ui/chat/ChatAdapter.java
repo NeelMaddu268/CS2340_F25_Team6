@@ -1,81 +1,111 @@
 package com.example.sprintproject.ui.chat;
 
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.*;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 
-import java.util.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
-public class ChatAdapter extends ListAdapter<ChatViewModel.UiMessage, RecyclerView.ViewHolder> {
+public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private static final int USER = 0;
-    private static final int ASSISTANT = 1;
+    private static final int TYPE_USER = 0;
+    private static final int TYPE_BOT = 1;
 
-    public ChatAdapter() {
-        super(DIFF);
+    private final List<ChatViewModel.UiMessage> items = new ArrayList<>();
+
+    public void submitList(List<ChatViewModel.UiMessage> newItems) {
+        items.clear();
+        if (newItems != null) {
+            items.addAll(newItems);
+        }
+        notifyDataSetChanged();
     }
-
-    private static final DiffUtil.ItemCallback<ChatViewModel.UiMessage> DIFF =
-            new DiffUtil.ItemCallback<ChatViewModel.UiMessage>() {
-                @Override
-                public boolean areItemsTheSame(
-                        @NonNull ChatViewModel.UiMessage oldItem,
-                        @NonNull ChatViewModel.UiMessage newItem
-                ) {
-                    return oldItem.localTime == newItem.localTime
-                            && Objects.equals(oldItem.role, newItem.role);
-                }
-
-                @Override
-                public boolean areContentsTheSame(
-                        @NonNull ChatViewModel.UiMessage oldItem,
-                        @NonNull ChatViewModel.UiMessage newItem
-                ) {
-                    return Objects.equals(oldItem.content, newItem.content)
-                            && Objects.equals(oldItem.role, newItem.role);
-                }
-            };
 
     @Override
     public int getItemViewType(int position) {
-        ChatViewModel.UiMessage m = getItem(position);
-        boolean isAssistant = m.role != null && m.role.startsWith("assistant");
-        return isAssistant ? ASSISTANT : USER;
+        ChatViewModel.UiMessage msg = items.get(position);
+        if (msg.role != null && msg.role.startsWith("assistant")) {
+            return TYPE_BOT;
+        }
+        return TYPE_USER;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(
-            @NonNull ViewGroup parent, int viewType
+            @NonNull ViewGroup parent,
+            int viewType
     ) {
-        LayoutInflater inf = LayoutInflater.from(parent.getContext());
-        View v;
-        if (viewType == USER) {
-            v = inf.inflate(R.layout.item_message_user, parent, false);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if (viewType == TYPE_USER) {
+            View v = inflater.inflate(R.layout.item_message_user, parent, false);
+            return new UserHolder(v);
         } else {
-            v = inf.inflate(R.layout.item_message_bot, parent, false);
+            View v = inflater.inflate(R.layout.item_message_bot, parent, false);
+            return new BotHolder(v);
         }
-        return new BubbleVH(v);
     }
 
     @Override
     public void onBindViewHolder(
-            @NonNull RecyclerView.ViewHolder holder, int position
+            @NonNull RecyclerView.ViewHolder holder,
+            int position
     ) {
-        BubbleVH vh = (BubbleVH) holder;
-        ChatViewModel.UiMessage m = getItem(position);
-        vh.txt.setText(m.content == null ? "" : m.content);
+        ChatViewModel.UiMessage msg = items.get(position);
+        String timeText = formatTime(msg.localTime);
+
+        if (holder instanceof UserHolder) {
+            ((UserHolder) holder).bubble.setText(msg.content);
+            ((UserHolder) holder).time.setText(timeText);
+        } else if (holder instanceof BotHolder) {
+            ((BotHolder) holder).bubble.setText(msg.content);
+            ((BotHolder) holder).time.setText(timeText);
+        }
     }
 
-    static class BubbleVH extends RecyclerView.ViewHolder {
-        TextView txt;
-        BubbleVH(@NonNull View itemView) {
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
+    private String formatTime(long millis) {
+        // This will reflect the "app date" you set in ChatViewModel
+        // because we build millis using AppDate (see ViewModel changes below).
+        Date d = new Date(millis);
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault());
+        return sdf.format(d);
+    }
+
+    static class UserHolder extends RecyclerView.ViewHolder {
+        final TextView bubble;
+        final TextView time;
+
+        UserHolder(@NonNull View itemView) {
             super(itemView);
-            txt = itemView.findViewById(R.id.txtBubble);
+            bubble = itemView.findViewById(R.id.txtBubble);
+            time = itemView.findViewById(R.id.userMsgTime);
+        }
+    }
+
+    static class BotHolder extends RecyclerView.ViewHolder {
+        final TextView bubble;
+        final TextView time;
+
+        BotHolder(@NonNull View itemView) {
+            super(itemView);
+            bubble = itemView.findViewById(R.id.txtBubble);
+            time = itemView.findViewById(R.id.botMsgTime);
         }
     }
 }
