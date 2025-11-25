@@ -116,35 +116,31 @@ public class NotificationQueueManager {
         }
 
         for (Budget budget : budgets) {
-            if (budget == null) {
-                continue; // <= only continue in the loop
-            }
+            boolean shouldWarn = false;
+            int capacityUsed = 0;
 
-            double total = budget.getAmount();
-            double spent = budget.getSpentToDate();
+            if (budget != null) {
+                double total = budget.getAmount();
+                double spent = budget.getSpentToDate();
 
-            if (total <= 0) {
-                continue;
-            }
+                if (total > 0) {
+                    capacityUsed = (int) (spent / total * 100);
 
-            int capacityUsed = (int) (spent / total * 100);
-
-            boolean shouldWarn =
-                    capacityUsed >= 80
+                    shouldWarn = capacityUsed >= 80
                             && !repeatedWarnings(budget.getId(), capacityUsed);
-
-            if (!shouldWarn) {
-                continue;
+                }
             }
 
-            NotificationData warning =
-                    NotificationData.createAlmostBudgetFullReminder(
-                            budget.getName(), capacityUsed
-                    );
-
-            submitReminder(warning);
-            alreadyWarned(budget.getId(), capacityUsed);
+            if (shouldWarn) {
+                NotificationData warning =
+                        NotificationData.createAlmostBudgetFullReminder(
+                                budget.getName(), capacityUsed
+                        );
+                submitReminder(warning);
+                alreadyWarned(budget.getId(), capacityUsed);
+            }
         }
     }
+
 
 }

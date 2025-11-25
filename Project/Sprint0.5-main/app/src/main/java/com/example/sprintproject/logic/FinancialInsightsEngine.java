@@ -1,0 +1,205 @@
+package com.example.sprintproject.logic;
+
+import com.example.sprintproject.model.Budget;
+import com.example.sprintproject.model.Expense;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+public class FinancialInsightsEngine {
+
+    public static class InsightResult {
+        public final boolean handled;
+        public final String computedText;     // plain computed insight (truth)
+        public final String aiFollowupPrompt; // polish prompt for AI
+
+        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
+            this.handled = handled;
+            this.computedText = computedText;
+            this.aiFollowupPrompt = aiFollowupPrompt;
+        }
+    }
+
+    /**
+     * 3-arg overload for older callers (if any).
+     */
+    public InsightResult tryHandle(String userText,
+                                   List<Expense> expenses,
+                                   List<Budget> budgets) {
+        return tryHandle(userText, expenses, budgets, Collections.emptyList());
+    }
+
+    /**
+     * 4-arg version to match ChatViewModel.
+     * We keep goals as List<?> so you don't need Goal to compile yet.
+     */
+    public InsightResult tryHandle(String userText,
+                                   List<Expense> expenses,
+                                   List<Budget> budgets,
+                                   List<?> goals) {
+
+        if (userText == null) return new InsightResult(false, null, null);
+
+        String t = userText.toLowerCase(Locale.US).trim();
+
+        if (t.contains("summarize my spending this week")) {
+            double total = sumInLastDays(expenses, 7);
+            Map<String, Double> byCat = byCategoryInLastDays(expenses, 7);
+
+            String computed = "Spending last 7 days: $" + r2(total)
+                    + ". Top categories: " + topCats(byCat);
+
+            String aiPrompt = "Rewrite this as a friendly 2-3 sentence summary "
+                    + "and add 1 actionable tip:\n" + computed;
+
+            return new InsightResult(true, computed, aiPrompt);
+        }
+
+        if (t.contains("suggest where i can cut costs")) {
+            Map<String, Double> byCat = byCategoryInLastDays(expenses, 30);
+
+            String computed = "Biggest categories this month: " + topCats(byCat)
+                    + ". Focus on reducing the top 1-2.";
+
+            String aiPrompt = "Give 3 specific ways to cut costs "
+                    + "based only on these facts:\n" + computed;
+
+            return new InsightResult(true, computed, aiPrompt);
+        }
+
+        if (t.contains("compared to last month")
+                || t.contains("how did i perform compared")) {
+
+            double thisMonth = sumThisMonth(expenses);
+            double lastMonth = sumLastMonth(expenses);
+            double diff = thisMonth - lastMonth;
+
+            String computed = "This month: $" + r2(thisMonth)
+                    + ", Last month: $" + r2(lastMonth)
+                    + " (Change: " + r2(diff) + ").";
+
+            String aiPrompt = "Explain the trend simply, "
+                    + "then give 1 improvement idea:\n" + computed;
+
+            return new InsightResult(true, computed, aiPrompt);
+        }
+
+        return new InsightResult(false, null, null);
+    }
+
+    // ----------------- IMPORTANT: match these to YOUR Expense model -----------------
+    // Your Expense has: amount(double), category(String), timestamp(long)
+
+    private double getAmount(Expense e) {
+        return e.getAmount();
+    }
+
+    private long getTimestamp(Expense e) {
+        return e.getTimestamp();  // must exist in Expense
+    }
+
+    private String getCategory(Expense e) {
+        return e.getCategory();
+    }
+
+    // ----------------- computations -----------------
+
+    private double sumInLastDays(List<Expense> expenses, int days) {
+        long now = System.currentTimeMillis();
+        long cutoff = now - TimeUnit.DAYS.toMillis(days);
+
+        double sum = 0;
+        if (expenses == null) return 0;
+
+        for (Expense e : expenses) {
+            if (e == null) continue;
+            long ts = getTimestamp(e);
+            if (ts >= cutoff) {
+                sum += getAmount(e);
+            }
+        }
+        return sum;
+    }
+
+    private Map<String, Double> byCategoryInLastDays(List<Expense> expenses, int days) {
+        long now = System.currentTimeMillis();
+        long cutoff = now - TimeUnit.DAYS.toMillis(days);
+
+        Map<String, Double> map = new HashMap<>();
+        if (expenses == null) return map;
+
+        for (Expense e : expenses) {
+            if (e == null) continue;
+            long ts = getTimestamp(e);
+            if (ts >= cutoff) {
+                String cat = getCategory(e);
+                if (cat == null || cat.trim().isEmpty()) cat = "Other";
+                map.put(cat, map.getOrDefault(cat, 0.0) + getAmount(e));
+            }
+        }
+        return map;
+    }
+
+    private double sumThisMonth(List<Expense> expenses) {
+        if (expenses == null) return 0;
+
+        Calendar cal = Calendar.getInstance();
+        int m = cal.get(Calendar.MONTH);
+        int y = cal.get(Calendar.YEAR);
+
+        double sum = 0;
+        for (Expense e : expenses) {
+            if (e == null) continue;
+            cal.setTimeInMillis(getTimestamp(e));
+            if (cal.get(Calendar.MONTH) == m && cal.get(Calendar.YEAR) == y) {
+                sum += getAmount(e);
+            }
+        }
+        return sum;
+    }
+
+    private double sumLastMonth(List<Expense> expenses) {
+        if (expenses == null) return 0;
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -1);
+        int lastM = cal.get(Calendar.MONTH);
+        int lastY = cal.get(Calendar.YEAR);
+
+        double sum = 0;
+        for (Expense e : expenses) {
+            if (e == null) continue;
+            cal.setTimeInMillis(getTimestamp(e));
+            if (cal.get(Calendar.MONTH) == lastM && cal.get(Calendar.YEAR) == lastY) {
+                sum += getAmount(e);
+            }
+        }
+        return sum;
+    }
+
+    private String topCats(Map<String, Double> map) {
+        if (map == null || map.isEmpty()) return "None";
+
+        List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
+        list.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        StringBuilder sb = new StringBuilder();
+        int limit = Math.min(3, list.size());
+        for (int i = 0; i < limit; i++) {
+            Map.Entry<String, Double> e = list.get(i);
+            sb.append(e.getKey()).append(" ($").append(r2(e.getValue())).append(")");
+            if (i < limit - 1) sb.append(", ");
+        }
+        return sb.toString();
+    }
+
+    private double r2(double x) {
+        return Math.round(x * 100.0) / 100.0;
+    }
+}

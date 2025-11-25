@@ -20,6 +20,8 @@ import java.util.ArrayList;
 public class InvitationsFragment extends Fragment {
 
     private InvitationsViewModel invitationsViewModel;
+    private InvitationsAdapter adapter;
+    private TextView noInvitesText;
 
     public InvitationsFragment() {
         super(R.layout.fragment_invitations);
@@ -27,31 +29,50 @@ public class InvitationsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        InvitationsAdapter adapter;
-        TextView noInvitesText;
         super.onViewCreated(view, savedInstanceState);
 
         RecyclerView recyclerView = view.findViewById(R.id.invitationsRecyclerView);
         noInvitesText = view.findViewById(R.id.noInvitesText);
-        invitationsViewModel = new InvitationsViewModel();
-        adapter = new InvitationsAdapter(new ArrayList<>(), invitationsViewModel,
-                new ViewModelProvider(this).get(DateViewModel.class),
-                requireContext(), getViewLifecycleOwner());
+
+        // ✅ use provider, not new()
+        invitationsViewModel = new ViewModelProvider(requireActivity())
+                .get(InvitationsViewModel.class);
+
+        // ✅ shared app date VM
+        DateViewModel dateVM = new ViewModelProvider(requireActivity())
+                .get(DateViewModel.class);
+
+        adapter = new InvitationsAdapter(
+                new ArrayList<>(),
+                invitationsViewModel,
+                dateVM,
+                requireContext(),
+                getViewLifecycleOwner()
+        );
+
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
-        invitationsViewModel.startListening();
-
         invitationsViewModel.getInvites().observe(getViewLifecycleOwner(), invites -> {
             adapter.updateInvites(invites);
-            noInvitesText.setVisibility(invites == null
-                    || invites.isEmpty() ? View.VISIBLE : View.GONE);
+            noInvitesText.setVisibility(invites == null || invites.isEmpty()
+                    ? View.VISIBLE : View.GONE);
         });
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        invitationsViewModel.stopListening();
+    public void onStart() {
+        super.onStart();
+        if (invitationsViewModel != null) {
+            invitationsViewModel.startListening();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (invitationsViewModel != null) {
+            invitationsViewModel.stopListening();
+        }
     }
 }

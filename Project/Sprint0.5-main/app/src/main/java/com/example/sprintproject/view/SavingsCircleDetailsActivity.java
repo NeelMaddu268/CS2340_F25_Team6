@@ -491,17 +491,3 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
