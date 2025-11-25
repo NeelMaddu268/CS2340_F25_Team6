@@ -1,3 +1,7 @@
+// This activity acts as the main screen of the app, setting up features such as navigation and loading different fragments.
+// This activity also observes the different view models and the notification queue system so that it can display warning popups and swap between
+// different fragments.
+
 package com.example.sprintproject.view;
 
 import android.os.Bundle;

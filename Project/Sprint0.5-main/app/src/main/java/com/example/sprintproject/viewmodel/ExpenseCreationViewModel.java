@@ -1,3 +1,6 @@
+// The ViewModel manages the creation of expenses and updating the related budgets and categories.
+// Also loads the categories and circles and creates sample expense data for testing.
+
 package com.example.sprintproject.viewmodel;
 
 import android.util.Log;

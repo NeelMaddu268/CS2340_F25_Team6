@@ -28,4 +28,9 @@
         <item name="android:statusBarColor">@color/Primary</item>
         <item name="android:navigationBarColor">@color/Primary</item>
     </style>
+
+    <style name="CircleView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

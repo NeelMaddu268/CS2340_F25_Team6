@@ -13,9 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
-/**
- * Singleton class in charge of queueing the reminder pop-ups.
- */
 public class NotificationQueueManager {
 
     private static NotificationQueueManager instance;
@@ -107,10 +104,6 @@ public class NotificationQueueManager {
         budgetWarningContainer.put(budgetId, capacityUsed);
     }
 
-    /**
-     * Sonar fix: reduce continues/breaks in loop to at most one.
-     * Refactored to use 0 continues/breaks.
-     */
     public void checkForBudgetWarning(List<Budget> budgets) {
         if (budgets == null || budgets.isEmpty()) {
             return;

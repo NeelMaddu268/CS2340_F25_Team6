@@ -1,3 +1,6 @@
+// This fragment displays the expenses in the app. It allows the user to also add more expenses using a popup.
+// The fragment observes the view models to load expenses for the selected date, updates related budgets, and more.
+
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
