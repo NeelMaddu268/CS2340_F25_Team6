@@ -3,6 +3,7 @@ package com.example.sprintproject.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.sprintproject.model.ThemeManager;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,6 +29,7 @@ public class AuthenticationViewModel extends ViewModel {
         errorMessage = new MutableLiveData<>();
         mAuth = FirebaseAuth.getInstance();
     }
+
 
     public LiveData<FirebaseUser> getUserLiveData() {
         return userLiveData;

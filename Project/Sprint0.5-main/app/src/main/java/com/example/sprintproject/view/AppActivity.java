@@ -24,6 +24,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class AppActivity extends AppCompatActivity {
     private ViewGroup reminderContainer;
     private View reminderView;
+    private boolean didCheckMissedLogs = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +80,29 @@ public class AppActivity extends AppCompatActivity {
         reminderContainer = findViewById(R.id.reminder_container);
         setupReminderListener(nav);
 
-        // Check for missed logs as soon as user gets to dashboard page
-        NotificationQueueManager.getInstance().registerDateObserver(dateVM);
+        if (savedInstanceState != null) {
+            didCheckMissedLogs = savedInstanceState.getBoolean("didCheckMissedLogs", false);
+        }
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean("didCheckMissedLogs", didCheckMissedLogs);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!didCheckMissedLogs) {
+            DateViewModel dateVM = new ViewModelProvider(this).get(DateViewModel.class);
+            NotificationQueueManager.getInstance()
+                    .registerDateObserver(dateVM);
+
+            didCheckMissedLogs = true;
+        }
     }
 
     private void replaceFragment(Fragment fragment) {

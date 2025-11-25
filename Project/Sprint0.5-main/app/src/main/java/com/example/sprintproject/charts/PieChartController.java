@@ -1,5 +1,7 @@
 package com.example.sprintproject.charts;
 
+import android.graphics.Color;
+
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -26,6 +28,7 @@ public class PieChartController {
             pie.setCenterText("Spending by\nCategory");
             pie.setCenterTextSize(14f);
             pie.getLegend().setEnabled(true);
+            pie.getLegend().setTextColor(Color.WHITE);
             pie.setEntryLabelTextSize(12f);
         }
     }
