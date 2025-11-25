@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.ExpenseData;
 import com.example.sprintproject.viewmodel.BudgetsFragmentViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
@@ -43,7 +44,7 @@ public class ExpensesFragment extends Fragment {
     private BudgetsFragmentViewModel budgetsFragmentViewModel;
     private ExpenseCreationViewModel expenseCreationViewModel;
     private DateViewModel dateVM;
-    private ExpenseAdapter adapter;
+    // Sonar fix: removed field adapter
 
     public ExpensesFragment() {
         super(R.layout.fragment_expenses);
@@ -60,9 +61,12 @@ public class ExpensesFragment extends Fragment {
 
         setupInsets(view);
         initViewModels();
-        setupRecycler(view);
-        observeExpenses();
-        observeDateAndLoadInitial();
+
+        // adapter is LOCAL now (Sonar fix)
+        ExpenseAdapter adapter = setupRecycler(view);
+
+        observeExpenses(adapter);
+        observeDateAndLoadInitial(); // ✅ Sonar fix: removed unused adapter param
         setupAddExpenseButton(view);
 
         return view;
@@ -91,11 +95,12 @@ public class ExpensesFragment extends Fragment {
                 .get(DateViewModel.class);
     }
 
-    private void setupRecycler(View view) {
+    // CHANGED: return adapter instead of storing as field
+    private ExpenseAdapter setupRecycler(View view) {
         RecyclerView recyclerView = view.findViewById(R.id.expensesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new ExpenseAdapter(expense -> {
+        ExpenseAdapter adapter = new ExpenseAdapter(expense -> {
             Intent intent = new Intent(requireContext(), ExpenseDetailsActivity.class);
             intent.putExtra("expenseName", expense.getName());
             intent.putExtra("expenseAmount", expense.getAmount());
@@ -106,15 +111,18 @@ public class ExpensesFragment extends Fragment {
         });
 
         recyclerView.setAdapter(adapter);
+        return adapter;
     }
 
-    private void observeExpenses() {
+    // CHANGED: take adapter as param
+    private void observeExpenses(ExpenseAdapter adapter) {
         expensesFragmentViewModel.getExpenses().observe(
                 getViewLifecycleOwner(),
                 list -> adapter.submitList(list == null ? null : new ArrayList<>(list))
         );
     }
 
+    // ✅ Sonar fix: removed unused parameter
     private void observeDateAndLoadInitial() {
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), selected -> {
             if (selected != null) {
@@ -122,8 +130,9 @@ public class ExpensesFragment extends Fragment {
             }
         });
 
-        if (dateVM.getCurrentDate().getValue() != null) {
-            expensesFragmentViewModel.loadExpensesFor(dateVM.getCurrentDate().getValue());
+        AppDate current = dateVM.getCurrentDate().getValue();
+        if (current != null) {
+            expensesFragmentViewModel.loadExpensesFor(current);
         } else {
             expensesFragmentViewModel.loadExpenses();
         }
@@ -184,7 +193,6 @@ public class ExpensesFragment extends Fragment {
                     @Override
                     public void onItemSelected(AdapterView<?> parent,
                                                View view, int position, long id) {
-                        // Sonar: remove useless assignments by inlining
                         boolean isYes = "Yes".equalsIgnoreCase(
                                 String.valueOf(parent.getItemAtPosition(position)));
 
@@ -340,7 +348,6 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void setupExpenseDatePicker(EditText expenseDate) {
-        // Sonar: remove useless braces around a single statement lambda
         expenseDate.setOnClickListener(v1 ->
                 dateVM.getCurrentDate().observe(getViewLifecycleOwner(), appDate -> {
                     if (appDate == null) {
@@ -386,4 +393,3 @@ public class ExpensesFragment extends Fragment {
         Spinner chooseCircleSpinner;
     }
 }
-

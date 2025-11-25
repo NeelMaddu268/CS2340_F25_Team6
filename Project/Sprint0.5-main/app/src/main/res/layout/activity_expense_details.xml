@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/backButton"
             android:fontFamily="@font/montserrat_regular"
-            android:textColor="#357DED"
+            android:textColor="?attr/colorPrimary"
             android:backgroundTint="?attr/colorOnPrimary"
             android:text="Back"
             android:layout_marginBottom="16dp"/>

@@ -39,7 +39,7 @@ public class RegisterActivity extends AppCompatActivity {
         createAccount.setOnClickListener(v -> {
             email = emailInput.getText().toString();
             password = passwordInput.getText().toString();
-            authenticationViewModel.register(email, password);
+            authenticationViewModel.register(email, password, this);
         });
 
         loginButton.setOnClickListener(v ->
