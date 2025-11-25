@@ -24,7 +24,6 @@
         android:fontFamily="@font/montserrat_regular"
         android:textColor="#357DED" />
 
-    <!-- Starter command buttons row (visible only when there are no messages) -->
     <LinearLayout
         android:id="@+id/layoutCommandRow"
         android:layout_width="match_parent"

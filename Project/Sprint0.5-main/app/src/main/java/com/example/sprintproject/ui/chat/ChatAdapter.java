@@ -80,8 +80,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     private String formatTime(long millis) {
-        // This will reflect the "app date" you set in ChatViewModel
-        // because we build millis using AppDate (see ViewModel changes below).
         Date d = new Date(millis);
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault());
         return sdf.format(d);

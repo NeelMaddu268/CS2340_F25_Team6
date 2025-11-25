@@ -10,7 +10,6 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.example.sprintproject.network.OllamaClient;
 import com.example.sprintproject.repository.ChatRepository;
-import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -25,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +78,6 @@ public class ChatViewModel extends ViewModel {
     private final OllamaClient ollama = new OllamaClient();
     private final FinancialInsightsEngine engine = new FinancialInsightsEngine();
 
-    // App "virtual" date (comes from DateViewModel)
     private AppDate currentAppDate;
 
     private String activeChatId;
@@ -87,8 +86,7 @@ public class ChatViewModel extends ViewModel {
 
     private ListenerRegistration msgListener;
 
-    /* Starter command presets if you ever want to show suggestion chips in the UI. */
-    public java.util.List<String> getStarterCommands() {
+    public List<String> getStarterCommands() {
         return Arrays.asList(
                 "Track my weekly expenses",
                 "Create a sustainable housing budget",
@@ -98,16 +96,10 @@ public class ChatViewModel extends ViewModel {
         );
     }
 
-    /* -------------------- AppDate helpers -------------------- */
-
     public void setCurrentAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
     }
 
-    /**
-     * Returns a millis timestamp whose calendar date matches currentAppDate
-     * but whose clock time is "now".
-     */
     private long nowFromAppDate() {
         if (currentAppDate == null) {
             return System.currentTimeMillis();
@@ -125,7 +117,6 @@ public class ChatViewModel extends ViewModel {
         return c.getTimeInMillis();
     }
 
-    /** ISO string (yyyy-MM-dd'T'HH:mm) based on AppDate + current time-of-day. */
     private String isoNow() {
         long millis = nowFromAppDate();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US);
@@ -146,24 +137,17 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    /* -------------------- Local message helpers -------------------- */
-
     private List<UiMessage> currentListOrEmpty() {
         List<UiMessage> cur = messages.getValue();
         return cur == null ? new ArrayList<>() : new ArrayList<>(cur);
     }
 
-    /** Adds a local message stamped using the current AppDate. */
     private void addLocalMessage(String role, String content) {
         List<UiMessage> copy = currentListOrEmpty();
         copy.add(new UiMessage(role, content, nowFromAppDate()));
         messages.postValue(copy);
     }
 
-    /**
-     * Updates the last partial assistant message, or appends a new one.
-     * We keep the original timestamp if we are "finishing" a partial.
-     */
     private void updateLastPartial(String newContent, String role) {
         List<UiMessage> copy = currentListOrEmpty();
         int last = copy.size() - 1;
@@ -177,12 +161,10 @@ public class ChatViewModel extends ViewModel {
     }
 
     private void replaceWithFirestoreSnapshot(List<UiMessage> snapshotList) {
+        snapshotList.sort(Comparator.comparingLong(m -> m.localTime));
         messages.postValue(snapshotList);
     }
 
-    /* -------------------- Chat lifecycle -------------------- */
-
-    /** Starts a brand new chat document and begins listening to its messages. */
     public void startNewChat() {
         loading.setValue(true);
         String iso = isoNow();
@@ -202,11 +184,10 @@ public class ChatViewModel extends ViewModel {
                 });
     }
 
-    /** Opens an existing chat by id and listens to its messages. */
     public void openExistingChat(String chatId) {
         activeChatId = chatId;
         currentChatId.postValue(chatId);
-        titleGenerated = true; // assume historical chats already have titles
+        titleGenerated = true;
         listenToMessagesInternal(chatId);
     }
 
@@ -223,8 +204,6 @@ public class ChatViewModel extends ViewModel {
             repo.setReferencedChats(activeChatId, selectedReferenceChatIds);
         }
     }
-
-    /* -------------------- Firestore message listening -------------------- */
 
     private void listenToMessagesInternal(String chatId) {
         detachListener();
@@ -258,9 +237,6 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    /* -------------------- Public send API -------------------- */
-
-    /** Primary entry point used by the Fragment when the user hits Send (or presses a command button). */
     public void sendUserMessage(String text) {
         if (text == null || text.trim().isEmpty()) {
             return;
@@ -271,7 +247,6 @@ public class ChatViewModel extends ViewModel {
             return;
         }
 
-        // Local echo
         addLocalMessage("user", text);
         String isoTs = isoNow();
         repo.addUserMessage(activeChatId, text, isoTs);
@@ -280,24 +255,23 @@ public class ChatViewModel extends ViewModel {
         loadDataThenRespond(text);
     }
 
-    /**
-     * Backwards-compatible wrapper if some code still calls the old signature that
-     * passed an AppDate. We just update the currentAppDate then delegate.
-     */
     public void sendMessage(String text, AppDate appDate) {
         setCurrentAppDate(appDate);
         sendUserMessage(text);
     }
 
-    /**
-     * Legacy helper for any old code that manually requested to listen to a chat.
-     * Newer code should call openExistingChat(chatId) or startNewChat().
-     */
+    public void addMemoryNote(String note) {
+        if (note == null || note.trim().isEmpty() || activeChatId == null) {
+            return;
+        }
+        addLocalMessage("user", note);
+        String isoTs = isoNow();
+        repo.addUserMessage(activeChatId, note, isoTs);
+    }
+
     public void listenToMessages(String chatId) {
         openExistingChat(chatId);
     }
-
-    /* -------------------- Data-aware AI pipeline -------------------- */
 
     private void loadDataThenRespond(String userText) {
         Task<QuerySnapshot> expT = repo.loadExpenses();
@@ -331,9 +305,6 @@ public class ChatViewModel extends ViewModel {
                 });
     }
 
-    /**
-     * If the user has selected reference chats, prepend their summaries as context.
-     */
     private Task<String> buildFinalPrompt(String prompt) {
         if (selectedReferenceChatIds.isEmpty()) {
             return Tasks.forResult(prompt);
@@ -357,33 +328,27 @@ public class ChatViewModel extends ViewModel {
         });
     }
 
-    /**
-     * Builds the messages array for the streaming Ollama call.
-     * Includes a system prompt, recent conversation history, and the final user message.
-     */
     private JSONArray buildMessagesArray(String fullPrompt) {
         JSONArray arr = new JSONArray();
         try {
             JSONObject sys = new JSONObject();
             sys.put("role", "system");
             sys.put(CONTENT,
-                    "You are SpendWise, a concise financial advisor. " +
-                            "Only use the numeric facts provided from the user's real data. " +
-                            "Give practical, actionable tips.");
+                    "You are SpendWise, a concise financial advisor. "
+                            + "Only use numeric facts provided from the user's real data. "
+                            + "Give practical, actionable tips.");
             arr.put(sys);
 
             List<UiMessage> ui = messages.getValue();
             if (ui != null) {
-                // only keep the last 20 messages as context
                 int start = Math.max(0, ui.size() - 20);
                 for (int i = start; i < ui.size(); i++) {
                     UiMessage m = ui.get(i);
                     JSONObject o = new JSONObject();
-
-                    boolean isAssistant = m.role != null && m.role.startsWith(ASSISTANT);
+                    boolean isAssistant =
+                            m.role != null && m.role.startsWith(ASSISTANT);
                     o.put("role", isAssistant ? ASSISTANT : "user");
                     o.put(CONTENT, m.content);
-
                     arr.put(o);
                 }
             }
@@ -394,12 +359,9 @@ public class ChatViewModel extends ViewModel {
             arr.put(user);
 
         } catch (Exception ignored) {
-            // Invalid JSON should not crash the app; Ollama will just see less context.
         }
         return arr;
     }
-
-    /* -------------------- Streaming & persistence -------------------- */
 
     private void streamAssistant(JSONArray msgArr, String rawUserText) {
         if (activeChatId == null) {
@@ -457,16 +419,14 @@ public class ChatViewModel extends ViewModel {
         });
     }
 
-    /* -------------------- Titles & summaries -------------------- */
-
     private void generateTitle(String firstPrompt) {
         try {
             JSONArray arr = new JSONArray();
             arr.put(new JSONObject()
                     .put("role", "user")
                     .put(CONTENT,
-                            "Create a short 2-5 word title for this financial chat, " +
-                                    "based on this first user message:\n" + firstPrompt));
+                            "Create a short 2-5 word title for this financial chat, "
+                                    + "based on this first user message:\n" + firstPrompt));
 
             ollama.chat(arr, new OllamaClient.ChatCallback() {
                 @Override
@@ -479,12 +439,10 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // best-effort only; if it fails, we leave the default title
                 }
             });
 
         } catch (Exception ignored) {
-            // JSON failure shouldn't break app
         }
     }
 
@@ -506,8 +464,8 @@ public class ChatViewModel extends ViewModel {
             arr.put(new JSONObject()
                     .put("role", "user")
                     .put(CONTENT,
-                            "Summarize this SpendWise conversation in 1-2 factual sentences " +
-                                    "so it can be used as memory:\n" + convo));
+                            "Summarize this SpendWise conversation in 1-2 factual sentences "
+                                    + "so it can be used as memory:\n" + convo));
 
             ollama.chat(arr, new OllamaClient.ChatCallback() {
                 @Override
@@ -519,19 +477,13 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // summary is non-critical; ignore on error
                 }
             });
 
         } catch (Exception ignored) {
-            // JSON failure shouldn't break app
         }
     }
 
-    /**
-     * Retroactively refreshes titles for all chats that still have a generic title
-     * (like "New Chat" or empty) but already have at least one message.
-     */
     public void refreshAllUntitledChatTitles() {
         String uid = FirestoreManager.getInstance().getCurrentUserId();
         if (uid == null) {
@@ -554,7 +506,6 @@ public class ChatViewModel extends ViewModel {
                             continue;
                         }
 
-                        // For each chat that needs a better title, load its first message
                         FirestoreManager.getInstance()
                                 .chatMessagesReference(uid, chatId)
                                 .orderBy("timestamp")
@@ -562,7 +513,6 @@ public class ChatViewModel extends ViewModel {
                                 .get()
                                 .addOnSuccessListener(msgSnap -> {
                                     if (msgSnap == null || msgSnap.isEmpty()) {
-                                        // No messages -> skip
                                         return;
                                     }
 
@@ -572,14 +522,12 @@ public class ChatViewModel extends ViewModel {
                                         return;
                                     }
 
-                                    // Use Ollama to rename THIS specific chat
                                     generateTitleForSpecificChat(chatId, content);
                                 });
                     }
                 });
     }
 
-    /** Returns true if the chat title looks "generic" and needs a better one. */
     private boolean needsTitle(String title) {
         if (title == null) {
             return true;
@@ -591,18 +539,14 @@ public class ChatViewModel extends ViewModel {
         return t.equals("new chat") || t.equals("chat");
     }
 
-    /**
-     * Generates a short title for a given chatId based on its first message,
-     * then updates only that chat's title in Firestore.
-     */
     private void generateTitleForSpecificChat(String chatId, String firstMessage) {
         try {
             JSONArray arr = new JSONArray();
             arr.put(new JSONObject()
                     .put("role", "user")
                     .put(CONTENT,
-                            "Create a short 2-5 word title for this financial conversation. " +
-                                    "Do NOT include quotes, just the raw title:\n" + firstMessage));
+                            "Create a short 2-5 word title for this financial conversation. "
+                                    + "Do NOT include quotes, just the raw title:\n" + firstMessage));
 
             ollama.chat(arr, new OllamaClient.ChatCallback() {
                 @Override
@@ -614,21 +558,16 @@ public class ChatViewModel extends ViewModel {
                     if (title.isEmpty()) {
                         return;
                     }
-                    // Update that chat's title in Firestore
                     repo.updateChatTitle(chatId, title);
                 }
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Best-effort only; if it fails, we silently skip this chat
                 }
             });
         } catch (Exception ignored) {
-            // If JSON building fails for some weird reason, just skip this chat
         }
     }
-
-    /* -------------------- Lifecycle -------------------- */
 
     @Override
     protected void onCleared() {

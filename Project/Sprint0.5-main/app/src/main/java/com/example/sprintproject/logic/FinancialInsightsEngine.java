@@ -37,37 +37,54 @@ public class FinancialInsightsEngine {
                                    List<Budget> budgets,
                                    List<?> goals) {
 
-        if (userText == null) return new InsightResult(false, null, null);
+        if (userText == null) {
+            return new InsightResult(false, null, null);
+        }
 
         String t = userText.toLowerCase(Locale.US).trim();
 
-        if (t.contains("summarize my spending this week")) {
+        if (t.contains("summarize my spending this week")
+                || t.contains("summarize my weekly spending")
+                || t.contains("track my weekly expenses")
+                || t.contains("weekly expenses")
+                || t.contains("weekly spending")) {
+
             double total = sumInLastDays(expenses, 7);
             Map<String, Double> byCat = byCategoryInLastDays(expenses, 7);
 
             String computed = "Spending last 7 days: $" + r2(total)
-                    + ". Top categories: " + topCats(byCat);
+                    + ". Top categories: " + topCats(byCat) + ".";
 
-            String aiPrompt = "Rewrite this as a friendly 2-3 sentence summary "
-                    + "and add 1 actionable tip:\n" + computed;
+            String aiPrompt = "Here are numeric facts about the user's last 7 days of spending:\n"
+                    + computed + "\n\n"
+                    + "Rewrite this as a friendly 2-3 sentence summary of their weekly spending "
+                    + "and add one concrete, actionable budgeting tip. "
+                    + "Do NOT invent any new numbers beyond the ones provided.";
 
             return new InsightResult(true, computed, aiPrompt);
         }
 
-        if (t.contains("suggest where i can cut costs")) {
+        if (t.contains("suggest where i can cut costs")
+                || t.contains("cut my costs")
+                || t.contains("reduce my spending")) {
+
             Map<String, Double> byCat = byCategoryInLastDays(expenses, 30);
 
             String computed = "Biggest categories this month: " + topCats(byCat)
                     + ". Focus on reducing the top 1-2.";
 
-            String aiPrompt = "Give 3 specific ways to cut costs "
-                    + "based only on these facts:\n" + computed;
+            String aiPrompt = "Based ONLY on these facts about the user's last 30 days of spending:\n"
+                    + computed + "\n\n"
+                    + "Give 3 specific, realistic suggestions for how they can cut costs. "
+                    + "Don't make up any new dollar amounts.";
 
             return new InsightResult(true, computed, aiPrompt);
         }
 
         if (t.contains("compared to last month")
-                || t.contains("how did i perform compared")) {
+                || t.contains("how did i perform compared")
+                || t.contains("this month vs last month")
+                || t.contains("change since last month")) {
 
             double thisMonth = sumThisMonth(expenses);
             double lastMonth = sumLastMonth(expenses);
@@ -77,8 +94,10 @@ public class FinancialInsightsEngine {
                     + ", Last month: $" + r2(lastMonth)
                     + " (Change: " + r2(diff) + ").";
 
-            String aiPrompt = "Explain the trend simply, "
-                    + "then give 1 improvement idea:\n" + computed;
+            String aiPrompt = "Using ONLY these numeric facts:\n"
+                    + computed + "\n\n"
+                    + "Explain the trend in simple terms and give one practical improvement idea. "
+                    + "Don't invent any additional numbers.";
 
             return new InsightResult(true, computed, aiPrompt);
         }
@@ -103,10 +122,14 @@ public class FinancialInsightsEngine {
         long cutoff = now - TimeUnit.DAYS.toMillis(days);
 
         double sum = 0;
-        if (expenses == null) return 0;
+        if (expenses == null) {
+            return 0;
+        }
 
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             long ts = getTimestamp(e);
             if (ts >= cutoff) {
                 sum += getAmount(e);
@@ -120,14 +143,20 @@ public class FinancialInsightsEngine {
         long cutoff = now - TimeUnit.DAYS.toMillis(days);
 
         Map<String, Double> map = new HashMap<>();
-        if (expenses == null) return map;
+        if (expenses == null) {
+            return map;
+        }
 
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             long ts = getTimestamp(e);
             if (ts >= cutoff) {
                 String cat = getCategory(e);
-                if (cat == null || cat.trim().isEmpty()) cat = "Other";
+                if (cat == null || cat.trim().isEmpty()) {
+                    cat = "Other";
+                }
                 map.put(cat, map.getOrDefault(cat, 0.0) + getAmount(e));
             }
         }
@@ -135,7 +164,9 @@ public class FinancialInsightsEngine {
     }
 
     private double sumThisMonth(List<Expense> expenses) {
-        if (expenses == null) return 0;
+        if (expenses == null) {
+            return 0;
+        }
 
         Calendar cal = Calendar.getInstance();
         int m = cal.get(Calendar.MONTH);
@@ -143,7 +174,9 @@ public class FinancialInsightsEngine {
 
         double sum = 0;
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             cal.setTimeInMillis(getTimestamp(e));
             if (cal.get(Calendar.MONTH) == m && cal.get(Calendar.YEAR) == y) {
                 sum += getAmount(e);
@@ -153,7 +186,9 @@ public class FinancialInsightsEngine {
     }
 
     private double sumLastMonth(List<Expense> expenses) {
-        if (expenses == null) return 0;
+        if (expenses == null) {
+            return 0;
+        }
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -1);
@@ -162,7 +197,9 @@ public class FinancialInsightsEngine {
 
         double sum = 0;
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             cal.setTimeInMillis(getTimestamp(e));
             if (cal.get(Calendar.MONTH) == lastM && cal.get(Calendar.YEAR) == lastY) {
                 sum += getAmount(e);
@@ -172,7 +209,9 @@ public class FinancialInsightsEngine {
     }
 
     private String topCats(Map<String, Double> map) {
-        if (map == null || map.isEmpty()) return "None";
+        if (map == null || map.isEmpty()) {
+            return "None";
+        }
 
         List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
         list.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
@@ -181,8 +220,13 @@ public class FinancialInsightsEngine {
         int limit = Math.min(3, list.size());
         for (int i = 0; i < limit; i++) {
             Map.Entry<String, Double> e = list.get(i);
-            sb.append(e.getKey()).append(" ($").append(r2(e.getValue())).append(")");
-            if (i < limit - 1) sb.append(", ");
+            sb.append(e.getKey())
+                    .append(" ($")
+                    .append(r2(e.getValue()))
+                    .append(")");
+            if (i < limit - 1) {
+                sb.append(", ");
+            }
         }
         return sb.toString();
     }

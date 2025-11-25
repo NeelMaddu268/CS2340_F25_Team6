@@ -22,7 +22,6 @@ import java.util.List;
 public class ChatActivity extends AppCompatActivity {
 
     private ChatViewModel vm;
-    // need to keep as a global variable as it is updated in multiple methods
     private EditText input;
 
     @Override
