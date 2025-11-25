@@ -28,6 +28,8 @@ import java.util.List;
 public class ChatbotFragment extends Fragment {
 
     private ChatViewModel vm;
+    // input needs to remain a global field as it is accessed by multiple methods
+    private EditText input;
 
     @Nullable
     @Override
@@ -46,7 +48,7 @@ public class ChatbotFragment extends Fragment {
 
         final RecyclerView recycler   = view.findViewById(R.id.recyclerChat);
         final TextView errorText  = view.findViewById(R.id.txtChatError);
-        final EditText input      = view.findViewById(R.id.editChatInput);
+        input = view.findViewById(R.id.editChatInput);
         final ProgressBar progress   = view.findViewById(R.id.progressChat);
         final Button sendBtn    = view.findViewById(R.id.btnSend);
         final Button newChatBtn = view.findViewById(R.id.btnNewChat);

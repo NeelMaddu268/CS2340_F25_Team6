@@ -23,9 +23,6 @@ import java.util.ArrayList;
 public class InvitationsFragment extends Fragment {
 
     private InvitationsViewModel invitationsViewModel;
-    private InvitationsAdapter adapter;
-    private TextView noInvitesText;
-
     public InvitationsFragment() {
         super(R.layout.fragment_invitations);
     }
@@ -35,17 +32,17 @@ public class InvitationsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         RecyclerView recyclerView = view.findViewById(R.id.invitationsRecyclerView);
-        noInvitesText = view.findViewById(R.id.noInvitesText);
+        final TextView noInvitesText = view.findViewById(R.id.noInvitesText);
 
-        // ✅ use provider, not new()
+        //use provider, not new()
         invitationsViewModel = new ViewModelProvider(requireActivity())
                 .get(InvitationsViewModel.class);
 
-        // ✅ shared app date VM
+        //shared app date VM
         DateViewModel dateVM = new ViewModelProvider(requireActivity())
                 .get(DateViewModel.class);
 
-        adapter = new InvitationsAdapter(
+        final InvitationsAdapter adapter = new InvitationsAdapter(
                 new ArrayList<>(),
                 invitationsViewModel,
                 dateVM,
