@@ -142,9 +142,9 @@ public class DashboardFragment extends Fragment {
         boolean isDarkMode = ThemeManager.isDarkModeEnabled(requireContext());
         themeSwitch.setChecked(isDarkMode);
 
-        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            ThemeManager.applyTheme(isChecked, requireContext());
-        });
+        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+            ThemeManager.applyTheme(isChecked, requireContext())
+        );
 
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
