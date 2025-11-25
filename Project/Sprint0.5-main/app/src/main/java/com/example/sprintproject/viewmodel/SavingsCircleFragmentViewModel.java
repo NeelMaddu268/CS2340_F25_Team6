@@ -51,14 +51,10 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         detachActiveListener();
     }
 
-    /** Load with previous AppDate */
     public void loadSavingsCircle() {
         loadSavingsCircleFor(currentAppDate);
     }
 
-    /** --------------------------------------------
-     *  MAIN PUBLIC API – NOW LOW COMPLEXITY
-     * -------------------------------------------- */
     public void loadSavingsCircleFor(AppDate appDate) {
 
         String uid = getUidOrClear();
@@ -73,8 +69,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                 .userSavingsCirclePointers(uid)
                 .addSnapshotListener(this::handleSnapshot);
     }
-
-    /* ---------------- snapshot entrypoint ---------------- */
 
     private void handleSnapshot(QuerySnapshot qs,
                                 com.google.firebase.firestore.FirebaseFirestoreException e) {
@@ -109,8 +103,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         return ids;
     }
 
-    /* ---------------- async fetch pipeline ---------------- */
-
     private void fetchAllCircles(List<String> circleIds) {
         List<SavingsCircle> acc = new ArrayList<>();
         Pending p = new Pending(circleIds.size(), () -> publish(acc));
@@ -135,7 +127,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                 .addOnFailureListener(err -> p.done());
     }
 
-    /* ---------------- circle assembly ---------------- */
 
     private SavingsCircle buildCircle(DocumentSnapshot snap) {
         SavingsCircle c = snap.toObject(SavingsCircle.class);
@@ -168,8 +159,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         return coerced;
     }
 
-    /* ---------------- publication ---------------- */
-
     private void publish(List<SavingsCircle> list) {
         cache.clear();
         cache.addAll(list);
@@ -189,8 +178,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         }
         return a.getCurrentUser().getUid();
     }
-
-    /* ---------------- local recompute ---------------- */
 
     public void setAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
@@ -215,7 +202,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         savingsCircleLiveData.postValue(new ArrayList<>(cache));
     }
 
-    /* ---------------- goal logic ---------------- */
 
     private void evaluatePersonalAgainstAppDate(
             SavingsCircle circle,
@@ -258,7 +244,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         return total;
     }
 
-    /* ---------------- date helpers ---------------- */
 
     private long add7Days(String ymd) {
         if (ymd == null) return 0L;
@@ -290,7 +275,6 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         c.set(Calendar.MILLISECOND, 0);
     }
 
-    /* ---------------- tiny helper ---------------- */
 
     private static class Pending {
         private int left;
