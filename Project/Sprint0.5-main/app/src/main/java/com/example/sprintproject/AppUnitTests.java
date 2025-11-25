@@ -467,9 +467,9 @@ public class AppUnitTests {
     @Test
     public void testExpenseContributionToSavingsCircle() {
         SavingsCircle testCircle = new SavingsCircle("Test Circle");
-        testCircle.addContribution("Alice", 100);
+        testCircle.addContribution(ALICE, 100);
         assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
-        testCircle.addContribution("Alice", 50);
+        testCircle.addContribution(ALICE, 50);
         assertEquals(150, testCircle.getContributions().get(ALICE), 0.001);
     }
 

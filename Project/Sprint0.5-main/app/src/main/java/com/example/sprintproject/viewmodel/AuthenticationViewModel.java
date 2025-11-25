@@ -28,6 +28,7 @@ public class AuthenticationViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public static final String DARK_MODE = "darkMode";
+    public static final String USERS = "users";
 
     public AuthenticationViewModel() {
         userLiveData = new MutableLiveData<>();
@@ -85,7 +86,7 @@ public class AuthenticationViewModel extends ViewModel {
             return;
         }
         String uid = firebaseUser.getUid();
-        db.collection("users").document(uid).get()
+        db.collection(USERS).document(uid).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists() && doc.contains(DARK_MODE)) {
                         boolean darkMode = doc.getBoolean(DARK_MODE);
@@ -115,7 +116,7 @@ public class AuthenticationViewModel extends ViewModel {
 
                         ThemeManager.applyTheme(false, context.getApplicationContext());
 
-                        db.collection("users").document(firebaseUser.getUid())
+                        db.collection(USERS).document(firebaseUser.getUid())
                                 .update(DARK_MODE, false)
                                 .addOnSuccessListener(aVoid -> Log.d("AuthVM", "Default theme set"))
                                 .addOnFailureListener(e -> Log.w("AuthVM", "Failed to set default theme", e));
@@ -162,8 +163,8 @@ public class AuthenticationViewModel extends ViewModel {
 
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            db.collection("users").document(user.getUid())
-                    .update("darkMode", darkMode);
+            db.collection(USERS).document(user.getUid())
+                    .update(DARK_MODE, darkMode);
         }
     }
 }
