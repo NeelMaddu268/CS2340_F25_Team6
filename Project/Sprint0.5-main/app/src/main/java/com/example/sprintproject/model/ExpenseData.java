@@ -1,5 +1,3 @@
-// This class contains all of the new expense data before it is saved to the database.
-
 package com.example.sprintproject.model;
 
 public class ExpenseData {

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.ui.chat.ChatAdapter;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 
 import java.util.ArrayList;
@@ -21,7 +22,6 @@ import java.util.List;
 public class ChatActivity extends AppCompatActivity {
 
     private ChatViewModel vm;
-    // need to keep as a global variable as it is updated in multiple methods
     private EditText input;
 
     @Override
