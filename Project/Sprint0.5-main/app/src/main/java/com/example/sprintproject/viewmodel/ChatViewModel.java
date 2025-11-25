@@ -238,7 +238,9 @@ public class ChatViewModel extends ViewModel {
             user.put("content", fullPrompt);
             arr.put(user);
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            // intentionally ignored - invalid JSON format should not stop the execution
+        }
         return arr;
     }
 
