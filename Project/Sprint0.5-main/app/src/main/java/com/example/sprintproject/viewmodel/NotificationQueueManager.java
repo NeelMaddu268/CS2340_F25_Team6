@@ -108,7 +108,7 @@ public class NotificationQueueManager {
 
     /**
      * Sonar fix: reduce continues/breaks in loop to at most one.
-     * (Refactored to use 0 continues.)
+     * Refactored to use 0 continues/breaks.
      */
     public void checkForBudgetWarning(List<Budget> budgets) {
         if (budgets == null || budgets.isEmpty()) {
@@ -116,31 +116,27 @@ public class NotificationQueueManager {
         }
 
         for (Budget budget : budgets) {
-            boolean shouldWarn = false;
-            int capacityUsed = 0;
-
             if (budget != null) {
                 double total = budget.getAmount();
                 double spent = budget.getSpentToDate();
 
                 if (total > 0) {
-                    capacityUsed = (int) (spent / total * 100);
+                    int capacityUsed = (int) (spent / total * 100);
 
-                    shouldWarn = capacityUsed >= 80
-                            && !repeatedWarnings(budget.getId(), capacityUsed);
+                    boolean shouldWarn =
+                            capacityUsed >= 80
+                                    && !repeatedWarnings(budget.getId(), capacityUsed);
+
+                    if (shouldWarn) {
+                        NotificationData warning =
+                                NotificationData.createAlmostBudgetFullReminder(
+                                        budget.getName(), capacityUsed
+                                );
+                        submitReminder(warning);
+                        alreadyWarned(budget.getId(), capacityUsed);
+                    }
                 }
-            }
-
-            if (shouldWarn) {
-                NotificationData warning =
-                        NotificationData.createAlmostBudgetFullReminder(
-                                budget.getName(), capacityUsed
-                        );
-                submitReminder(warning);
-                alreadyWarned(budget.getId(), capacityUsed);
             }
         }
     }
-
-
 }

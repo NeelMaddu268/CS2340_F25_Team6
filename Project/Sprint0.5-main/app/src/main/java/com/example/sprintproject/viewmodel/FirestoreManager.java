@@ -1,3 +1,6 @@
+// This singleton class handles all the firestore read and write operations for the app.
+// Supports the deletion of circles.
+
 package com.example.sprintproject.viewmodel;
 
 import com.example.sprintproject.model.Budget;

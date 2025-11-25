@@ -1,3 +1,6 @@
+// This ViewModel handles the UI text for the chatbot screen and keeps it stored as LiveData.
+
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

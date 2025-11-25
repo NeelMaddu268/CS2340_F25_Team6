@@ -1,55 +1,44 @@
-// app/src/main/java/com/example/sprintproject/view/MainActivity.java
+// The activity displays the app's main splash and landing screen, giving the users the
+// option to start the login operation or quit the app. The splash screen is active very briefly and then routes to the landing page.
+
 package com.example.sprintproject.view;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Button;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.viewmodel.DashboardViewModel;
-import com.example.sprintproject.viewmodel.DateViewModel;
-import com.example.sprintproject.viewmodel.NotificationQueueManager;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DateViewModel dateVM;
-    private DashboardViewModel dashVM;
+    private boolean isLoading = true;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --- ViewModels ---
-        dateVM = new ViewModelProvider(this).get(DateViewModel.class);
-        dashVM = new ViewModelProvider(this).get(DashboardViewModel.class);
+        splashScreen.setKeepOnScreenCondition(() -> isLoading);
 
-        // Start budgets listener for totals & warnings
-        dashVM.loadData();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> isLoading = false, 1500);
 
-        // Hook notifications to date + budgets
-        NotificationQueueManager nq = NotificationQueueManager.getInstance();
-        nq.registerDateObserver(dateVM);
+        Button btnStart = findViewById(R.id.btnStart);
+        Button btnQuit = findViewById(R.id.btnQuit);
 
-        dashVM.getBudgetsList().observe(this, budgets -> {
-            if (budgets != null) {
-                nq.checkForBudgetWarning(budgets);
-            }
+
+        btnStart.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
         });
 
-        // --- Simple auth gate: if not logged in, go to LoginActivity ---
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-            // prevent user from returning here without logging in
-            finish();
-        }
+
+        btnQuit.setOnClickListener(v -> finishAffinity());
     }
 }

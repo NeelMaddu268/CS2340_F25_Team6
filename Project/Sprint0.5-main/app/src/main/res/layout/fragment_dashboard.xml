@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The dashboard screen which contains the pie and bar charts that represent expense and budget breakdowns. -->
+
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -62,6 +64,17 @@
                 app:layout_constraintTop_toTopOf="parent"
                 android:focusable="true"
                 android:clickable="true" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/themeSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Dark Mode"
+                android:layout_marginEnd="8dp"
+                android:gravity="center_vertical"
+                app:layout_constraintEnd_toStartOf="@+id/btnProfile"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- Logout Button -->

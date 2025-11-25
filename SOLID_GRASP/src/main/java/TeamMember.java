@@ -1,6 +1,12 @@
 package src.main.java;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class TeamMember implements Member {
+
+    private static final Logger LOGGER = Logger.getLogger(TeamMember.class.getName());
+
     private String name;
     private String email;
 
@@ -21,7 +27,7 @@ public class TeamMember implements Member {
 
     @Override
     public void identify() {
-        System.out.println(name + " is a Team Member.");
+        LOGGER.log(Level.INFO, "Team Member: {0}", name);
     }
 
     @Override
