@@ -20,10 +20,15 @@ public class ChatMessage {
     public String getRole() {
         return role;
     }
-    public String getContent() { return content; }
-    public Timestamp getTimestamp() { return timestamp; }
+    public String getContent() {
+        return content; }
+    public Timestamp getTimestamp() {
+        return timestamp; }
 
-    public void setRole(String role) { this.role = role; }
-    public void setContent(String content) { this.content = content; }
-    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }
+    public void setRole(String role) {
+        this.role = role; }
+    public void setContent(String content) {
+        this.content = content; }
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp; }
 }

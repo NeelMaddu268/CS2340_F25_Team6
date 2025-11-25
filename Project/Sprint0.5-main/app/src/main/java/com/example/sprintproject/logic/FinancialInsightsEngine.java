@@ -14,18 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 public class FinancialInsightsEngine {
 
-    public static class InsightResult {
-        public final boolean handled;
-        public final String computedText;
-        public final String aiFollowupPrompt;
-
-        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
-            this.handled = handled;
-            this.computedText = computedText;
-            this.aiFollowupPrompt = aiFollowupPrompt;
-        }
-    }
-
     public InsightResult tryHandle(String userText,
                                    List<Expense> expenses,
                                    List<Budget> budgets) {

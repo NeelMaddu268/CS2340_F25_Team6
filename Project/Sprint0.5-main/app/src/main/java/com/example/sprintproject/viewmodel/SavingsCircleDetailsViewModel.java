@@ -1,5 +1,7 @@
-// This ViewModel reads from the saving circle's firestore document and updates UI data in real time.
-// Also validates and sends circle invites to existing users before writing an invitation doc on firestore.
+// This ViewModel reads from the saving
+// circle's firestore document and updates UI data in real time.
+// Also validates and sends circle invites
+// to existing users before writing an invitation doc on firestore.
 
 package com.example.sprintproject.viewmodel;
 
@@ -60,14 +62,15 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         return statusMessage;
     }
 
-    /** ---------------- Smell #1 fixed: cognitive complexity for listenToSavingsCircle ---------------- */
     public void listenToSavingsCircle(String circleId) {
         DocumentReference circleRef = db.collection(SAVINGS_CIRCLES).document(circleId);
         listener = circleRef.addSnapshotListener(this::handleCircleSnapshot);
     }
 
     private void handleCircleSnapshot(DocumentSnapshot snapshot, FirebaseFirestoreException e) {
-        if (snapshotInvalid(snapshot, e)) return;
+        if (snapshotInvalid(snapshot, e)) {
+            return;
+        }
 
         publishIfPresent(snapshot, "contributions", contributionsLiveData);
         publishIfPresent(snapshot, "datesJoined", memberJoinDatesLiveData);
@@ -102,14 +105,6 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         }
     }
 
-    /**
-     * Accepts either:
-     *  - Map<?,?> already (casts keys/values to String),
-     *  - List<?> (indexes -> String keys),
-     *  - or null/other (returns empty map).
-     *
-     * Smell #2 fixed: never returns null.
-     */
     @SuppressWarnings("unchecked")
     private Map<String, String> coerceMapOrListToStringMap(Object raw) {
         Map<String, String> out = new HashMap<>();
@@ -153,14 +148,15 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         }
     }
 
-    /** ---------------- Smell #1 fixed: cognitive complexity for sendInvite ---------------- */
     public void sendInvite(String circleId,
                            String circleName,
                            String inviteeEmail,
                            String appDateIso) {
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (!validateInviteInputs(user, inviteeEmail, appDateIso)) return;
+        if (!validateInviteInputs(user, inviteeEmail, appDateIso)) {
+            return;
+        }
 
         final String fromUid = user.getUid();
         final String fromEmail = user.getEmail();
@@ -237,10 +233,14 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
         Map<String, String> datesJoined =
                 (Map<String, String>) circleSnap.get("datesJoined");
 
-        if (creatorId == null || datesJoined == null) return false;
+        if (creatorId == null || datesJoined == null) {
+            return false;
+        }
 
         String creatorJoinIso = datesJoined.get(creatorId);
-        if (creatorJoinIso == null) return false;
+        if (creatorJoinIso == null) {
+            return false;
+        }
 
         String creatorEndIso = computeCreatorEndIso(creatorJoinIso, frequency);
         return appDateIso.compareTo(creatorEndIso) > 0;
@@ -254,7 +254,9 @@ public class SavingsCircleDetailsViewModel extends ViewModel {
     }
 
     private boolean emailAlreadyMember(List<String> memberEmails, String inviteeEmail) {
-        if (memberEmails == null) return false;
+        if (memberEmails == null) {
+            return false;
+        }
         for (String email : memberEmails) {
             if (email != null && email.equalsIgnoreCase(inviteeEmail)) {
                 return true;

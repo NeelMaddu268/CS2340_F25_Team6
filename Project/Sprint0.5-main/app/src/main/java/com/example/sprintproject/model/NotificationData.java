@@ -57,7 +57,8 @@ public class NotificationData {
 
     public static NotificationData createAlmostBudgetFullReminder(String name, int capacityUsed) {
         String warningTitle = "Budget Almost Full Warning";
-        String warningMessage = "Your " + name + " budget is almost full at " + capacityUsed + "% capacity.";
+        String warningMessage = "Your " + name + " budget is almost full at "
+                + capacityUsed + "% capacity.";
         int priorityBudgetWarning = 80 + capacityUsed;
         return new NotificationData(
                 Type.BUDGET_WARNING,

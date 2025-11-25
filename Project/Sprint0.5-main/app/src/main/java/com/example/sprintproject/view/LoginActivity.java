@@ -1,5 +1,6 @@
 // The activity handles the user login by taking in the email and password of the user
-// and interacting with the authentication view model. Automatically navigates the user to main app when login is successful.
+// and interacting with the authentication view model. Automatically navigates
+// the user to main app when login is successful.
 
 package com.example.sprintproject.view;
 

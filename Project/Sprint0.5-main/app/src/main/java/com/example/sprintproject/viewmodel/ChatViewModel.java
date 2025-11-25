@@ -291,7 +291,7 @@ public class ChatViewModel extends ViewModel {
                     FinancialInsightsEngine.InsightResult ir =
                             engine.tryHandle(userText, expenses, budgets);
 
-                    String promptToAI = ir.handled ? ir.aiFollowupPrompt : userText;
+                    String promptToAI = ir.getHandled() ? ir.getAiFollowupPrompt() : userText;
 
                     buildFinalPrompt(promptToAI)
                             .addOnSuccessListener(fullPrompt -> {

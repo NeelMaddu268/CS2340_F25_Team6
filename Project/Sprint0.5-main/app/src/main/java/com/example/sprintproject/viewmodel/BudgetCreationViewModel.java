@@ -1,5 +1,6 @@
 // Handles the creation of budgets by taking in certain parameters given by the sprint modules.
-// The data inputted as the parameters for creating the budgets are then linked to categories and other features.
+// The data inputted as the parameters for creating
+// the budgets are then linked to categories and other features.
 
 package com.example.sprintproject.viewmodel;
 
@@ -43,12 +44,16 @@ public class BudgetCreationViewModel extends ViewModel {
             Runnable onComplete
     ) {
         String uid = getUidOrFinish(onComplete);
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         String normalizedCategory = normalizeCategory(category);
 
         Double amount = parseAmountOrFinish(amountString, onComplete);
-        if (amount == null) return;
+        if (amount == null) {
+            return;
+        }
 
         FirestoreManager.getInstance()
                 .categoriesReference(uid)
@@ -70,7 +75,6 @@ public class BudgetCreationViewModel extends ViewModel {
                 .addOnFailureListener(e -> runOnComplete(onComplete));
     }
 
-    /** ---------------- Refactored to reduce cognitive complexity ---------------- */
 
     private void addBudgetToFirestore(String uid, BudgetData budgetData, Runnable onComplete) {
         String category = normalizeCategory(budgetData.getCategory());
@@ -92,7 +96,6 @@ public class BudgetCreationViewModel extends ViewModel {
                 .addOnFailureListener(e -> runOnComplete(onComplete));
     }
 
-    /** ---------------- Helpers (keep each tiny & low-branching) ---------------- */
 
     private String getUidOrFinish(Runnable onComplete) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -269,10 +272,11 @@ public class BudgetCreationViewModel extends ViewModel {
     }
 
     private void runOnComplete(Runnable onComplete) {
-        if (onComplete != null) onComplete.run();
+        if (onComplete != null) {
+            onComplete.run();
+        }
     }
 
-    /** ---------------- Sample budgets ---------------- */
 
     public void createSampleBudgets(Runnable onComplete) {
         String[][] sampleBudgets = {
@@ -309,7 +313,9 @@ public class BudgetCreationViewModel extends ViewModel {
 
         try {
             Date date = sdf.parse(dateString);
-            if (date != null) return date.getTime();
+            if (date != null) {
+                return date.getTime();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

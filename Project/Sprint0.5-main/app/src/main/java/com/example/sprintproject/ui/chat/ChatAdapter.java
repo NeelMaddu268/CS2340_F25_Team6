@@ -105,5 +105,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             bubble = itemView.findViewById(R.id.txtBubble);
             time = itemView.findViewById(R.id.botMsgTime);
         }
+        public TextView getTxt() {
+            return txt;
+        }
     }
 }
