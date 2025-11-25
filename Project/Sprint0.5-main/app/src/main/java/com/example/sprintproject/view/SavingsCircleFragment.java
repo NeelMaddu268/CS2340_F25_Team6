@@ -351,7 +351,3 @@ public class SavingsCircleFragment extends Fragment {
         }
     }
 }
-
-
-
-
