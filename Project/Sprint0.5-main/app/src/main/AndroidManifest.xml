@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="SelectedPhotoAccess">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- for android 12 and below -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <!-- for android 13+ -->
@@ -17,6 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SprintProject"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <activity android:name=".ui.chat.ChatActivity" android:exported="false" />

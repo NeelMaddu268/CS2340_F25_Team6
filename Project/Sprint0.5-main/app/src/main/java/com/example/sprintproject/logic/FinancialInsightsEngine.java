@@ -16,8 +16,8 @@ public class FinancialInsightsEngine {
 
     public static class InsightResult {
         public final boolean handled;
-        public final String computedText;     // plain computed insight (truth)
-        public final String aiFollowupPrompt; // polish prompt for AI
+        public final String computedText;
+        public final String aiFollowupPrompt;
 
         public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
             this.handled = handled;
@@ -26,19 +26,12 @@ public class FinancialInsightsEngine {
         }
     }
 
-    /**
-     * 3-arg overload for older callers (if any).
-     */
     public InsightResult tryHandle(String userText,
                                    List<Expense> expenses,
                                    List<Budget> budgets) {
         return tryHandle(userText, expenses, budgets, Collections.emptyList());
     }
 
-    /**
-     * 4-arg version to match ChatViewModel.
-     * We keep goals as List<?> so you don't need Goal to compile yet.
-     */
     public InsightResult tryHandle(String userText,
                                    List<Expense> expenses,
                                    List<Budget> budgets,
@@ -93,22 +86,17 @@ public class FinancialInsightsEngine {
         return new InsightResult(false, null, null);
     }
 
-    // ----------------- IMPORTANT: match these to YOUR Expense model -----------------
-    // Your Expense has: amount(double), category(String), timestamp(long)
-
     private double getAmount(Expense e) {
         return e.getAmount();
     }
 
     private long getTimestamp(Expense e) {
-        return e.getTimestamp();  // must exist in Expense
+        return e.getTimestamp();
     }
 
     private String getCategory(Expense e) {
         return e.getCategory();
     }
-
-    // ----------------- computations -----------------
 
     private double sumInLastDays(List<Expense> expenses, int days) {
         long now = System.currentTimeMillis();

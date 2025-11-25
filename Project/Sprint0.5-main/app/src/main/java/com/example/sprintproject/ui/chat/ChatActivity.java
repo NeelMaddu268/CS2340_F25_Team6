@@ -29,7 +29,6 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // layout MUST contain: chatRecycler, errorText, inputBox, sendBtn
         setContentView(R.layout.fragment_chatbot);
 
         vm = new ViewModelProvider(this).get(ChatViewModel.class);
@@ -44,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
         recycler.setAdapter(adapter);
 
         vm.getMessages().observe(this, msgs -> {
-            adapter.submitList(msgs);   // <- use submitList, not submit
+            adapter.submitList(msgs);
             if (msgs != null && !msgs.isEmpty()) {
                 recycler.scrollToPosition(msgs.size() - 1);
             }
@@ -52,7 +51,7 @@ public class ChatActivity extends AppCompatActivity {
 
         vm.getError().observe(this, err -> {
             if (err == null || err.trim().isEmpty()) {
-                errorText.setVisibility(View.GONE);   // <- View.GONE
+                errorText.setVisibility(View.GONE);
                 errorText.setText("");
             } else {
                 errorText.setVisibility(View.VISIBLE);
@@ -60,7 +59,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        // start a new chat each time you open screen
         vm.startNewChat();
 
         send.setOnClickListener(v -> {
@@ -97,7 +95,6 @@ public class ChatActivity extends AppCompatActivity {
             boolean[] checked = new boolean[docs.size()];
 
             for (int i = 0; i < docs.size(); i++) {
-                // ChatRepository.ChatDoc has 'title' field
                 titles[i] = docs.get(i).title;
             }
 

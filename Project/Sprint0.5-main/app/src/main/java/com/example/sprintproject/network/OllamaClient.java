@@ -28,8 +28,8 @@ public class OllamaClient {
     }
 
     public interface StreamCallback {
-        void onToken(String token);         // called as tokens arrive
-        void onComplete(String fullReply);  // called once at end
+        void onToken(String token);
+        void onComplete(String fullReply);
         void onError(String error);
     }
 
@@ -40,27 +40,26 @@ public class OllamaClient {
 
     private final OkHttpClient client;
 
-    private final String baseUrl = "http://10.0.2.2:11434/api/chat";
-    private final String modelName; // e.g. llama3.2
+    private final String baseUrl;
+    private final String modelName;
 
-    private volatile Call activeCall; // for cancel()
+    private volatile Call activeCall;
 
     public OllamaClient() {
         this("http://10.0.2.2:11434/api/chat", "llama3.2");
     }
 
     public OllamaClient(String baseUrl, String modelName) {
+        this.baseUrl = baseUrl;
         this.modelName = modelName;
 
-        // generous timeouts for LLMs
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(0, TimeUnit.SECONDS)   // 0 = no timeout for streaming
+                .readTimeout(0, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
     }
 
-    /** Cancel the currently running call (if any). */
     public void cancelActive() {
         Call c = activeCall;
         if (c != null && !c.isCanceled()) {
@@ -68,13 +67,10 @@ public class OllamaClient {
         }
     }
 
-    /**
-     * Non-streaming chat.
-     * messages must be an array of:
-     *  { "role": "user"/"assistant"/"system", "content": "..." }
-     */
     public void chat(@NonNull JSONArray messages, @NonNull ChatCallback cb) {
         JSONObject payload = buildPayload(messages, false);
+
+        Log.d(TAG, "chat payload: " + payload);
 
         RequestBody body = RequestBody.create(payload.toString(), JSON);
         Request request = new Request.Builder()
@@ -86,6 +82,7 @@ public class OllamaClient {
         activeCall.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e(TAG, "chat onFailure", e);
                 cb.onError("Network error: " + e.getMessage());
             }
 
@@ -93,11 +90,16 @@ public class OllamaClient {
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 try {
                     if (!response.isSuccessful()) {
+                        String errBody = response.body() != null
+                                ? response.body().string() : "";
+                        Log.e(TAG, "chat HTTP " + response.code() + " from Ollama: " + errBody);
                         cb.onError("HTTP " + response.code());
                         return;
                     }
 
                     String responseText = safeBodyString(response);
+                    Log.d(TAG, "chat raw response: " + responseText);
+
                     if (responseText == null) {
                         cb.onError("Empty response from Ollama.");
                         return;
@@ -109,9 +111,10 @@ public class OllamaClient {
                         return;
                     }
 
-                    cb.onSuccess(reply);
+                    cb.onSuccess(reply.trim());
 
                 } catch (Exception e) {
+                    Log.e(TAG, "chat parse error", e);
                     cb.onError("Parse error: " + e.getMessage());
                 } finally {
                     response.close();
@@ -120,12 +123,10 @@ public class OllamaClient {
         });
     }
 
-    /**
-     * Streaming chat for real-time token updates.
-     * messages format same as chat().
-     */
     public void chatStream(@NonNull JSONArray messages, @NonNull StreamCallback cb) {
         JSONObject payload = buildPayload(messages, true);
+
+        Log.d(TAG, "chatStream payload: " + payload);
 
         RequestBody body = RequestBody.create(payload.toString(), JSON);
         Request request = new Request.Builder()
@@ -138,6 +139,7 @@ public class OllamaClient {
         activeCall.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e(TAG, "chatStream onFailure", e);
                 cb.onError("Network error: " + e.getMessage());
             }
 
@@ -148,6 +150,10 @@ public class OllamaClient {
 
                 try {
                     if (!response.isSuccessful()) {
+                        String errBody = response.body() != null
+                                ? response.body().string() : "";
+                        Log.e(TAG, "chatStream HTTP " + response.code()
+                                + " from Ollama: " + errBody);
                         cb.onError("HTTP " + response.code());
                         return;
                     }
@@ -161,22 +167,29 @@ public class OllamaClient {
 
                     while (!source.exhausted()) {
                         String line = source.readUtf8Line();
-                        if (line == null || line.trim().isEmpty()) continue;
+                        if (line == null || line.trim().isEmpty()) {
+                            continue;
+                        }
+
+                        Log.d(TAG, "chatStream chunk: " + line);
 
                         JSONObject chunk;
                         try {
                             chunk = new JSONObject(line);
                         } catch (JSONException je) {
-                            // Sometimes Ollama emits blank/partial lines, ignore safely.
-                            Log.w(TAG, "Skipping bad JSON chunk: " + line);
+                            Log.w(TAG, "Skipping bad JSON chunk: " + line, je);
                             continue;
                         }
 
                         boolean done = chunk.optBoolean("done", false);
-                        if (done) break;
+                        if (done) {
+                            break;
+                        }
 
                         JSONObject msgObj = chunk.optJSONObject("message");
-                        if (msgObj == null) continue;
+                        if (msgObj == null) {
+                            continue;
+                        }
 
                         String token = msgObj.optString("content", "");
                         if (!token.isEmpty()) {
@@ -194,24 +207,27 @@ public class OllamaClient {
                     cb.onComplete(finalText);
 
                 } catch (IOException ioe) {
+                    Log.e(TAG, "chatStream IOException", ioe);
                     if (call.isCanceled()) {
                         cb.onError("Canceled");
                     } else {
                         cb.onError("Stream error: " + ioe.getMessage());
                     }
                 } catch (Exception e) {
+                    Log.e(TAG, "chatStream parse error", e);
                     cb.onError("Stream parse error: " + e.getMessage());
                 } finally {
                     response.close();
                     if (source != null) {
-                        try { source.close(); } catch (Exception ignored) {}
+                        try {
+                            source.close();
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
             }
         });
     }
-
-    // -------------------- helpers --------------------
 
     private JSONObject buildPayload(JSONArray messages, boolean stream) {
         JSONObject json = new JSONObject();
@@ -219,8 +235,8 @@ public class OllamaClient {
             json.put("model", modelName);
             json.put("stream", stream);
             json.put("messages", messages);
-        } catch (JSONException ignored) {
-
+        } catch (JSONException e) {
+            Log.e(TAG, "Error building payload", e);
         }
         return json;
     }
@@ -230,13 +246,6 @@ public class OllamaClient {
         return response.body().string();
     }
 
-    /**
-     * Expected non-stream response:
-     * {
-     *   "message": { "role": "assistant", "content": "..." },
-     *   ...
-     * }
-     */
     private String parseNonStreamReply(String responseText) {
         try {
             JSONObject root = new JSONObject(responseText);
@@ -244,6 +253,7 @@ public class OllamaClient {
             if (messageObj == null) return null;
             return messageObj.optString("content", null);
         } catch (JSONException e) {
+            Log.e(TAG, "parseNonStreamReply JSON error", e);
             return null;
         }
     }

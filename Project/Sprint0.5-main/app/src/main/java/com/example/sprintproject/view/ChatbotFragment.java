@@ -42,7 +42,6 @@ public class ChatbotFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Use the layout you showed me
         return inflater.inflate(R.layout.fragment_chatbot, container, false);
     }
 
@@ -64,7 +63,6 @@ public class ChatbotFragment extends Fragment {
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
 
-        // --- observe messages ---
         vm.getMessages().observe(getViewLifecycleOwner(), msgs -> {
             adapter.submitList(msgs == null ? new ArrayList<>() : new ArrayList<>(msgs));
             if (msgs != null && !msgs.isEmpty()) {
@@ -72,7 +70,6 @@ public class ChatbotFragment extends Fragment {
             }
         });
 
-        // --- loading spinner ---
         vm.getLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null && isLoading) {
                 progress.setVisibility(View.VISIBLE);
@@ -81,7 +78,6 @@ public class ChatbotFragment extends Fragment {
             }
         });
 
-        // --- error text ---
         vm.getError().observe(getViewLifecycleOwner(), err -> {
             if (err == null || err.trim().isEmpty()) {
                 errorText.setVisibility(View.GONE);
@@ -92,16 +88,13 @@ public class ChatbotFragment extends Fragment {
             }
         });
 
-        // Always start a new chat when you open this tab
         vm.startNewChat();
 
-        // New chat button
         newChatBtn.setOnClickListener(v -> {
             vm.startNewChat();
             input.setText("");
         });
 
-        // Send button
         sendBtn.setOnClickListener(v -> {
             String text = input.getText().toString().trim();
             if (text.isEmpty()) return;

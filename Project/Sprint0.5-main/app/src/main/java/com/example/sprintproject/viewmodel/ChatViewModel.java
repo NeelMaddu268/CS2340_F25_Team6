@@ -23,10 +23,8 @@ import java.util.List;
 
 public class ChatViewModel extends ViewModel {
 
-    // ---------- UI model ----------
-
     public static class UiMessage {
-        public final String role;   // "user", "assistant", "assistant_partial"
+        public final String role;
         public final String content;
         public final long localTime;
 
@@ -47,8 +45,6 @@ public class ChatViewModel extends ViewModel {
     public LiveData<Boolean> getLoading() { return loading; }
     public LiveData<String> getError() { return error; }
 
-    // ---------- deps ----------
-
     private final ChatRepository repo = new ChatRepository();
     private final OllamaClient ollama = new OllamaClient();
     private final FinancialInsightsEngine engine = new FinancialInsightsEngine();
@@ -59,11 +55,10 @@ public class ChatViewModel extends ViewModel {
 
     private ListenerRegistration msgListener;
 
-    // ---------- small helpers for LiveData<List<UiMessage>> ----------
 
     private List<UiMessage> currentListOrEmpty() {
         List<UiMessage> cur = messages.getValue();
-        return cur == null ? new ArrayList<>() : new ArrayList<>(cur); // ALWAYS COPY
+        return cur == null ? new ArrayList<>() : new ArrayList<>(cur);
     }
 
     private void addLocalMessage(String role, String content) {
@@ -84,11 +79,8 @@ public class ChatViewModel extends ViewModel {
     }
 
     private void replaceWithFirestoreSnapshot(List<UiMessage> snapshotList) {
-        // snapshotList already a fresh list we build from Firestore
         messages.postValue(snapshotList);
     }
-
-    // ---------- Chat session ----------
 
     public void startNewChat() {
         repo.createChatSkeleton()
@@ -104,14 +96,11 @@ public class ChatViewModel extends ViewModel {
 
     public void openExistingChat(String chatId) {
         activeChatId = chatId;
-        titleGenerated = true; // existing chat already has title
+        titleGenerated = true;
         listenMessages();
     }
 
-    /**
-     * Listen directly to Firestore for messages in users/{uid}/chats/{activeChatId}/messages
-     * and push them into the UI list.
-     */
+
     private void listenMessages() {
         if (msgListener != null) {
             msgListener.remove();
@@ -143,7 +132,6 @@ public class ChatViewModel extends ViewModel {
                             ui.add(new UiMessage(role, content));
                         }
                     }
-                    // IMPORTANT: pass fresh list object
                     replaceWithFirestoreSnapshot(ui);
                 });
     }
@@ -161,21 +149,16 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    // ---------- Sending messages ----------
-
     public void sendUserMessage(String userText) {
         if (activeChatId == null || userText == null) return;
 
         error.postValue(null);
         loading.postValue(true);
 
-        // 1) show user's bubble IMMEDIATELY in UI
         addLocalMessage("user", userText);
 
-        // 2) Store user message in Firestore
         repo.addMessage(activeChatId, "user", userText);
 
-        // 3) Load budgets/expenses & ask AI
         loadDataThenRespond(userText);
     }
 
@@ -204,8 +187,6 @@ public class ChatViewModel extends ViewModel {
                     error.postValue("Couldn’t load your financial data.");
                 });
     }
-
-    // ---------- Prompt building ----------
 
     private Task<String> buildFinalPrompt(String prompt) {
         if (selectedReferenceChatIds.isEmpty())
@@ -261,7 +242,6 @@ public class ChatViewModel extends ViewModel {
         return arr;
     }
 
-    // ---------- Streaming assistant ----------
 
     private void streamAssistant(JSONArray msgArr, String rawUserText) {
         if (activeChatId == null) {
@@ -269,7 +249,6 @@ public class ChatViewModel extends ViewModel {
             return;
         }
 
-        // Add an empty partial bubble (new list instance)
         addLocalMessage("assistant_partial", "");
 
         final StringBuilder streaming = new StringBuilder();
@@ -278,7 +257,6 @@ public class ChatViewModel extends ViewModel {
             @Override
             public void onToken(String token) {
                 streaming.append(token);
-                // Update last partial bubble text
                 updateLastPartial(streaming.toString(), "assistant_partial");
             }
 
@@ -290,7 +268,6 @@ public class ChatViewModel extends ViewModel {
                     fullReply = "Sorry, I couldn’t fetch a response. Try again.";
                 }
 
-                // Replace the partial bubble with a final assistant bubble
                 updateLastPartial(fullReply, "assistant");
 
                 repo.addMessage(activeChatId, "assistant", fullReply);
@@ -316,7 +293,6 @@ public class ChatViewModel extends ViewModel {
         });
     }
 
-    // ---------- Title & summary ----------
 
     private void generateTitle(String firstPrompt) {
         try {

@@ -21,7 +21,6 @@ public class ChatRepository {
         auth = FirebaseAuth.getInstance();
     }
 
-    // ---------- helpers ----------
 
     private String requireUid() {
         FirebaseUser user = auth.getCurrentUser();
@@ -49,8 +48,6 @@ public class ChatRepository {
                 .collection("budgets");
     }
 
-    // ---------- model for chat list ----------
-
     public static class ChatDoc {
         public final String id;
         public final String title;
@@ -62,8 +59,6 @@ public class ChatRepository {
             this.summary = summary;
         }
     }
-
-    // ---------- chat operations ----------
 
     public Task<DocumentReference> createChatSkeleton() {
         try {
@@ -135,7 +130,6 @@ public class ChatRepository {
         } catch (IllegalStateException ignored) { }
     }
 
-    /** ✅ REAL listener for messages */
     public ListenerRegistration listenMessages(
             String chatId,
             EventListener<QuerySnapshot> listener
@@ -151,7 +145,6 @@ public class ChatRepository {
         }
     }
 
-    // ---------- budgets / expenses ----------
 
     public Task<QuerySnapshot> loadExpenses() {
         try {
@@ -169,7 +162,6 @@ public class ChatRepository {
         }
     }
 
-    // ---------- summaries & titles ----------
 
     public Task<String> getSummary(String chatId) {
         try {
