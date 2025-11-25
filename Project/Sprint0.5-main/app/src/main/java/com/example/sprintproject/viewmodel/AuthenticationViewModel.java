@@ -137,7 +137,6 @@ public class AuthenticationViewModel extends ViewModel {
         mAuth.signOut();
         userLiveData.setValue(null);
         ThemeManager.clearTheme(context.getApplicationContext());
-        ThemeManager.applyTheme(false, context.getApplicationContext());
     }
 
     public void createUserInFirestore(FirebaseUser firebaseUser) {
@@ -148,5 +147,14 @@ public class AuthenticationViewModel extends ViewModel {
         userData.put("name", "User");
 
         FirestoreManager.getInstance().addUser(uid, userData);
+    }
+    public void toggleTheme(boolean darkMode, Context context) {
+        ThemeManager.applyTheme(darkMode, context.getApplicationContext());
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            db.collection("users").document(user.getUid())
+                    .update("darkMode", darkMode);
+        }
     }
 }

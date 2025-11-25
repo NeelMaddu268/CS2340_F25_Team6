@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:text="Log Reminder"
             android:textSize="20sp"
-            android:textColor="#357DED"
+            android:textColor="?attr/colorPrimary"
             android:fontFamily="@font/montserrat_regular"
             android:textStyle="bold"
             />
@@ -36,7 +36,7 @@
             android:layout_height="1dp"
             android:layout_marginTop="6dp"
             android:layout_marginBottom="10dp"
-            android:background="#E0E0E0" />
+            android:background="?attr/colorOnPrimary" />
 
         <TextView
             android:id="@+id/reminderMessage"
@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:minHeight="0dp"
                 android:text="DISMISS"
-                android:textColor="#888888"
+                android:textColor="?attr/colorOnPrimary"
                 android:textSize="15sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:textStyle="bold"
@@ -76,7 +76,7 @@
                 android:layout_marginStart="8dp"
                 android:minHeight="0dp"
                 android:text="LOG EXPENSES"
-                android:textColor="#357DED"
+                android:textColor="?attr/colorPrimary"
                 android:textSize="15sp"
                 android:fontFamily="@font/montserrat_regular"
                 android:textStyle="bold"

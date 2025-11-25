@@ -3,6 +3,7 @@ package com.example.sprintproject.view;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,8 @@ import com.example.sprintproject.strategies.AllTimeWindowStrategy;
 
 import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -44,6 +47,7 @@ public class DashboardFragment extends Fragment {
 
     private DateViewModel dateVM;
     private DashboardViewModel dashboardVM;
+    AuthenticationViewModel authenticationViewModel;
 
 
     private Charts charts;
@@ -65,8 +69,6 @@ public class DashboardFragment extends Fragment {
             return null;
         }
 
-        AuthenticationViewModel authenticationViewModel;
-
         authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
@@ -84,6 +86,7 @@ public class DashboardFragment extends Fragment {
         btnCalendar = view.findViewById(R.id.btnCalendar);
         btnProfile = view.findViewById(R.id.btnProfile);
         themeSwitch = view.findViewById(R.id.themeSwitch);
+        syncThemeSwitchWithFirestore(themeSwitch);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
         totalSpentText = view.findViewById(R.id.textTotalSpent);
@@ -136,11 +139,38 @@ public class DashboardFragment extends Fragment {
             });
         }
 
-        boolean isDarkMode = ThemeManager.isDarkModeEnabled(requireContext());
-        themeSwitch.setChecked(isDarkMode);
+//        boolean isDarkMode = ThemeManager.isDarkModeEnabled(requireContext());
+//        themeSwitch.setChecked(isDarkMode);
+//
+//        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            ThemeManager.applyTheme(isChecked, requireContext());
+//        });
+//        boolean isDarkMode = ThemeManager.isDarkModeEnabled(requireContext());
+//        themeSwitch.setChecked(isDarkMode);
 
+//        boolean isDarkMode = ThemeManager.isDarkModeEnabled(requireContext());
+//        themeSwitch.setOnCheckedChangeListener(null); // remove listener temporarily
+//        themeSwitch.setChecked(isDarkMode);           // set switch state
+//        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            authenticationViewModel.toggleTheme(isChecked, requireContext());
+//        });
+
+
+
+//        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            ThemeManager.applyTheme(isChecked, requireContext());
+//
+//            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//            if (user != null) {
+//                FirebaseFirestore db = FirebaseFirestore.getInstance();
+//                db.collection("users").document(user.getUid())
+//                        .update("darkMode", isChecked)
+//                        .addOnSuccessListener(aVoid -> Log.d("ThemeToggle", "Theme saved"))
+//                        .addOnFailureListener(e -> Log.w("ThemeToggle", "Failed to save theme", e));
+//            }
+//        });
         themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            ThemeManager.applyTheme(isChecked, requireContext());
+            authenticationViewModel.toggleTheme(isChecked, requireContext());
         });
 
         if (logoutButton != null) {
@@ -166,6 +196,36 @@ public class DashboardFragment extends Fragment {
         }
         loadChartsWithStrategy();
     }
+
+    private void syncThemeSwitchWithFirestore(SwitchCompat themeSwitch) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        FirebaseFirestore.getInstance().collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists() && doc.contains("darkMode") && themeSwitch != null && isAdded()) {
+                        boolean darkMode = doc.getBoolean("darkMode");
+
+                        // Disable listener temporarily
+                        themeSwitch.setOnCheckedChangeListener(null);
+
+                        // Sync switch
+                        themeSwitch.setChecked(darkMode);
+
+                        // Apply theme safely
+                        ThemeManager.applyTheme(darkMode, requireContext());
+
+                        // Re-enable listener
+                        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                            authenticationViewModel.toggleTheme(isChecked, requireContext());
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> Log.w("ThemeSync", "Failed to fetch theme", e));
+    }
+
 
     private void loadChartsWithStrategy() {
         if (charts == null) {

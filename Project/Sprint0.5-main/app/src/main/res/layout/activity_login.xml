@@ -10,6 +10,7 @@
     android:gravity="center"
     android:padding="24dp"
     android:paddingStart="24dp"
+    android:background="@color/white"
     android:paddingEnd="24dp"
     android:paddingTop="24dp"
     android:paddingBottom="24dp"
@@ -36,7 +37,6 @@
         android:importantForAccessibility="yes"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        app:tint="?attr/colorPrimary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/appName"
@@ -53,7 +53,7 @@
         android:text="@string/login"
         android:textSize="26sp"
         android:textStyle="bold"
-        android:textColor="?attr/colorPrimary"
+        android:textColor="#357DED"
         android:fontFamily="@font/montserrat_regular"
         android:includeFontPadding="true"
         android:letterSpacing="0"
@@ -61,50 +61,100 @@
         tools:ignore="HardcodedText" />
 
     <!-- Email field -->
+<!--    <EditText-->
+<!--        android:id="@+id/creatorEmail"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="40dp"-->
+<!--        android:hint="@string/email_address"-->
+<!--        android:inputType="textEmailAddress"-->
+<!--        android:autofillHints="emailAddress"-->
+<!--        android:importantForAutofill="yes"-->
+<!--        android:fontFamily="@font/montserrat_regular"-->
+<!--        android:textSize="20sp"-->
+<!--        android:gravity="center"-->
+<!--        android:textColor="#000000"-->
+<!--        android:textColorHint="#808080"-->
+<!--        android:includeFontPadding="true"-->
+<!--        android:maxLines="1"-->
+<!--        android:singleLine="true"-->
+<!--        android:imeOptions="actionNext"-->
+<!--        android:padding="0dp"-->
+<!--        android:backgroundTintMode="src_in"-->
+<!--        android:saveEnabled="true"-->
+<!--        tools:ignore="RtlHardcoded,TextFields" />-->
     <EditText
         android:id="@+id/creatorEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:hint="@string/email_address"
-        android:inputType="textEmailAddress"
         android:autofillHints="emailAddress"
         android:importantForAutofill="yes"
+        android:gravity="center"
+        android:hint="@string/email_address"
+        android:inputType="textEmailAddress"
         android:fontFamily="@font/montserrat_regular"
         android:textSize="20sp"
-        android:gravity="center"
         android:textColor="#000000"
         android:textColorHint="#808080"
+        android:includeFontPadding="true"
+        android:ems="10"
+        android:ellipsize="none"
         android:maxLines="1"
-        android:singleLine="true"
+        android:scrollHorizontally="true"
         android:imeOptions="actionNext"
-        android:padding="0dp"
-        android:backgroundTintMode="src_in"
-        android:saveEnabled="true"
-        tools:ignore="RtlHardcoded,TextFields" />
+        android:nextFocusForward="@id/password"
+        android:nextFocusDown="@id/password"
+        android:privateImeOptions=""
+        tools:text="user@example.com" />
 
     <!-- Password field -->
+<!--    <EditText-->
+<!--        android:id="@+id/password"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="40dp"-->
+<!--        android:hint="@string/Password_Text"-->
+<!--        android:inputType="textPassword"-->
+<!--        android:autofillHints="password"-->
+<!--        android:importantForAutofill="yes"-->
+<!--        android:fontFamily="@font/montserrat_regular"-->
+<!--        android:textSize="20sp"-->
+<!--        android:gravity="center"-->
+<!--        android:textColor="#000000"-->
+<!--        android:textColorHint="#808080"-->
+<!--        android:maxLines="1"-->
+<!--        android:singleLine="true"-->
+<!--        android:imeOptions="actionDone"-->
+<!--        android:includeFontPadding="true"-->
+<!--        android:padding="0dp"-->
+<!--        android:backgroundTintMode="src_in"-->
+<!--        android:saveEnabled="true"-->
+<!--        tools:ignore="RtlHardcoded,TextFields" />-->
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:hint="@string/Password_Text"
-        android:inputType="textPassword"
         android:autofillHints="password"
         android:importantForAutofill="yes"
-        android:fontFamily="@font/montserrat_regular"
-        android:textSize="20sp"
         android:gravity="center"
         android:textColor="#000000"
         android:textColorHint="#808080"
+        android:hint="@string/Password_Text"
+        android:inputType="textPassword"
+        android:fontFamily="@font/montserrat_regular"
+        android:textSize="20sp"
+        android:includeFontPadding="true"
+        android:ems="10"
+        android:ellipsize="none"
         android:maxLines="1"
-        android:singleLine="true"
+        android:scrollHorizontally="true"
         android:imeOptions="actionDone"
-        android:padding="0dp"
-        android:backgroundTintMode="src_in"
-        android:saveEnabled="true"
-        tools:ignore="RtlHardcoded,TextFields" />
+        android:nextFocusForward="@id/btnCreateAccount"
+        android:nextFocusDown="@id/btnCreateAccount"
+        android:privateImeOptions=""
+        tools:text="••••••••" />
 
     <!-- Error message -->
     <TextView
@@ -135,7 +185,7 @@
         android:textSize="20sp"
         android:textAllCaps="false"
         android:fontFamily="@font/montserrat_regular"
-        android:backgroundTint="?attr/colorPrimary"
+        android:backgroundTint="#357DED"
         android:gravity="center"
         android:minHeight="0dp"
         android:minWidth="0dp"
@@ -172,7 +222,7 @@
         android:textSize="20sp"
         android:textAllCaps="false"
         android:fontFamily="@font/montserrat_regular"
-        android:backgroundTint="?attr/colorPrimary"
+        android:backgroundTint="#357DED"
         android:gravity="center"
         android:minHeight="0dp"
         android:minWidth="0dp"

@@ -9,7 +9,7 @@
     tools:context=".view.ChatbotFragment"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#357DED">
+    android:background="?attr/colorPrimary">
 
     <TextView
         android:id="@+id/chatbotTitle"
