@@ -43,10 +43,6 @@ public class FirestoreManager {
         db = FirebaseFirestore.getInstance();
     }
 
-    private static class Holder {
-        private static final FirestoreManager INSTANCE = new FirestoreManager();
-    }
-
     public static FirestoreManager getInstance() {
         return Holder.INSTANCE;
     }
@@ -262,5 +258,9 @@ public class FirestoreManager {
         db.collection(USERS_STRING)
                 .document(uid)
                 .update(fieldName, FieldValue.increment(1));
+    }
+
+    private static class Holder {
+        private static final FirestoreManager INSTANCE = new FirestoreManager();
     }
 }

@@ -23,24 +23,6 @@ import java.util.List;
 
 public class ChatViewModel extends ViewModel {
 
-    public static class UiMessage {
-        private final String role;
-        private final String content;
-        private final long localTime;
-
-        public UiMessage(String role, String content) {
-            this.role = role;
-            this.content = content;
-            this.localTime = System.currentTimeMillis();
-        }
-        public String getRole() {
-            return role; }
-        public String getContent() {
-            return content; }
-        public long getLocalTime() {
-            return localTime; }
-    }
-
     private final MutableLiveData<List<UiMessage>> messages =
             new MutableLiveData<>(new ArrayList<>());
 
@@ -96,14 +78,14 @@ public class ChatViewModel extends ViewModel {
 
     public void startNewChat() {
         repo.createChatSkeleton()
-                .addOnSuccessListener(ref -> {
-                    activeChatId = ref.getId();
-                    titleGenerated = false;
-                    listenMessages();
-                })
-                .addOnFailureListener(e ->
-                        error.postValue("Failed to create chat.")
-                );
+            .addOnSuccessListener(ref -> {
+                activeChatId = ref.getId();
+                titleGenerated = false;
+                listenMessages();
+            })
+            .addOnFailureListener(e ->
+                error.postValue("Failed to create chat.")
+            );
     }
 
     public void openExistingChat(String chatId) {
@@ -374,5 +356,23 @@ public class ChatViewModel extends ViewModel {
             msgListener.remove();
         }
         ollama.cancelActive();
+    }
+
+    public static class UiMessage {
+        private final String role;
+        private final String content;
+        private final long localTime;
+
+        public UiMessage(String role, String content) {
+            this.role = role;
+            this.content = content;
+            this.localTime = System.currentTimeMillis();
+        }
+        public String getRole() {
+            return role; }
+        public String getContent() {
+            return content; }
+        public long getLocalTime() {
+            return localTime; }
     }
 }

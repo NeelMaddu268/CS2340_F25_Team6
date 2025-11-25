@@ -14,30 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 public class FinancialInsightsEngine {
 
-    public static class InsightResult {
-        private final boolean handled;
-        private final String computedText;
-        private final String aiFollowupPrompt;
-
-        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
-            this.handled = handled;
-            this.computedText = computedText;
-            this.aiFollowupPrompt = aiFollowupPrompt;
-        }
-
-        public boolean getHandled() {
-            return handled;
-        }
-
-        public String getComputedText() {
-            return computedText;
-        }
-
-        public String getAiFollowupPrompt() {
-            return aiFollowupPrompt;
-        }
-    }
-
     public InsightResult tryHandle(String userText,
                                    List<Expense> expenses,
                                    List<Budget> budgets) {
@@ -225,5 +201,29 @@ public class FinancialInsightsEngine {
 
     private double r2(double x) {
         return Math.round(x * 100.0) / 100.0;
+    }
+
+    public static class InsightResult {
+        private final boolean handled;
+        private final String computedText;
+        private final String aiFollowupPrompt;
+
+        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
+            this.handled = handled;
+            this.computedText = computedText;
+            this.aiFollowupPrompt = aiFollowupPrompt;
+        }
+
+        public boolean getHandled() {
+            return handled;
+        }
+
+        public String getComputedText() {
+            return computedText;
+        }
+
+        public String getAiFollowupPrompt() {
+            return aiFollowupPrompt;
+        }
     }
 }
