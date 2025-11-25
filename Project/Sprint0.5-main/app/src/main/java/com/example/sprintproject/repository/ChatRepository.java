@@ -51,18 +51,6 @@ public class ChatRepository {
                 .collection("budgets");
     }
 
-    public static class ChatDoc {
-        public final String id;
-        public final String title;
-        public final String summary;
-
-        public ChatDoc(String id, String title, String summary) {
-            this.id = id;
-            this.title = title;
-            this.summary = summary;
-        }
-    }
-
     public Task<DocumentReference> createChatSkeleton() {
         try {
             CollectionReference chats = chatsCollection();
@@ -205,6 +193,27 @@ public class ChatRepository {
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
             // Intentionally ignored due to Firebase limitations
+        }
+    }
+
+    public static class ChatDoc {
+        private final String id;
+        private final String title;
+        private final String summary;
+
+        public ChatDoc(String id, String title, String summary) {
+            this.id = id;
+            this.title = title;
+            this.summary = summary;
+        }
+        public String getId() {
+            return id;
+        }
+        public String getTitle() {
+            return title;
+        }
+        public String getSummary() {
+            return summary;
         }
     }
 }

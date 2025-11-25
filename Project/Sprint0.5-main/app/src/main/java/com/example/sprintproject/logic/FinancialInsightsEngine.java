@@ -14,18 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 public class FinancialInsightsEngine {
 
-    public static class InsightResult {
-        public final boolean handled;
-        public final String computedText;
-        public final String aiFollowupPrompt;
-
-        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
-            this.handled = handled;
-            this.computedText = computedText;
-            this.aiFollowupPrompt = aiFollowupPrompt;
-        }
-    }
-
     public InsightResult tryHandle(String userText,
                                    List<Expense> expenses,
                                    List<Budget> budgets) {
@@ -37,7 +25,9 @@ public class FinancialInsightsEngine {
                                    List<Budget> budgets,
                                    List<?> goals) {
 
-        if (userText == null) return new InsightResult(false, null, null);
+        if (userText == null) {
+            return new InsightResult(false, null, null);
+        }
 
         String t = userText.toLowerCase(Locale.US).trim();
 
@@ -103,10 +93,14 @@ public class FinancialInsightsEngine {
         long cutoff = now - TimeUnit.DAYS.toMillis(days);
 
         double sum = 0;
-        if (expenses == null) return 0;
+        if (expenses == null) {
+            return 0;
+        }
 
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             long ts = getTimestamp(e);
             if (ts >= cutoff) {
                 sum += getAmount(e);
@@ -120,14 +114,20 @@ public class FinancialInsightsEngine {
         long cutoff = now - TimeUnit.DAYS.toMillis(days);
 
         Map<String, Double> map = new HashMap<>();
-        if (expenses == null) return map;
+        if (expenses == null) {
+            return map;
+        }
 
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             long ts = getTimestamp(e);
             if (ts >= cutoff) {
                 String cat = getCategory(e);
-                if (cat == null || cat.trim().isEmpty()) cat = "Other";
+                if (cat == null || cat.trim().isEmpty()) {
+                    cat = "Other";
+                }
                 map.put(cat, map.getOrDefault(cat, 0.0) + getAmount(e));
             }
         }
@@ -135,7 +135,9 @@ public class FinancialInsightsEngine {
     }
 
     private double sumThisMonth(List<Expense> expenses) {
-        if (expenses == null) return 0;
+        if (expenses == null) {
+            return 0;
+        }
 
         Calendar cal = Calendar.getInstance();
         int m = cal.get(Calendar.MONTH);
@@ -143,7 +145,9 @@ public class FinancialInsightsEngine {
 
         double sum = 0;
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             cal.setTimeInMillis(getTimestamp(e));
             if (cal.get(Calendar.MONTH) == m && cal.get(Calendar.YEAR) == y) {
                 sum += getAmount(e);
@@ -153,7 +157,9 @@ public class FinancialInsightsEngine {
     }
 
     private double sumLastMonth(List<Expense> expenses) {
-        if (expenses == null) return 0;
+        if (expenses == null) {
+            return 0;
+        }
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MONTH, -1);
@@ -162,7 +168,9 @@ public class FinancialInsightsEngine {
 
         double sum = 0;
         for (Expense e : expenses) {
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
             cal.setTimeInMillis(getTimestamp(e));
             if (cal.get(Calendar.MONTH) == lastM && cal.get(Calendar.YEAR) == lastY) {
                 sum += getAmount(e);
@@ -172,7 +180,9 @@ public class FinancialInsightsEngine {
     }
 
     private String topCats(Map<String, Double> map) {
-        if (map == null || map.isEmpty()) return "None";
+        if (map == null || map.isEmpty()) {
+            return "None";
+        }
 
         List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
         list.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
@@ -182,12 +192,38 @@ public class FinancialInsightsEngine {
         for (int i = 0; i < limit; i++) {
             Map.Entry<String, Double> e = list.get(i);
             sb.append(e.getKey()).append(" ($").append(r2(e.getValue())).append(")");
-            if (i < limit - 1) sb.append(", ");
+            if (i < limit - 1) {
+                sb.append(", ");
+            }
         }
         return sb.toString();
     }
 
     private double r2(double x) {
         return Math.round(x * 100.0) / 100.0;
+    }
+
+    public static class InsightResult {
+        private final boolean handled;
+        private final String computedText;
+        private final String aiFollowupPrompt;
+
+        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
+            this.handled = handled;
+            this.computedText = computedText;
+            this.aiFollowupPrompt = aiFollowupPrompt;
+        }
+
+        public boolean getHandled() {
+            return handled;
+        }
+
+        public String getComputedText() {
+            return computedText;
+        }
+
+        public String getAiFollowupPrompt() {
+            return aiFollowupPrompt;
+        }
     }
 }

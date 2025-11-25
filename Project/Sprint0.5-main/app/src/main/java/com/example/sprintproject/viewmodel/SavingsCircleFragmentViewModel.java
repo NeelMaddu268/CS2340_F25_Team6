@@ -1,5 +1,7 @@
-// This ViewModel tracks all of the saving circles the user is a part of and keeps them updated in real time,
-// while filtering their status based on the selected AppDate. Also calculates each circles progress and updates
+// This ViewModel tracks all of the saving
+// circles the user is a part of and keeps them updated in real time,
+// while filtering their status based on the
+// selected AppDate. Also calculates each circles progress and updates
 // the circle's goal has been met.
 
 package com.example.sprintproject.viewmodel;
@@ -58,7 +60,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
     public void loadSavingsCircleFor(AppDate appDate) {
 
         String uid = getUidOrClear();
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         currentUidCached = uid;
         currentAppDate = appDate;
@@ -92,13 +96,13 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         return e != null || qs == null || qs.isEmpty();
     }
 
-    /* ---------------- extract IDs ---------------- */
-
     private List<String> extractValidCircleIds(List<DocumentSnapshot> docs) {
         List<String> ids = new ArrayList<>();
         for (DocumentSnapshot d : docs) {
             String id = d.getString("circleId");
-            if (id != null && !id.trim().isEmpty()) ids.add(id);
+            if (id != null && !id.trim().isEmpty()) {
+                ids.add(id);
+            }
         }
         return ids;
     }
@@ -121,7 +125,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
                 .get()
                 .addOnSuccessListener(snap -> {
                     SavingsCircle c = buildCircle(snap);
-                    if (c != null) acc.add(c);
+                    if (c != null) {
+                        acc.add(c);
+                    }
                     p.done();
                 })
                 .addOnFailureListener(err -> p.done());
@@ -130,7 +136,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
     private SavingsCircle buildCircle(DocumentSnapshot snap) {
         SavingsCircle c = snap.toObject(SavingsCircle.class);
-        if (c == null) return null;
+        if (c == null) {
+            return null;
+        }
 
         c.setId(snap.getId());
         c.setContributions(resolveContrib(c.getContributions(), snap));
@@ -142,7 +150,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
     private Map<String, Double> resolveContrib(Map<String, Double> existing,
                                                DocumentSnapshot snap) {
 
-        if (existing != null && !existing.isEmpty()) return existing;
+        if (existing != null && !existing.isEmpty()) {
+            return existing;
+        }
 
         @SuppressWarnings("unchecked")
         Map<String, Object> raw = (Map<String, Object>) snap.get("contributions");
@@ -193,7 +203,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         String uid = currentUidCached;
         if (uid == null) {
             FirebaseAuth a = FirebaseAuth.getInstance();
-            if (a.getCurrentUser() != null) uid = a.getCurrentUser().getUid();
+            if (a.getCurrentUser() != null) {
+                uid = a.getCurrentUser().getUid();
+            }
         }
 
         for (SavingsCircle c : cache) {
@@ -208,7 +220,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
             String uid,
             AppDate appDate
     ) {
-        if (circle == null || uid == null) return;
+        if (circle == null || uid == null) {
+            return;
+        }
 
         // 1) personal end (joined + 7 days)
         long personalEndTs = computePersonalWindowEnd(circle, uid);
@@ -228,7 +242,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
     private long computePersonalWindowEnd(SavingsCircle c, String uid) {
         Map<String, String> joinedMap = c.getDatesJoined();
-        if (joinedMap == null) return 0L;
+        if (joinedMap == null) {
+            return 0L;
+        }
 
         String joined = joinedMap.get(uid);
         return (joined != null) ? add7Days(joined) : 0L;
@@ -238,7 +254,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         double total = 0;
         if (c.getContributions() != null) {
             for (Double v : c.getContributions().values()) {
-                if (v != null) total += v;
+                if (v != null) {
+                    total += v;
+                }
             }
         }
         return total;
@@ -246,7 +264,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
 
 
     private long add7Days(String ymd) {
-        if (ymd == null) return 0L;
+        if (ymd == null) {
+            return 0L;
+        }
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             sdf.setLenient(false);
@@ -261,7 +281,9 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
     }
 
     private long appDateStartMillis(AppDate a) {
-        if (a == null) return 0L;
+        if (a == null) {
+            return 0L;
+        }
         Calendar c = Calendar.getInstance();
         c.set(a.getYear(), a.getMonth() - 1, a.getDay());
         midnight(c);
@@ -283,12 +305,16 @@ public class SavingsCircleFragmentViewModel extends ViewModel {
         Pending(int count, Runnable onZero) {
             this.left = count;
             this.onZero = onZero;
-            if (left == 0) onZero.run();
+            if (left == 0) {
+                onZero.run();
+            }
         }
 
         void done() {
             left--;
-            if (left == 0) onZero.run();
+            if (left == 0) {
+                onZero.run();
+            }
         }
     }
 }

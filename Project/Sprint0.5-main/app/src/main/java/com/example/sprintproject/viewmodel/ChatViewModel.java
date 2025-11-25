@@ -43,9 +43,15 @@ public class ChatViewModel extends ViewModel {
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>(null);
 
-    public LiveData<List<UiMessage>> getMessages() { return messages; }
-    public LiveData<Boolean> getLoading() { return loading; }
-    public LiveData<String> getError() { return error; }
+    public LiveData<List<UiMessage>> getMessages() {
+        return messages;
+    }
+    public LiveData<Boolean> getLoading() {
+        return loading;
+    }
+    public LiveData<String> getError() {
+        return error;
+    }
 
     private final ChatRepository repo = new ChatRepository();
     private final OllamaClient ollama = new OllamaClient();
@@ -86,14 +92,14 @@ public class ChatViewModel extends ViewModel {
 
     public void startNewChat() {
         repo.createChatSkeleton()
-                .addOnSuccessListener(ref -> {
-                    activeChatId = ref.getId();
-                    titleGenerated = false;
-                    listenMessages();
-                })
-                .addOnFailureListener(e ->
-                        error.postValue("Failed to create chat.")
-                );
+            .addOnSuccessListener(ref -> {
+                activeChatId = ref.getId();
+                titleGenerated = false;
+                listenMessages();
+            })
+            .addOnFailureListener(e ->
+                error.postValue("Failed to create chat.")
+            );
     }
 
     public void openExistingChat(String chatId) {
@@ -144,7 +150,9 @@ public class ChatViewModel extends ViewModel {
 
     public void setReferenceChats(List<String> chatIds) {
         selectedReferenceChatIds.clear();
-        if (chatIds != null) selectedReferenceChatIds.addAll(chatIds);
+        if (chatIds != null) {
+            selectedReferenceChatIds.addAll(chatIds);
+        }
 
         if (activeChatId != null) {
             repo.setReferencedChats(activeChatId, selectedReferenceChatIds);
@@ -152,7 +160,9 @@ public class ChatViewModel extends ViewModel {
     }
 
     public void sendUserMessage(String userText) {
-        if (activeChatId == null || userText == null) return;
+        if (activeChatId == null || userText == null) {
+            return;
+        }
 
         error.postValue(null);
         loading.postValue(true);
@@ -176,7 +186,7 @@ public class ChatViewModel extends ViewModel {
                     FinancialInsightsEngine.InsightResult ir =
                             engine.tryHandle(userText, expenses, budgets);
 
-                    String promptToAI = ir.handled ? ir.aiFollowupPrompt : userText;
+                    String promptToAI = ir.getHandled() ? ir.getAiFollowupPrompt() : userText;
 
                     buildFinalPrompt(promptToAI)
                             .addOnSuccessListener(fullPrompt -> {
@@ -191,8 +201,9 @@ public class ChatViewModel extends ViewModel {
     }
 
     private Task<String> buildFinalPrompt(String prompt) {
-        if (selectedReferenceChatIds.isEmpty())
+        if (selectedReferenceChatIds.isEmpty()) {
             return Tasks.forResult(prompt);
+        }
 
         List<Task<String>> summaryTasks = new ArrayList<>();
         for (String id : selectedReferenceChatIds) {
@@ -203,7 +214,9 @@ public class ChatViewModel extends ViewModel {
             StringBuilder sb = new StringBuilder();
             sb.append("Context from previous chats:\n");
             for (Object s : t.getResult()) {
-                if (s != null) sb.append("- ").append(s).append("\n");
+                if (s != null) {
+                    sb.append("- ").append(s).append("\n");
+                }
             }
             sb.append("\nUser prompt:\n").append(prompt);
             return sb.toString();
@@ -324,7 +337,9 @@ public class ChatViewModel extends ViewModel {
 
     private void generateAndStoreSummary() {
         List<UiMessage> ui = messages.getValue();
-        if (ui == null || ui.isEmpty()) return;
+        if (ui == null || ui.isEmpty()) {
+            return;
+        }
 
         StringBuilder convo = new StringBuilder();
         int start = Math.max(0, ui.size() - 10);
@@ -343,7 +358,9 @@ public class ChatViewModel extends ViewModel {
 
             ollama.chat(arr, new OllamaClient.ChatCallback() {
                 @Override public void onSuccess(String reply) {
-                    if (reply != null) repo.updateChatSummary(activeChatId, reply.trim());
+                    if (reply != null) {
+                        repo.updateChatSummary(activeChatId, reply.trim());
+                    }
                 }
                 @Override public void onError(String error) {
                     // intentionally ignored - summary generation is not critical
@@ -357,7 +374,27 @@ public class ChatViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        if (msgListener != null) msgListener.remove();
+        if (msgListener != null) {
+            msgListener.remove();
+        }
         ollama.cancelActive();
+    }
+
+    public static class UiMessage {
+        private final String role;
+        private final String content;
+        private final long localTime;
+
+        public UiMessage(String role, String content) {
+            this.role = role;
+            this.content = content;
+            this.localTime = System.currentTimeMillis();
+        }
+        public String getRole() {
+            return role; }
+        public String getContent() {
+            return content; }
+        public long getLocalTime() {
+            return localTime; }
     }
 }

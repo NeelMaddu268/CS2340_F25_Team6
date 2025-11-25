@@ -20,7 +20,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +41,6 @@ public class FirestoreManager {
 
     private FirestoreManager() {
         db = FirebaseFirestore.getInstance();
-    }
-
-    /** Singleton pattern with lazy initialization */
-    private static class Holder {
-        private static final FirestoreManager INSTANCE = new FirestoreManager();
     }
 
     public static FirestoreManager getInstance() {
@@ -128,25 +122,21 @@ public class FirestoreManager {
 
     public String getCurrentUserEmail() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) return user.getEmail();
+        if (user != null) {
+            return user.getEmail();
+        }
         throw new IllegalStateException("User not logged in");
     }
 
-    /**
-     * Deletes a savings circle and related data:
-     * - circle doc
-     * - all invitations for the circle
-     * - all users' pointer docs referencing the circle
-     *
-     * Only creator can delete.
-     */
     public Task<Void> deleteSavingsCircle(String circleId, String requesterUid) {
         DocumentReference circleRef = savingsCircleDoc(circleId);
         TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
 
         circleRef.get()
                 .addOnSuccessListener(snapshot -> {
-                    if (!validateCircleAndPermission(snapshot, requesterUid, tcs)) return;
+                    if (!validateCircleAndPermission(snapshot, requesterUid, tcs)) {
+                        return;
+                    }
 
                     String creatorId = snapshot.getString("creatorId");
                     Set<String> allUids = collectAllUids(snapshot, creatorId);
@@ -154,7 +144,8 @@ public class FirestoreManager {
                     List<Task<QuerySnapshot>> fetches = buildFetchTasks(circleId, allUids);
 
                     Tasks.whenAllSuccess(fetches)
-                            .addOnSuccessListener(results -> commitDeleteBatch(circleRef, results, tcs))
+                            .addOnSuccessListener(results -> commitDeleteBatch(circleRef,
+                                    results, tcs))
                             .addOnFailureListener(tcs::setException);
                 })
                 .addOnFailureListener(tcs::setException);
@@ -263,5 +254,9 @@ public class FirestoreManager {
         db.collection(USERS_STRING)
                 .document(uid)
                 .update(fieldName, FieldValue.increment(1));
+    }
+
+    private static class Holder {
+        private static final FirestoreManager INSTANCE = new FirestoreManager();
     }
 }

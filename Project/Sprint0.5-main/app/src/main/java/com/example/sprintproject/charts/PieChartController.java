@@ -1,5 +1,7 @@
-// This class helps create and update the pie chart that shows how the total spending is broken down into different categories.
-// It calculates the percentage of each expense and how it contributes to total spending while updating the chart with new data.
+// This class helps create and update the pie chart that shows how
+// the total spending is broken down into different categories.
+// It calculates the percentage of each expense and how it contributes
+// to total spending while updating the chart with new data.
 
 package com.example.sprintproject.charts;
 

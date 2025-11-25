@@ -1,5 +1,7 @@
-// This activity acts as the main screen of the app, setting up features such as navigation and loading different fragments.
-// This activity also observes the different view models and the notification queue system so that it can display warning popups and swap between
+// This activity acts as the main screen of the app,
+// setting up features such as navigation and loading different fragments.
+// This activity also observes the different view models
+// and the notification queue system so that it can display warning popups and swap between
 // different fragments.
 
 package com.example.sprintproject.view;
@@ -115,10 +117,6 @@ public class AppActivity extends AppCompatActivity {
                 .commit();
     }
 
-    /**
-     * Observes the NotificationQueueManager and handles displaying the pop-up.
-     * @param nav Bottom navigation view
-     */
     private void setupReminderListener(BottomNavigationView nav) {
         NotificationQueueManager.getInstance().getCurrentReminder().observe(this, reminder -> {
             if (reminder != null) {
