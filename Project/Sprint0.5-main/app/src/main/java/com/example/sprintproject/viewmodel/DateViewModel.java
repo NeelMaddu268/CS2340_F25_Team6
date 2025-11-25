@@ -151,7 +151,3 @@ public class DateViewModel extends AndroidViewModel {
         docRef.set(updateMap, com.google.firebase.firestore.SetOptions.merge());
     }
 }
-
-
-
-
