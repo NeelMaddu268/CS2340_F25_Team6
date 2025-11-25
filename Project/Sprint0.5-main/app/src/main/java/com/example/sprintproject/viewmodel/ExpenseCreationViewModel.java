@@ -72,7 +72,9 @@ public class ExpenseCreationViewModel extends ViewModel {
         String uid = getUidOrFinish(() ->
                 categoriesLiveData.setValue(new ArrayList<>())
         );
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         FirestoreManager.getInstance()
                 .categoriesReference(uid)
@@ -87,16 +89,16 @@ public class ExpenseCreationViewModel extends ViewModel {
                     }
                     categoriesLiveData.setValue(categoryNames);
                 })
-                .addOnFailureListener(e ->
-                        categoriesLiveData.setValue(new ArrayList<>())
-                );
+                .addOnFailureListener(e -> categoriesLiveData.setValue(new ArrayList<>()));
     }
 
     /** ---------------- Circles (refactored to reduce cognitive complexity) ---------------- */
 
     public void loadUserCircles() {
         String uid = getUidOrClearCircles();
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         FirestoreManager.getInstance()
                 .userSavingsCirclePointers(uid)
@@ -140,7 +142,9 @@ public class ExpenseCreationViewModel extends ViewModel {
             PendingCounter pending
     ) {
         String circleId = safeTrim(doc.getString("circleId"));
-        if (circleId.isEmpty()) return;
+        if (circleId.isEmpty()) {
+            return;
+        }
 
         String pointerName = safeTrim(doc.getString("name"));
         if (!pointerName.isEmpty()) {
@@ -190,19 +194,24 @@ public class ExpenseCreationViewModel extends ViewModel {
             this.onZero = onZero;
         }
 
-        void increment() { count++; }
+        void increment() {
+            count++;
+        }
 
         void decrement() {
             count--;
-            if (count == 0) onZero.run();
+            if (count == 0) {
+                onZero.run();
+            }
         }
 
         void maybePublishNow() {
-            if (count == 0) onZero.run();
+            if (count == 0) {
+                onZero.run();
+            }
         }
     }
 
-    /** ---------------- Expense creation ---------------- */
 
     public void createExpense(
             String name, String date, String amountString,
@@ -225,7 +234,9 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         String normalizedCategory = normalizeCategory(data.getCategory());
         Double amount = parseAmount(data.getAmountString());
-        if (amount == null) return;
+        if (amount == null) {
+            return;
+        }
 
         long timestamp = parseDateToMillis(data.getDate());
 
@@ -269,7 +280,6 @@ public class ExpenseCreationViewModel extends ViewModel {
                 .update("contributions." + uid, FieldValue.increment(amount));
     }
 
-    /** ---------------- Category / Budget updates ---------------- */
 
     private void handleCategoryUpdate(String uid, String category, String expenseId) {
         FirestoreManager.getInstance()
@@ -312,11 +322,15 @@ public class ExpenseCreationViewModel extends ViewModel {
                 .limit(1)
                 .get()
                 .addOnSuccessListener(query -> {
-                    if (query.isEmpty()) return;
+                    if (query.isEmpty()) {
+                        return;
+                    }
 
                     DocumentSnapshot budgetDoc = query.getDocuments().get(0);
                     Budget budget = budgetDoc.toObject(Budget.class);
-                    if (budget == null) return;
+                    if (budget == null) {
+                        return;
+                    }
 
                     long budgetStart = budget.getStartDateTimestamp();
                     long budgetEnd = calcBudgetEnd(budgetStart, budget.getFrequency());
@@ -358,7 +372,9 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
             Expense e = doc.toObject(Expense.class);
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
 
             long t = e.getTimestamp();
             if (t >= startWindow && t <= effectiveEnd) {
@@ -392,7 +408,6 @@ public class ExpenseCreationViewModel extends ViewModel {
                 );
     }
 
-    /** ---------------- Utilities ---------------- */
 
     private String normalizeCategory(String category) {
         return category == null ? "" : category.trim().toLowerCase(Locale.US);
@@ -426,21 +441,24 @@ public class ExpenseCreationViewModel extends ViewModel {
     }
 
     private void runOnComplete(Runnable onComplete) {
-        if (onComplete != null) onComplete.run();
+        if (onComplete != null) {
+            onComplete.run();
+        }
     }
 
     private long parseDateToMillis(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         try {
             Date date = sdf.parse(dateString);
-            if (date != null) return date.getTime();
+            if (date != null) {
+                return date.getTime();
+            }
         } catch (Exception e) {
             Log.w(TAG, "Bad date: " + dateString, e);
         }
         return System.currentTimeMillis();
     }
 
-    /** ---------------- Sample data ---------------- */
 
     public void createSampleExpenses() {
         createExpense("Tin Drum", "Oct 15, 2025", "20.00", EATING, null, null);

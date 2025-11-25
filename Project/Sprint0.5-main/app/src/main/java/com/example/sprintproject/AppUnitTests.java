@@ -17,7 +17,6 @@ import static org.junit.Assert.*;
 
 import com.example.sprintproject.model.ExpenseData;
 import com.example.sprintproject.model.NotificationData;
-import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpenseRepository;
 import com.example.sprintproject.viewmodel.NotificationQueueManager;
 
@@ -29,9 +28,85 @@ public class AppUnitTests {
     private static final String TITLE = "Challenge Title";
     private static final String GROUP_NAME = "Group Name";
     private static final String MONTHLY = "monthly";
-
-    // Shared constant for all utility classes to avoid duplicated literals
     private static final String UTILITY_CLASS_ERROR = "Utility class";
+
+    @Test
+    public void testExpenseContributionToSavingsCircle() {
+        SavingsCircle testCircle = new SavingsCircle("Test Circle");
+        testCircle.addContribution("Alice", 100);
+        assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
+        testCircle.addContribution("Alice", 50);
+        assertEquals(150, testCircle.getContributions().get("Alice"), 0.001);
+    }
+
+    @Test
+    public void testExpenseTowardsGroupContribution() {
+        ExpenseData data = new ExpenseData(
+                "Toys", "11/25/2025", "15.00",
+                "eating", "NA", true, "testCircle"
+        );
+
+        assertTrue(data.getContributesToGroupSavings());
+        assertEquals("testCircle", data.getCircleId());
+    }
+
+    @Test
+    public void testExpenseTowardsNoGroupContribution() {
+        ExpenseData data = new ExpenseData(
+                "Toys", "11/25/2025", "15.00",
+                "eating", "NA", false, null
+        );
+
+        assertFalse(data.getContributesToGroupSavings());
+        assertNull(data.getCircleId());
+    }
+
+    @Test
+    public void testMissedLogReminder() {
+        NotificationData notify = NotificationData.createMissedLogReminder(7);
+        assertEquals(NotificationData.Type.MISSED_LOG, notify.getType());
+        assertEquals("Log Reminder", notify.getTitle());
+        assertEquals("It's been 3 days since your last expense!", notify.getMessage());
+        assertTrue(notify.getPriority() >= 100);
+    }
+
+    @Test
+    public void testBudgetReminder() {
+        NotificationData warning = NotificationData.createAlmostBudgetFullReminder("Test", 99);
+        assertEquals(NotificationData.Type.BUDGET_WARNING, warning.getType());
+        assertEquals("Budget Almost Full Warning", warning.getTitle());
+        assertTrue(warning.getPriority() >= 80);
+        assertTrue(warning.getMessage().contains("99"));
+    }
+
+    @Test
+    public void testNotificationQueuePriority() {
+        NotificationQueueManager queue = NotificationQueueManager.getInstance();
+        queue.dismissCurrentReminder();
+        NotificationData important = new NotificationData(NotificationData.Type.MISSED_LOG,
+                "Important", "NA", 99);
+        NotificationData notImportant = new NotificationData(NotificationData.Type.BUDGET_WARNING,
+                "Not Important", "NA", 10);
+
+        queue.submitReminder(notImportant);
+        queue.submitReminder(important);
+        NotificationData display = queue.getCurrentReminder().getValue();
+        assertEquals("Important", display.getTitle());
+    }
+
+    @Test
+    public void testCalcDaysSinceLastLogZero() {
+        long zero = System.currentTimeMillis();
+        assertEquals(0, ExpenseRepository.calculateDaysSince(zero, zero));
+
+    }
+
+    @Test
+    public void testCalcDaysIfNoLogs() {
+        long none = System.currentTimeMillis();
+        int result = ExpenseRepository.calculateDaysSince(0, none);
+        assertEquals(-1, result);
+    }
 
     @Test
     public void testComputeSurplusPositive() {
@@ -115,41 +190,61 @@ public class AppUnitTests {
         assertFalse(AuthValidator.isValidInput("user@", PASSWORD));
     }
 
-    // Mirrors your DashboardFragment.readDouble() behavior without Firebase.
-    private static Double readDoubleLikeHelper(Object o) {
-        if (o == null) {
-            return null;
-        }
-        if (o instanceof Double) {
-            return (Double) o;
-        }
-        if (o instanceof Long) {
-            return ((Long) o).doubleValue();
-        }
-        if (o instanceof Integer) {
-            return ((Integer) o).doubleValue();
-        }
-        if (o instanceof Float) {
-            return ((Float) o).doubleValue();
-        }
-        if (o instanceof String) {
-            try {
-                return Double.parseDouble((String) o);
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
-        }
-        return null;
+    @Test
+    public void testAddContribution() {
+        SavingsCircle circle = new SavingsCircle("My Circle");
+        circle.addContribution(ALICE, 100);
+        assertEquals(100, circle.getContributions().get(ALICE), 0.001);
     }
 
-    @SafeVarargs
-    private static <T> T coalesce(T... vals) {
-        for (T v : vals) {
-            if (v != null) {
-                return v;
-            }
-        }
-        return null;
+    @Test
+    public void testTotalContributions() {
+        SavingsCircle circle = new SavingsCircle("My Circle");
+        circle.addContribution(ALICE, 100);
+        circle.addContribution("Bob", 50);
+        assertEquals(150, circle.totalContributions(), 0.001);
+    }
+
+    @Test
+    public void testAcceptValidSavingsCircleInputs() {
+        assertTrue(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 500, MONTHLY));
+    }
+
+    @Test
+    public void testRejectInvalidSavingsCircleInputs() {
+        assertFalse(SavingsCircleValidator.isValidInput("", TITLE, 100, MONTHLY));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, -50, "weekly"));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 100, "daily"));
+    }
+
+    @Test
+    public void testAddAndRemoveBudget() {
+        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
+                new ArrayList<>(), new ArrayList<>());
+        Budget budget1 = new Budget("Food Budget");
+        Budget budget2 = new Budget("Travel Budget");
+
+        user.addBudget(budget1);
+        user.addBudget(budget2);
+
+        assertEquals(2, user.getBudgets().size());
+        assertTrue(user.getBudgets().contains(budget1));
+
+        user.removeBudget(budget1);
+        assertEquals(1, user.getBudgets().size());
+        assertFalse(user.getBudgets().contains(budget1));
+    }
+
+    @Test
+    public void testAddAndRemoveExpense() {
+        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
+                new ArrayList<>(), new ArrayList<>());
+        Expense expense1 = new Expense("Dinner");
+        user.addExpense(expense1);
+        assertEquals(1, user.getExpenses().size());
+
+        user.removeExpense(expense1);
+        assertTrue(user.getExpenses().isEmpty());
     }
 
     @Test
@@ -215,61 +310,40 @@ public class AppUnitTests {
         assertTrue(budgetSum > spent);
     }
 
-    @Test
-    public void testAddContribution() {
-        SavingsCircle circle = new SavingsCircle("My Circle");
-        circle.addContribution(ALICE, 100);
-        assertEquals(100, circle.getContributions().get(ALICE), 0.001);
+    private static Double readDoubleLikeHelper(Object o) {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Double) {
+            return (Double) o;
+        }
+        if (o instanceof Long) {
+            return ((Long) o).doubleValue();
+        }
+        if (o instanceof Integer) {
+            return ((Integer) o).doubleValue();
+        }
+        if (o instanceof Float) {
+            return ((Float) o).doubleValue();
+        }
+        if (o instanceof String) {
+            try {
+                return Double.parseDouble((String) o);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
-    @Test
-    public void testTotalContributions() {
-        SavingsCircle circle = new SavingsCircle("My Circle");
-        circle.addContribution(ALICE, 100);
-        circle.addContribution("Bob", 50);
-        assertEquals(150, circle.totalContributions(), 0.001);
-    }
-
-    @Test
-    public void testAcceptValidSavingsCircleInputs() {
-        assertTrue(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 500, MONTHLY));
-    }
-
-    @Test
-    public void testRejectInvalidSavingsCircleInputs() {
-        assertFalse(SavingsCircleValidator.isValidInput("", TITLE, 100, MONTHLY));
-        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, -50, "weekly"));
-        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 100, "daily"));
-    }
-
-    @Test
-    public void testAddAndRemoveBudget() {
-        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
-                new ArrayList<>(), new ArrayList<>());
-        Budget budget1 = new Budget("Food Budget");
-        Budget budget2 = new Budget("Travel Budget");
-
-        user.addBudget(budget1);
-        user.addBudget(budget2);
-
-        assertEquals(2, user.getBudgets().size());
-        assertTrue(user.getBudgets().contains(budget1));
-
-        user.removeBudget(budget1);
-        assertEquals(1, user.getBudgets().size());
-        assertFalse(user.getBudgets().contains(budget1));
-    }
-
-    @Test
-    public void testAddAndRemoveExpense() {
-        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
-                new ArrayList<>(), new ArrayList<>());
-        Expense expense1 = new Expense("Dinner");
-        user.addExpense(expense1);
-        assertEquals(1, user.getExpenses().size());
-
-        user.removeExpense(expense1);
-        assertTrue(user.getExpenses().isEmpty());
+    @SafeVarargs
+    private static <T> T coalesce(T... vals) {
+        for (T v : vals) {
+            if (v != null) {
+                return v;
+            }
+        }
+        return null;
     }
 
     public static class BudgetCalculator {
@@ -340,8 +414,6 @@ public class AppUnitTests {
             return frequency != null && (frequency.equals("weekly") || frequency.equals(MONTHLY));
         }
     }
-
-    // ===== Simple model classes used for tests =====
 
     public class User {
         private String email;
@@ -462,84 +534,6 @@ public class AppUnitTests {
                     .mapToDouble(Double::doubleValue)
                     .sum();
         }
-    }
-
-    @Test
-    public void testExpenseContributionToSavingsCircle() {
-        SavingsCircle testCircle = new SavingsCircle("Test Circle");
-        testCircle.addContribution("Alice", 100);
-        assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
-        testCircle.addContribution("Alice", 50);
-        assertEquals(150, testCircle.getContributions().get("Alice"), 0.001);
-    }
-
-    @Test
-    public void testExpenseTowardsGroupContribution() {
-        ExpenseData data = new ExpenseData(
-                "Toys", "11/25/2025", "15.00",
-                "eating", "NA", true, "testCircle"
-        );
-
-        assertTrue(data.getContributesToGroupSavings());
-        assertEquals("testCircle", data.getCircleId());
-    }
-
-    @Test
-    public void testExpenseTowardsNoGroupContribution() {
-        ExpenseData data = new ExpenseData(
-                "Toys", "11/25/2025", "15.00",
-                "eating", "NA", false, null
-        );
-
-        assertFalse(data.getContributesToGroupSavings());
-        assertNull(data.getCircleId());
-    }
-
-    @Test
-    public void testMissedLogReminder() {
-        NotificationData notify = NotificationData.createMissedLogReminder(7);
-        assertEquals(NotificationData.Type.MISSED_LOG, notify.getType());
-        assertEquals("Log Reminder", notify.getTitle());
-        assertEquals("It's been 3 days since your last expense!", notify.getMessage());
-        assertTrue(notify.getPriority() >= 100);
-    }
-
-    @Test
-    public void testBudgetReminder() {
-        NotificationData warning = NotificationData.createAlmostBudgetFullReminder("Test", 99);
-        assertEquals(NotificationData.Type.BUDGET_WARNING, warning.getType());
-        assertEquals("Budget Almost Full Warning", warning.getTitle());
-        assertTrue(warning.getPriority() >= 80);
-        assertTrue(warning.getMessage().contains("99"));
-    }
-
-    @Test
-    public void testNotificationQueuePriority() {
-        NotificationQueueManager queue = NotificationQueueManager.getInstance();
-        queue.dismissCurrentReminder();
-        NotificationData important = new NotificationData(NotificationData.Type.MISSED_LOG,
-                "Important", "NA", 99);
-        NotificationData notImportant = new NotificationData(NotificationData.Type.BUDGET_WARNING,
-                "Not Important", "NA", 10);
-
-        queue.submitReminder(notImportant);
-        queue.submitReminder(important);
-        NotificationData display = queue.getCurrentReminder().getValue();
-        assertEquals("Important", display.getTitle());
-    }
-
-    @Test
-    public void testCalcDaysSinceLastLogZero() {
-        long zero = System.currentTimeMillis();
-        assertEquals(0, ExpenseRepository.calculateDaysSince(zero, zero));
-
-    }
-
-    @Test
-    public void testCalcDaysIfNoLogs() {
-        long none = System.currentTimeMillis();
-        int result = ExpenseRepository.calculateDaysSince(0, none);
-        assertEquals(-1, result);
     }
 }
 

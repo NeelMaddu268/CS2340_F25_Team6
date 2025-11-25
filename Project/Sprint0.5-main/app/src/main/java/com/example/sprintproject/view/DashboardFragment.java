@@ -1,5 +1,7 @@
-// The fragment hosts the main dashboard screen which shos the total spending, remaining budget, and charts.
-// The fragment observes date and data changes and updates the charts accordingly. It also provides calendar and other navigation.
+// The fragment hosts the main dashboard
+// screen which shos the total spending, remaining budget, and charts.
+// The fragment observes date and data changes
+// and updates the charts accordingly. It also provides calendar and other navigation.
 
 package com.example.sprintproject.view;
 
@@ -50,7 +52,7 @@ public class DashboardFragment extends Fragment {
 
     private DateViewModel dateVM;
     private DashboardViewModel dashboardVM;
-    AuthenticationViewModel authenticationViewModel;
+    private AuthenticationViewModel authenticationViewModel;
 
 
     private Charts charts;
@@ -172,14 +174,18 @@ public class DashboardFragment extends Fragment {
 
     private void syncThemeSwitchWithFirestore(SwitchCompat themeSwitch) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
+        if (user == null) {
+            return;
+        }
 
         FirebaseFirestore.getInstance().collection("users")
                 .document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists() && doc.contains("darkMode") && themeSwitch != null && isAdded()) {
-                        boolean darkMode = doc.getBoolean("darkMode");
+                    if (doc.exists() && doc.contains("darkMode")
+                            && themeSwitch != null && isAdded()) {
+                        boolean darkMode
+                                = doc.getBoolean("darkMode");
 
                         themeSwitch.setOnCheckedChangeListener(null);
 

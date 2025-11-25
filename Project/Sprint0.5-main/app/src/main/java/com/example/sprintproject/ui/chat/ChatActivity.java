@@ -95,7 +95,7 @@ public class ChatActivity extends AppCompatActivity {
             boolean[] checked = new boolean[docs.size()];
 
             for (int i = 0; i < docs.size(); i++) {
-                titles[i] = docs.get(i).title;
+                titles[i] = docs.get(i).getTitle();
             }
 
             new AlertDialog.Builder(this)
@@ -106,7 +106,7 @@ public class ChatActivity extends AppCompatActivity {
                         List<String> selected = new ArrayList<>();
                         for (int i = 0; i < checked.length; i++) {
                             if (checked[i]) {
-                                selected.add(docs.get(i).id);
+                                selected.add(docs.get(i).getId());
                             }
                         }
                         vm.setReferenceChats(selected);

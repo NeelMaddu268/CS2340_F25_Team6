@@ -24,15 +24,21 @@ import java.util.List;
 public class ChatViewModel extends ViewModel {
 
     public static class UiMessage {
-        public final String role;
-        public final String content;
-        public final long localTime;
+        private final String role;
+        private final String content;
+        private final long localTime;
 
         public UiMessage(String role, String content) {
             this.role = role;
             this.content = content;
             this.localTime = System.currentTimeMillis();
         }
+        public String getRole() {
+            return role; }
+        public String getContent() {
+            return content; }
+        public long getLocalTime() {
+            return localTime; }
     }
 
     private final MutableLiveData<List<UiMessage>> messages =
@@ -41,9 +47,15 @@ public class ChatViewModel extends ViewModel {
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>(null);
 
-    public LiveData<List<UiMessage>> getMessages() { return messages; }
-    public LiveData<Boolean> getLoading() { return loading; }
-    public LiveData<String> getError() { return error; }
+    public LiveData<List<UiMessage>> getMessages() {
+        return messages;
+    }
+    public LiveData<Boolean> getLoading() {
+        return loading;
+    }
+    public LiveData<String> getError() {
+        return error;
+    }
 
     private final ChatRepository repo = new ChatRepository();
     private final OllamaClient ollama = new OllamaClient();
@@ -142,7 +154,9 @@ public class ChatViewModel extends ViewModel {
 
     public void setReferenceChats(List<String> chatIds) {
         selectedReferenceChatIds.clear();
-        if (chatIds != null) selectedReferenceChatIds.addAll(chatIds);
+        if (chatIds != null) {
+            selectedReferenceChatIds.addAll(chatIds);
+        }
 
         if (activeChatId != null) {
             repo.setReferencedChats(activeChatId, selectedReferenceChatIds);
@@ -150,7 +164,9 @@ public class ChatViewModel extends ViewModel {
     }
 
     public void sendUserMessage(String userText) {
-        if (activeChatId == null || userText == null) return;
+        if (activeChatId == null || userText == null) {
+            return;
+        }
 
         error.postValue(null);
         loading.postValue(true);
@@ -174,7 +190,7 @@ public class ChatViewModel extends ViewModel {
                     FinancialInsightsEngine.InsightResult ir =
                             engine.tryHandle(userText, expenses, budgets);
 
-                    String promptToAI = ir.handled ? ir.aiFollowupPrompt : userText;
+                    String promptToAI = ir.getHandled() ? ir.getAiFollowupPrompt() : userText;
 
                     buildFinalPrompt(promptToAI)
                             .addOnSuccessListener(fullPrompt -> {
@@ -189,8 +205,9 @@ public class ChatViewModel extends ViewModel {
     }
 
     private Task<String> buildFinalPrompt(String prompt) {
-        if (selectedReferenceChatIds.isEmpty())
+        if (selectedReferenceChatIds.isEmpty()) {
             return Tasks.forResult(prompt);
+        }
 
         List<Task<String>> summaryTasks = new ArrayList<>();
         for (String id : selectedReferenceChatIds) {
@@ -201,7 +218,9 @@ public class ChatViewModel extends ViewModel {
             StringBuilder sb = new StringBuilder();
             sb.append("Context from previous chats:\n");
             for (Object s : t.getResult()) {
-                if (s != null) sb.append("- ").append(s).append("\n");
+                if (s != null) {
+                    sb.append("- ").append(s).append("\n");
+                }
             }
             sb.append("\nUser prompt:\n").append(prompt);
             return sb.toString();
@@ -214,8 +233,8 @@ public class ChatViewModel extends ViewModel {
             JSONObject sys = new JSONObject();
             sys.put("role", "system");
             sys.put("content",
-                    "You are SpendWise, a concise financial advisor. " +
-                            "Only use the numeric facts provided. Give practical tips.");
+                    "You are SpendWise, a concise financial advisor. "
+                            + "Only use the numeric facts provided. Give practical tips.");
             arr.put(sys);
 
             List<UiMessage> ui = messages.getValue();
@@ -238,7 +257,9 @@ public class ChatViewModel extends ViewModel {
             user.put("content", fullPrompt);
             arr.put(user);
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+
+        }
         return arr;
     }
 
@@ -316,7 +337,9 @@ public class ChatViewModel extends ViewModel {
 
     private void generateAndStoreSummary() {
         List<UiMessage> ui = messages.getValue();
-        if (ui == null || ui.isEmpty()) return;
+        if (ui == null || ui.isEmpty()) {
+            return;
+        }
 
         StringBuilder convo = new StringBuilder();
         int start = Math.max(0, ui.size() - 10);
@@ -330,12 +353,14 @@ public class ChatViewModel extends ViewModel {
             arr.put(new JSONObject()
                     .put("role", "user")
                     .put("content",
-                            "Summarize this conversation in 1-2 sentences " +
-                                    "for memory. Be factual:\n" + convo));
+                            "Summarize this conversation in 1-2 sentences "
+                                    + "for memory. Be factual:\n" + convo));
 
             ollama.chat(arr, new OllamaClient.ChatCallback() {
                 @Override public void onSuccess(String reply) {
-                    if (reply != null) repo.updateChatSummary(activeChatId, reply.trim());
+                    if (reply != null) {
+                        repo.updateChatSummary(activeChatId, reply.trim());
+                    }
                 }
                 @Override public void onError(String error) { }
             });
@@ -345,7 +370,9 @@ public class ChatViewModel extends ViewModel {
 
     @Override
     protected void onCleared() {
-        if (msgListener != null) msgListener.remove();
+        if (msgListener != null) {
+            msgListener.remove();
+        }
         ollama.cancelActive();
     }
 }
