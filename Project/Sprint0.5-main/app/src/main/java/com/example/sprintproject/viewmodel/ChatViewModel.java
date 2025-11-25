@@ -1,7 +1,5 @@
 package com.example.sprintproject.viewmodel;
 
-import com.example.sprintproject.repository.ChatRepository;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -10,6 +8,7 @@ import com.example.sprintproject.logic.FinancialInsightsEngine;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.example.sprintproject.network.OllamaClient;
+import com.example.sprintproject.repository.ChatRepository;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -23,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChatViewModel extends ViewModel {
+
+    // ---------- UI model ----------
 
     public static class UiMessage {
         public final String role;   // "user", "assistant", "assistant_partial"
@@ -46,6 +47,8 @@ public class ChatViewModel extends ViewModel {
     public LiveData<Boolean> getLoading() { return loading; }
     public LiveData<String> getError() { return error; }
 
+    // ---------- deps ----------
+
     private final ChatRepository repo = new ChatRepository();
     private final OllamaClient ollama = new OllamaClient();
     private final FinancialInsightsEngine engine = new FinancialInsightsEngine();
@@ -56,7 +59,36 @@ public class ChatViewModel extends ViewModel {
 
     private ListenerRegistration msgListener;
 
-    /** ---------------- Chat session ---------------- */
+    // ---------- small helpers for LiveData<List<UiMessage>> ----------
+
+    private List<UiMessage> currentListOrEmpty() {
+        List<UiMessage> cur = messages.getValue();
+        return cur == null ? new ArrayList<>() : new ArrayList<>(cur); // ALWAYS COPY
+    }
+
+    private void addLocalMessage(String role, String content) {
+        List<UiMessage> copy = currentListOrEmpty();
+        copy.add(new UiMessage(role, content));
+        messages.postValue(copy);
+    }
+
+    private void updateLastPartial(String newContent, String role) {
+        List<UiMessage> copy = currentListOrEmpty();
+        int last = copy.size() - 1;
+        if (last >= 0 && "assistant_partial".equals(copy.get(last).role)) {
+            copy.set(last, new UiMessage(role, newContent));
+        } else {
+            copy.add(new UiMessage(role, newContent));
+        }
+        messages.postValue(copy);
+    }
+
+    private void replaceWithFirestoreSnapshot(List<UiMessage> snapshotList) {
+        // snapshotList already a fresh list we build from Firestore
+        messages.postValue(snapshotList);
+    }
+
+    // ---------- Chat session ----------
 
     public void startNewChat() {
         repo.createChatSkeleton()
@@ -83,6 +115,7 @@ public class ChatViewModel extends ViewModel {
     private void listenMessages() {
         if (msgListener != null) {
             msgListener.remove();
+            msgListener = null;
         }
         if (activeChatId == null) {
             return;
@@ -110,7 +143,8 @@ public class ChatViewModel extends ViewModel {
                             ui.add(new UiMessage(role, content));
                         }
                     }
-                    messages.postValue(ui);
+                    // IMPORTANT: pass fresh list object
+                    replaceWithFirestoreSnapshot(ui);
                 });
     }
 
@@ -127,7 +161,7 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    /** ---------------- Sending messages ---------------- */
+    // ---------- Sending messages ----------
 
     public void sendUserMessage(String userText) {
         if (activeChatId == null || userText == null) return;
@@ -135,9 +169,13 @@ public class ChatViewModel extends ViewModel {
         error.postValue(null);
         loading.postValue(true);
 
-        // Store user message in Firestore
+        // 1) show user's bubble IMMEDIATELY in UI
+        addLocalMessage("user", userText);
+
+        // 2) Store user message in Firestore
         repo.addMessage(activeChatId, "user", userText);
 
+        // 3) Load budgets/expenses & ask AI
         loadDataThenRespond(userText);
     }
 
@@ -167,7 +205,7 @@ public class ChatViewModel extends ViewModel {
                 });
     }
 
-    /** ---------------- Prompt building ---------------- */
+    // ---------- Prompt building ----------
 
     private Task<String> buildFinalPrompt(String prompt) {
         if (selectedReferenceChatIds.isEmpty())
@@ -223,7 +261,7 @@ public class ChatViewModel extends ViewModel {
         return arr;
     }
 
-    /** ---------------- Streaming assistant ---------------- */
+    // ---------- Streaming assistant ----------
 
     private void streamAssistant(JSONArray msgArr, String rawUserText) {
         if (activeChatId == null) {
@@ -231,44 +269,29 @@ public class ChatViewModel extends ViewModel {
             return;
         }
 
-        // UI-only partial bubble (NOT written to Firestore)
-        List<UiMessage> ui = messages.getValue();
-        if (ui == null) ui = new ArrayList<>();
-        ui.add(new UiMessage("assistant_partial", ""));
-        messages.postValue(ui);
+        // Add an empty partial bubble (new list instance)
+        addLocalMessage("assistant_partial", "");
 
         final StringBuilder streaming = new StringBuilder();
 
         ollama.chatStream(msgArr, new OllamaClient.StreamCallback() {
-            @Override public void onToken(String token) {
+            @Override
+            public void onToken(String token) {
                 streaming.append(token);
-
-                List<UiMessage> cur = messages.getValue();
-                if (cur == null) cur = new ArrayList<>();
-
-                int last = cur.size() - 1;
-                if (last >= 0 && "assistant_partial".equals(cur.get(last).role)) {
-                    cur.set(last, new UiMessage("assistant_partial", streaming.toString()));
-                } else {
-                    cur.add(new UiMessage("assistant_partial", streaming.toString()));
-                }
-                messages.postValue(cur);
+                // Update last partial bubble text
+                updateLastPartial(streaming.toString(), "assistant_partial");
             }
 
-            @Override public void onComplete(String fullReply) {
+            @Override
+            public void onComplete(String fullReply) {
                 loading.postValue(false);
 
                 if (fullReply == null || fullReply.trim().isEmpty()) {
                     fullReply = "Sorry, I couldn’t fetch a response. Try again.";
                 }
 
-                List<UiMessage> cur = messages.getValue();
-                if (cur == null) cur = new ArrayList<>();
-                if (!cur.isEmpty() && "assistant_partial".equals(cur.get(cur.size()-1).role)) {
-                    cur.remove(cur.size()-1);
-                }
-                cur.add(new UiMessage("assistant", fullReply));
-                messages.postValue(cur);
+                // Replace the partial bubble with a final assistant bubble
+                updateLastPartial(fullReply, "assistant");
 
                 repo.addMessage(activeChatId, "assistant", fullReply);
 
@@ -280,24 +303,20 @@ public class ChatViewModel extends ViewModel {
                 generateAndStoreSummary();
             }
 
-            @Override public void onError(String err) {
+            @Override
+            public void onError(String err) {
                 loading.postValue(false);
                 error.postValue("AI response failed.");
 
-                List<UiMessage> cur = messages.getValue();
-                if (cur == null) cur = new ArrayList<>();
-                if (!cur.isEmpty() && "assistant_partial".equals(cur.get(cur.size()-1).role)) {
-                    cur.remove(cur.size()-1);
-                }
-                cur.add(new UiMessage("assistant",
-                        "I couldn’t reach the AI right now."));
-                messages.postValue(cur);
+                updateLastPartial("I couldn’t reach the AI right now.", "assistant");
 
                 repo.addMessage(activeChatId, "assistant",
                         "I couldn’t reach the AI right now.");
             }
         });
     }
+
+    // ---------- Title & summary ----------
 
     private void generateTitle(String firstPrompt) {
         try {
@@ -313,10 +332,10 @@ public class ChatViewModel extends ViewModel {
                     String title = reply == null ? "Chat" : reply.trim();
                     repo.updateChatTitle(activeChatId, title);
                 }
-                @Override public void onError(String error) {}
+                @Override public void onError(String error) { }
             });
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { }
     }
 
     private void generateAndStoreSummary() {
@@ -342,10 +361,10 @@ public class ChatViewModel extends ViewModel {
                 @Override public void onSuccess(String reply) {
                     if (reply != null) repo.updateChatSummary(activeChatId, reply.trim());
                 }
-                @Override public void onError(String error) {}
+                @Override public void onError(String error) { }
             });
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { }
     }
 
     @Override

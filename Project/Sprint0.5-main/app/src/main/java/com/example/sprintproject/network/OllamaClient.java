@@ -40,7 +40,7 @@ public class OllamaClient {
 
     private final OkHttpClient client;
 
-    private final String baseUrl;   // e.g. http://10.0.2.2:11434/api/chat
+    private final String baseUrl = "http://10.0.2.2:11434/api/chat";
     private final String modelName; // e.g. llama3.2
 
     private volatile Call activeCall; // for cancel()
@@ -50,7 +50,6 @@ public class OllamaClient {
     }
 
     public OllamaClient(String baseUrl, String modelName) {
-        this.baseUrl = baseUrl;
         this.modelName = modelName;
 
         // generous timeouts for LLMs

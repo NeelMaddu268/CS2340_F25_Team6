@@ -50,6 +50,7 @@
             android:layout_height="48dp"
             android:layout_gravity="center"
             android:visibility="gone" />
+    </FrameLayout>
 
     <!-- Error text -->
     <TextView
@@ -94,5 +95,4 @@
             android:layout_marginStart="4dp"
             android:text="Send" />
     </LinearLayout>
-    </FrameLayout>
 </LinearLayout>

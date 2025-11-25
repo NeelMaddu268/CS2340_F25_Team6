@@ -4,12 +4,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,11 +65,6 @@ public class ChatRepository {
 
     // ---------- chat operations ----------
 
-    /**
-     * Create an empty chat document under:
-     * users/{uid}/chats/{chatId}
-     * and return a Task that resolves to the new DocumentReference.
-     */
     public Task<DocumentReference> createChatSkeleton() {
         try {
             CollectionReference chats = chatsCollection();
@@ -95,9 +85,6 @@ public class ChatRepository {
         }
     }
 
-    /**
-     * Load all chats for the current user and map them to ChatDoc.
-     */
     public Task<List<ChatDoc>> loadChatDocs() {
         try {
             return chatsCollection()
@@ -112,9 +99,7 @@ public class ChatRepository {
                             String id = d.getId();
                             String title = d.getString("title");
                             String summary = d.getString("summary");
-                            if (title == null || title.trim().isEmpty()) {
-                                title = "Chat";
-                            }
+                            if (title == null || title.trim().isEmpty()) title = "Chat";
                             if (summary == null) summary = "";
                             out.add(new ChatDoc(id, title, summary));
                         }
@@ -125,9 +110,6 @@ public class ChatRepository {
         }
     }
 
-    /**
-     * Update the list of referenced chats on a chat document.
-     */
     public void setReferencedChats(String chatId, List<String> referencedIds) {
         try {
             Map<String, Object> update = new HashMap<>();
@@ -139,9 +121,6 @@ public class ChatRepository {
         } catch (IllegalStateException ignored) { }
     }
 
-    /**
-     * Add a message to users/{uid}/chats/{chatId}/messages.
-     */
     public void addMessage(String chatId, String role, String content) {
         try {
             DocumentReference chatRef = chatsCollection().document(chatId);
@@ -154,6 +133,22 @@ public class ChatRepository {
             chatRef.collection("messages").add(msg);
             chatRef.update("updatedAt", System.currentTimeMillis());
         } catch (IllegalStateException ignored) { }
+    }
+
+    /** ✅ REAL listener for messages */
+    public ListenerRegistration listenMessages(
+            String chatId,
+            EventListener<QuerySnapshot> listener
+    ) {
+        try {
+            return chatsCollection()
+                    .document(chatId)
+                    .collection("messages")
+                    .orderBy("timestamp", Query.Direction.ASCENDING)
+                    .addSnapshotListener(listener);
+        } catch (IllegalStateException e) {
+            return null;
+        }
     }
 
     // ---------- budgets / expenses ----------
