@@ -21,9 +21,7 @@ import java.util.List;
 public class ChatActivity extends AppCompatActivity {
 
     private ChatViewModel vm;
-    private ChatAdapter adapter;
-    private RecyclerView recycler;
-    private TextView errorText;
+    // need to keep as a global variable as it is updated in multiple methods
     private EditText input;
 
     @Override
@@ -33,12 +31,12 @@ public class ChatActivity extends AppCompatActivity {
 
         vm = new ViewModelProvider(this).get(ChatViewModel.class);
 
-        recycler = findViewById(R.id.recyclerChat);
-        errorText = findViewById(R.id.txtChatError);
+        final RecyclerView recycler = findViewById(R.id.recyclerChat);
+        final TextView errorText = findViewById(R.id.txtChatError);
         input = findViewById(R.id.editChatInput);
         Button send = findViewById(R.id.btnSend);
 
-        adapter = new ChatAdapter();
+        final ChatAdapter adapter = new ChatAdapter();
         recycler.setLayoutManager(new LinearLayoutManager(this));
         recycler.setAdapter(adapter);
 

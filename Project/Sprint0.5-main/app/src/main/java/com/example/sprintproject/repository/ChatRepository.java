@@ -12,7 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 public class ChatRepository {
-
+    private static final String USERS = "users";
+    private static final String TITLE = "title";
+    private static final String SUMMARY = "summary";
+    private static final String UPDATEDAT = "updatedAt";
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
 
@@ -31,19 +34,19 @@ public class ChatRepository {
     }
 
     private CollectionReference chatsCollection() {
-        return db.collection("users")
+        return db.collection(USERS)
                 .document(requireUid())
                 .collection("chats");
     }
 
     private CollectionReference expensesCollection() {
-        return db.collection("users")
+        return db.collection(USERS)
                 .document(requireUid())
                 .collection("expenses");
     }
 
     private CollectionReference budgetsCollection() {
-        return db.collection("users")
+        return db.collection(USERS)
                 .document(requireUid())
                 .collection("budgets");
     }
@@ -56,10 +59,10 @@ public class ChatRepository {
             long now = System.currentTimeMillis();
 
             Map<String, Object> data = new HashMap<>();
-            data.put("title", "New chat");
-            data.put("summary", "");
+            data.put(TITLE, "New chat");
+            data.put(SUMMARY, "");
             data.put("createdAt", now);
-            data.put("updatedAt", now);
+            data.put(UPDATEDAT, now);
             data.put("referencedChatIds", new ArrayList<String>());
 
             return ref.set(data).continueWith(t -> ref);
@@ -80,14 +83,10 @@ public class ChatRepository {
                         }
                         for (DocumentSnapshot d : t.getResult().getDocuments()) {
                             String id = d.getId();
-                            String title = d.getString("title");
-                            String summary = d.getString("summary");
-                            if (title == null || title.trim().isEmpty()) {
-                                title = "Chat";
-                            }
-                            if (summary == null) {
-                                summary = "";
-                            }
+                            String title = d.getString(TITLE);
+                            String summary = d.getString(SUMMARY);
+                            if (title == null || title.trim().isEmpty()) title = "Chat";
+                            if (summary == null) summary = "";
                             out.add(new ChatDoc(id, title, summary));
                         }
                         return out;
@@ -102,10 +101,12 @@ public class ChatRepository {
             Map<String, Object> update = new HashMap<>();
             update.put("referencedChatIds",
                     referencedIds == null ? new ArrayList<>() : referencedIds);
-            update.put("updatedAt", System.currentTimeMillis());
+            update.put(UPDATEDAT, System.currentTimeMillis());
 
             chatsCollection().document(chatId).update(update);
-        } catch (IllegalStateException ignored) { }
+        } catch (IllegalStateException ignored) {
+            // Intentionally ignored due to Firebase limitations
+        }
     }
 
     public void addMessage(String chatId, String role, String content) {
@@ -118,8 +119,10 @@ public class ChatRepository {
             msg.put("timestamp", System.currentTimeMillis());
 
             chatRef.collection("messages").add(msg);
-            chatRef.update("updatedAt", System.currentTimeMillis());
-        } catch (IllegalStateException ignored) { }
+            chatRef.update(UPDATEDAT, System.currentTimeMillis());
+        } catch (IllegalStateException ignored) {
+            // Intentionally ignored due to Firebase limitations
+        }
     }
 
     public ListenerRegistration listenMessages(
@@ -162,10 +165,8 @@ public class ChatRepository {
                     .get()
                     .continueWith(t -> {
                         DocumentSnapshot d = t.getResult();
-                        if (d == null) {
-                            return "";
-                        }
-                        String s = d.getString("summary");
+                        if (d == null) return "";
+                        String s = d.getString(SUMMARY);
                         return s == null ? "" : s;
                     });
         } catch (IllegalStateException e) {
@@ -176,19 +177,23 @@ public class ChatRepository {
     public void updateChatTitle(String chatId, String title) {
         try {
             Map<String, Object> update = new HashMap<>();
-            update.put("title", title);
-            update.put("updatedAt", System.currentTimeMillis());
+            update.put(TITLE, title);
+            update.put(UPDATEDAT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
-        } catch (IllegalStateException ignored) { }
+        } catch (IllegalStateException ignored) {
+            // Intentionally ignored due to Firebase limitations
+        }
     }
 
     public void updateChatSummary(String chatId, String summary) {
         try {
             Map<String, Object> update = new HashMap<>();
-            update.put("summary", summary);
-            update.put("updatedAt", System.currentTimeMillis());
+            update.put(SUMMARY, summary);
+            update.put(UPDATEDAT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
-        } catch (IllegalStateException ignored) { }
+        } catch (IllegalStateException ignored) {
+            // Intentionally ignored due to Firebase limitations
+        }
     }
 
     public static class ChatDoc {

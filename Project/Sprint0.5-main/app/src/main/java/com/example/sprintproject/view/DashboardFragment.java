@@ -144,9 +144,9 @@ public class DashboardFragment extends Fragment {
             });
         }
 
-        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            authenticationViewModel.toggleTheme(isChecked, requireContext());
-        });
+        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+            authenticationViewModel.toggleTheme(isChecked, requireContext())
+        );
 
         if (logoutButton != null) {
             logoutButton.setOnClickListener(v -> {
@@ -193,9 +193,9 @@ public class DashboardFragment extends Fragment {
 
                         ThemeManager.applyTheme(darkMode, requireContext());
 
-                        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                            authenticationViewModel.toggleTheme(isChecked, requireContext());
-                        });
+                        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                            authenticationViewModel.toggleTheme(isChecked, requireContext())
+                        );
                     }
                 })
                 .addOnFailureListener(e -> Log.w("ThemeSync", "Failed to fetch theme", e));

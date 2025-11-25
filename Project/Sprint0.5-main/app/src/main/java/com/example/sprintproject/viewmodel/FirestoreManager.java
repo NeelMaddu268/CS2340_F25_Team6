@@ -60,12 +60,10 @@ public class FirestoreManager {
                 .collection(CHATS_STRING);
     }
 
-    // users/{uid}/chats/{chatId}
     public DocumentReference userChatDoc(String uid, String chatId) {
         return userChatsReference(uid).document(chatId);
     }
 
-    // users/{uid}/chats/{chatId}/messages
     public CollectionReference chatMessagesReference(String uid, String chatId) {
         return userChatDoc(uid, chatId).collection("messages");
     }
@@ -155,7 +153,6 @@ public class FirestoreManager {
         return tcs.getTask();
     }
 
-
     private boolean validateCircleAndPermission(
             DocumentSnapshot snapshot,
             String requesterUid,
@@ -244,7 +241,6 @@ public class FirestoreManager {
             }
         }
     }
-
 
     public void addBudget(String uid, Budget budget) {
         budgetsReference(uid).add(budget);

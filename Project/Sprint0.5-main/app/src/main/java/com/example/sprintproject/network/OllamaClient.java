@@ -211,6 +211,7 @@ public class OllamaClient {
                         try {
                             source.close();
                         } catch (Exception ignored) {
+                            // Intentionally ignored due to Firebase limitations
                         }
                     }
                 }

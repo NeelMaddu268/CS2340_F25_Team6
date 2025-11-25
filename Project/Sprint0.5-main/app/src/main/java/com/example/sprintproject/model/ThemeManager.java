@@ -12,7 +12,9 @@ import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatDelegate;
 
 public class ThemeManager {
-
+    private ThemeManager() {
+        throw new UnsupportedOperationException("Utility class");
+    }
     private static final String PREF_NAME = "theme_prefs";
     private static final String PREF_KEY = "is_dark";
 
