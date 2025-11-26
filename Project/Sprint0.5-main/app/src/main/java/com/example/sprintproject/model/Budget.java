@@ -5,7 +5,11 @@
 
 package com.example.sprintproject.model;
 
-public class Budget {
+
+
+
+
+public class Budget implements FinanceElement {
     private String name;
     private double amount;
     private String category;
@@ -142,5 +146,11 @@ public class Budget {
 
     public void setStartDateTimestamp(long startDateTimestamp) {
         this.startDateTimestamp = startDateTimestamp;
+    }
+
+
+    @Override
+    public void accept(FinanceVisitor visitor) {
+        visitor.visit(this);
     }
 }
