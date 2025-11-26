@@ -1,7 +1,3 @@
-// The fragment shos the user's invitations using a RecyclerView and
-// updates the UI as the invites are accepted or declined.
-// Listens for real time invite changes and updates the UI accordingly.
-
 package com.example.sprintproject.view;
 
 import static android.app.ProgressDialog.show;
@@ -54,20 +50,6 @@ public class InvitationsFragment extends Fragment {
                 new ArrayList<>(),
                 invitationsViewModel,
                 dateViewModel,
-        final TextView noInvitesText = view.findViewById(R.id.noInvitesText);
-
-        //use provider, not new()
-        invitationsViewModel = new ViewModelProvider(requireActivity())
-                .get(InvitationsViewModel.class);
-
-        //shared app date VM
-        DateViewModel dateVM = new ViewModelProvider(requireActivity())
-                .get(DateViewModel.class);
-
-        final InvitationsAdapter adapter = new InvitationsAdapter(
-                new ArrayList<>(),
-                invitationsViewModel,
-                dateVM,
                 requireContext(),
                 getViewLifecycleOwner()
         );
@@ -100,10 +82,6 @@ public class InvitationsFragment extends Fragment {
         invitationsViewModel.getInvites().observe(getViewLifecycleOwner(), invites -> {
             circleAdapter.updateInvites(invites);
             checkEmptyText(noInvitesText);
-        invitationsViewModel.getInvites().observe(getViewLifecycleOwner(), invites -> {
-            adapter.updateInvites(invites);
-            noInvitesText.setVisibility(invites == null || invites.isEmpty()
-                    ? View.VISIBLE : View.GONE);
         });
     }
 
@@ -120,18 +98,5 @@ public class InvitationsFragment extends Fragment {
         super.onDestroyView();
         friendRequestsViewModel.stopListeningForRequests();
         invitationsViewModel.stopListening();
-    }
-    public void onStart() {
-        super.onStart();
-        if (invitationsViewModel != null) {
-            invitationsViewModel.startListening();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (invitationsViewModel != null) {
-            invitationsViewModel.stopListening();
-        }
     }
 }
