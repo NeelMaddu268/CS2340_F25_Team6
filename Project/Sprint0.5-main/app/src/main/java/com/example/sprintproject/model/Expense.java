@@ -1,5 +1,5 @@
 // This class shows a single expense and stores all of its details.
-// It also includes helpers that check wether the expense
+// It also includes helpers that check whether the expense
 // contributes to group savings.
 
 package com.example.sprintproject.model;
@@ -8,7 +8,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class Expense {
+
+public class Expense implements FinanceElement {
+
     private String name;
     private double amount;
     private String category;
@@ -107,5 +109,11 @@ public class Expense {
 
     public void setContributesToGroupSavings(boolean contributesToGroupSavings) {
         this.contributesToGroupSavings = contributesToGroupSavings;
+    }
+
+
+    @Override
+    public void accept(FinanceVisitor visitor) {
+        visitor.visit(this);
     }
 }
