@@ -111,7 +111,7 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        viewModel.startListeningForFriends();
+        viewModel.stopListeningForFriends();
         viewModel.stopListeningForRequests();
     }
 
