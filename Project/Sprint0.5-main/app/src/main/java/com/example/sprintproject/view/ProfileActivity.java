@@ -26,8 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 
 public class ProfileActivity extends AppCompatActivity {
-    //private static final int IMAGE_REQUEST = 1;
-    //private static final int PERMISSION_REQUEST = 101;
+    private static final String USERS = "users";
     private int[] animalIcons = {
         R.drawable.cat, R.drawable.monkey, R.drawable.panda,
         R.drawable.lion, R.drawable.bear, R.drawable.dog,
@@ -37,11 +36,6 @@ public class ProfileActivity extends AppCompatActivity {
     private int placeholderIcon = R.drawable.baseline_account_circle_24;
 
     private FriendRequestsViewModel viewModel;
-    private FriendsListAdapter friendsAdapter;
-
-    private RecyclerView friendsRecyclerView;
-    private EditText emailInput;
-    private Button sendRequestButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +48,9 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.profileImage);
         loadIcon(profileImage);
 
-        emailInput = findViewById(R.id.emailInput);
-        sendRequestButton = findViewById(R.id.sendRequestButton);
-        friendsRecyclerView = findViewById(R.id.friendsRecyclerView);
+        final EditText emailInput = findViewById(R.id.emailInput);
+        final Button sendRequestButton = findViewById(R.id.sendRequestButton);
+        final RecyclerView friendsRecyclerView = findViewById(R.id.friendsRecyclerView);
 
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userEmail.setText("Email: " + FirebaseAuth.getInstance().getCurrentUser().getEmail());
@@ -71,7 +65,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(FriendRequestsViewModel.class);
 
-        friendsAdapter = new FriendsListAdapter(new ArrayList<>(), viewModel, this, this);
+        final FriendsListAdapter friendsAdapter = new FriendsListAdapter(new ArrayList<>(), viewModel, this, this);
         friendsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         friendsRecyclerView.setAdapter(friendsAdapter);
 
@@ -150,7 +144,7 @@ public class ProfileActivity extends AppCompatActivity {
         String iconName = getResources().getResourceEntryName(iconId);
 
         FirebaseFirestore.getInstance()
-                .collection("users")
+                .collection(USERS)
                 .document(uid)
                 .update("profileIcon", iconName)
                 .addOnSuccessListener(e ->
@@ -165,7 +159,7 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
         FirebaseFirestore.getInstance()
-                .collection("users")
+                .collection(USERS)
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
@@ -195,7 +189,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         FirestoreManager.getInstance().getDb()
-                .collection("users")
+                .collection(USERS)
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
