@@ -34,8 +34,7 @@ public class FriendRequestsFragment extends Fragment {
         FriendRequestsAdapter adapter = new FriendRequestsAdapter(
                 new ArrayList<>(),
                 friendRequestsViewModel,
-                requireContext(),
-                getViewLifecycleOwner()
+                requireContext()
         );
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));

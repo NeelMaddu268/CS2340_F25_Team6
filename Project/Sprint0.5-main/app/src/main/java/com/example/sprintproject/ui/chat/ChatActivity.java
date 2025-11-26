@@ -26,7 +26,6 @@ import java.util.List;
 public class ChatActivity extends AppCompatActivity {
 
     private ChatViewModel vm;
-    private EditText input;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +37,7 @@ public class ChatActivity extends AppCompatActivity {
 
         final RecyclerView recycler = findViewById(R.id.recyclerChat);
         final TextView errorText = findViewById(R.id.txtChatError);
-        input = findViewById(R.id.editChatInput);
+        EditText input = findViewById(R.id.editChatInput);
         Button send = findViewById(R.id.btnSend);
 
         final ChatAdapter adapter = new ChatAdapter();
@@ -72,15 +71,15 @@ public class ChatActivity extends AppCompatActivity {
             if (text.isEmpty()) {
                 return;
             }
-            askIncludePreviousThenSend(text);
+            askIncludePreviousThenSend(text, input);
         });
     }
 
-    private void askIncludePreviousThenSend(String userText) {
+    private void askIncludePreviousThenSend(String userText, EditText input) {
         new AlertDialog.Builder(this)
                 .setTitle("Include previous context?")
                 .setMessage("Use a previous chat summary to help the AI?")
-                .setPositiveButton("Yes", (d, w) -> showChatPicker(userText))
+                .setPositiveButton("Yes", (d, w) -> showChatPicker(userText, input))
                 .setNegativeButton("No", (d, w) -> {
                     vm.setReferenceChats(new ArrayList<>());
                     vm.sendUserMessage(userText);
@@ -89,7 +88,7 @@ public class ChatActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void showChatPicker(String userText) {
+    private void showChatPicker(String userText, EditText input) {
         vm.getChatDocs().addOnSuccessListener((List<ChatRepository.ChatDoc> docs) -> {
             if (docs == null || docs.isEmpty()) {
                 vm.sendUserMessage(userText);

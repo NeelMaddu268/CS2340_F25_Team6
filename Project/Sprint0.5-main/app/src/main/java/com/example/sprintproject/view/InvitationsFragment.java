@@ -51,8 +51,7 @@ public class InvitationsFragment extends Fragment {
         FriendRequestsAdapter friendAdapter = new FriendRequestsAdapter(
                 new ArrayList<>(),
                 friendRequestsViewModel,
-                requireContext(),
-                getViewLifecycleOwner()
+                requireContext()
         );
 
         ConcatAdapter combinedAdapter = new ConcatAdapter(circleAdapter, friendAdapter);
