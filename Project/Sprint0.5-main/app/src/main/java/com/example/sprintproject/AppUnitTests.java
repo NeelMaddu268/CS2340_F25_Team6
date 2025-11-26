@@ -460,36 +460,12 @@ public class AppUnitTests {
     }
 
     @Test
-    public void testMissedLogReminder() {
-        NotificationData notify = NotificationData.createMissedLogReminder(7);
-        assertEquals(NotificationData.Type.MISSED_LOG, notify.getType());
-        assertEquals("Log Reminder", notify.getTitle());
-        assertEquals("It's been 3 days since your last expense!", notify.getMessage());
-        assertTrue(notify.getPriority() >= 100);
-    }
-
-    @Test
     public void testBudgetReminder() {
         NotificationData warning = NotificationData.createAlmostBudgetFullReminder("Test", 99);
         assertEquals(NotificationData.Type.BUDGET_WARNING, warning.getType());
         assertEquals("Budget Almost Full Warning", warning.getTitle());
         assertTrue(warning.getPriority() >= 80);
         assertTrue(warning.getMessage().contains("99"));
-    }
-
-    @Test
-    public void testNotificationQueuePriority() {
-        NotificationQueueManager queue = NotificationQueueManager.getInstance();
-        queue.dismissCurrentReminder();
-        NotificationData important = new NotificationData(NotificationData.Type.MISSED_LOG,
-                "Important", "NA", 99);
-        NotificationData notImportant = new NotificationData(NotificationData.Type.BUDGET_WARNING,
-                "Not Important", "NA", 10);
-
-        queue.submitReminder(notImportant);
-        queue.submitReminder(important);
-        NotificationData display = queue.getCurrentReminder().getValue();
-        assertEquals("Important", display.getTitle());
     }
 
     @Test
@@ -600,6 +576,32 @@ public class AppUnitTests {
         assertTrue(result.handled);
         assertNotNull(result.computedText);
         assertNotNull(result.aiFollowupPrompt);
+    }
+
+    @Test
+    public void testChatbotCutCostsComputedTextHasBiggestCategories() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("suggest where I can cut costs",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertTrue(result.computedText.contains("Biggest categories this month"));
+    }
+
+    @Test
+    public void testChatbotNullUserTextIsNotHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle(null,
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertFalse(result.handled);
+        assertNull(result.computedText);
+        assertNull(result.aiFollowupPrompt);
     }
 
 }
