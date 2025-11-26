@@ -132,6 +132,7 @@ public class OllamaClient {
         });
     }
 
+    // Builds a request for both chat and chatStream, with logging.
     private Request buildRequest(@NonNull JSONArray messages,
                                  boolean stream,
                                  @NonNull String logPrefix) {
@@ -162,6 +163,7 @@ public class OllamaClient {
                 return;
             }
 
+            // at this point body is guaranteed non-null by validateStreamResponse
             source = response.body().source();
             readStream(call, source, full, cb);
             finishStream(full, cb);
