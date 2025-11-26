@@ -14,9 +14,7 @@ import java.util.*;
 
 import com.example.sprintproject.model.ExpenseData;
 import com.example.sprintproject.model.NotificationData;
-import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
 import com.example.sprintproject.viewmodel.ExpenseRepository;
-import com.example.sprintproject.viewmodel.NotificationQueueManager;
 import com.example.sprintproject.logic.FinancialInsightsEngine;
 
 
@@ -267,6 +265,182 @@ public class AppUnitTests {
         assertTrue(user.getExpenses().isEmpty());
     }
 
+    @Test
+    public void testExpenseContributionToSavingsCircle() {
+        SavingsCircle testCircle = new SavingsCircle("Test Circle");
+        testCircle.addContribution(ALICE, 100);
+        assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
+        testCircle.addContribution(ALICE, 50);
+        assertEquals(150, testCircle.getContributions().get(ALICE), 0.001);
+    }
+
+    @Test
+    public void testExpenseTowardsGroupContribution() {
+        ExpenseData data = new ExpenseData(
+                "Toys", "11/25/2025", "15.00",
+                "eating", "NA", true, "testCircle"
+        );
+
+        assertTrue(data.getContributesToGroupSavings());
+        assertEquals("testCircle", data.getCircleId());
+    }
+
+    @Test
+    public void testExpenseTowardsNoGroupContribution() {
+        ExpenseData data = new ExpenseData(
+                "Toys", "11/25/2025", "15.00",
+                "eating", "NA", false, null
+        );
+
+        assertFalse(data.getContributesToGroupSavings());
+        assertNull(data.getCircleId());
+    }
+
+    @Test
+    public void testBudgetReminder() {
+        NotificationData warning = NotificationData.createAlmostBudgetFullReminder("Test", 99);
+        assertEquals(NotificationData.Type.BUDGET_WARNING, warning.getType());
+        assertEquals("Budget Almost Full Warning", warning.getTitle());
+        assertTrue(warning.getPriority() >= 80);
+        assertTrue(warning.getMessage().contains("99"));
+    }
+
+    @Test
+    public void testCalcDaysSinceLastLogZero() {
+        long zero = System.currentTimeMillis();
+        assertEquals(0, ExpenseRepository.calculateDaysSince(zero, zero));
+
+    }
+
+    @Test
+    public void testCalcDaysIfNoLogs() {
+        long none = System.currentTimeMillis();
+        int result = ExpenseRepository.calculateDaysSince(0, none);
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testChatbotWeeklySummaryHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("Please summarize my spending this week",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.computedText.contains("Spending last 7 days"));
+    }
+
+    @Test
+    public void testChatbotWeeklySummaryPromptContainsComputedText() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("summarize my spending this week",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.aiFollowupPrompt.contains(result.computedText));
+    }
+
+    @Test
+    public void testChatbotCutCostsHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("Can you suggest where I can cut costs?",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.aiFollowupPrompt.toLowerCase(Locale.US)
+                .contains("cut costs"));
+    }
+
+    @Test
+    public void testChatbotComparedToLastMonthHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("How did I perform compared to last month?",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.computedText.contains("This month: $"));
+        assertTrue(result.computedText.contains("Last month: $"));
+    }
+
+    @Test
+    public void testChatbotUnrelatedQuestionNotHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("What is your favorite color?",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertFalse(result.handled);
+        assertNull(result.computedText);
+        assertNull(result.aiFollowupPrompt);
+    }
+
+    @Test
+    public void testChatbotWeeklySummaryIsCaseInsensitive() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("SuMmArIzE My SpEnDiNg ThIs WeEk",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertTrue(result.computedText.contains("Spending last 7 days"));
+    }
+
+    @Test
+    public void testChatbotCutCostsWorksWithNullExpensesAndBudgets() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("suggest where I can cut costs",
+                        null, null);
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+    }
+
+    @Test
+    public void testChatbotCutCostsComputedTextHasBiggestCategories() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("suggest where I can cut costs",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertTrue(result.computedText.contains("Biggest categories this month"));
+    }
+
+    @Test
+    public void testChatbotNullUserTextIsNotHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle(null,
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertFalse(result.handled);
+        assertNull(result.computedText);
+        assertNull(result.aiFollowupPrompt);
+    }
+
     public static class BudgetCalculator {
         private BudgetCalculator() {
             // Prevent instantiation
@@ -445,184 +619,8 @@ public class AppUnitTests {
                 return false;
             }
 
-            return goalAmount >= 0 && frequency != null && (frequency.equals("weekly") || frequency.equals(MONTHLY));
+            return goalAmount >= 0 && frequency != null
+                    && (frequency.equals("weekly") || frequency.equals(MONTHLY));
         }
     }
-
-    @Test
-    public void testExpenseContributionToSavingsCircle() {
-        SavingsCircle testCircle = new SavingsCircle("Test Circle");
-        testCircle.addContribution(ALICE, 100);
-        assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
-        testCircle.addContribution(ALICE, 50);
-        assertEquals(150, testCircle.getContributions().get(ALICE), 0.001);
-    }
-
-    @Test
-    public void testExpenseTowardsGroupContribution() {
-        ExpenseData data = new ExpenseData(
-                "Toys", "11/25/2025", "15.00",
-                "eating", "NA", true, "testCircle"
-        );
-
-        assertTrue(data.getContributesToGroupSavings());
-        assertEquals("testCircle", data.getCircleId());
-    }
-
-    @Test
-    public void testExpenseTowardsNoGroupContribution() {
-        ExpenseData data = new ExpenseData(
-                "Toys", "11/25/2025", "15.00",
-                "eating", "NA", false, null
-        );
-
-        assertFalse(data.getContributesToGroupSavings());
-        assertNull(data.getCircleId());
-    }
-
-    @Test
-    public void testBudgetReminder() {
-        NotificationData warning = NotificationData.createAlmostBudgetFullReminder("Test", 99);
-        assertEquals(NotificationData.Type.BUDGET_WARNING, warning.getType());
-        assertEquals("Budget Almost Full Warning", warning.getTitle());
-        assertTrue(warning.getPriority() >= 80);
-        assertTrue(warning.getMessage().contains("99"));
-    }
-
-    @Test
-    public void testCalcDaysSinceLastLogZero() {
-        long zero = System.currentTimeMillis();
-        assertEquals(0, ExpenseRepository.calculateDaysSince(zero, zero));
-
-    }
-
-    @Test
-    public void testCalcDaysIfNoLogs() {
-        long none = System.currentTimeMillis();
-        int result = ExpenseRepository.calculateDaysSince(0, none);
-        assertEquals(-1, result);
-    }
-
-    @Test
-    public void testChatbotWeeklySummaryHandled() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("Please summarize my spending this week",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.computedText.contains("Spending last 7 days"));
-    }
-
-    @Test
-    public void testChatbotWeeklySummaryPromptContainsComputedText() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("summarize my spending this week",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertTrue(result.handled);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.aiFollowupPrompt.contains(result.computedText));
-    }
-
-    @Test
-    public void testChatbotCutCostsHandled() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("Can you suggest where I can cut costs?",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.aiFollowupPrompt.toLowerCase(Locale.US)
-                .contains("cut costs"));
-    }
-
-    @Test
-    public void testChatbotComparedToLastMonthHandled() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("How did I perform compared to last month?",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.computedText.contains("This month: $"));
-        assertTrue(result.computedText.contains("Last month: $"));
-    }
-
-    @Test
-    public void testChatbotUnrelatedQuestionNotHandled() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("What is your favorite color?",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertFalse(result.handled);
-        assertNull(result.computedText);
-        assertNull(result.aiFollowupPrompt);
-    }
-
-    @Test
-    public void testChatbotWeeklySummaryIsCaseInsensitive() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("SuMmArIzE My SpEnDiNg ThIs WeEk",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertTrue(result.computedText.contains("Spending last 7 days"));
-    }
-
-    @Test
-    public void testChatbotCutCostsWorksWithNullExpensesAndBudgets() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("suggest where I can cut costs",
-                        null, null);
-
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-    }
-
-    @Test
-    public void testChatbotCutCostsComputedTextHasBiggestCategories() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle("suggest where I can cut costs",
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertTrue(result.computedText.contains("Biggest categories this month"));
-    }
-
-    @Test
-    public void testChatbotNullUserTextIsNotHandled() {
-        FinancialInsightsEngine engine = new FinancialInsightsEngine();
-
-        FinancialInsightsEngine.InsightResult result =
-                engine.tryHandle(null,
-                        Collections.emptyList(), Collections.emptyList());
-
-        assertFalse(result.handled);
-        assertNull(result.computedText);
-        assertNull(result.aiFollowupPrompt);
-    }
-
 }

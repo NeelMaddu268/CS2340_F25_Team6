@@ -38,22 +38,6 @@ public class ChatViewModel extends ViewModel {
     public static final String CONTENT = "content";
     public static final String ASSISTANT = "assistant";
 
-    public static class UiMessage {
-        public final String role;
-        public final String content;
-        public final long localTime;
-
-        public UiMessage(String role, String content) {
-            this(role, content, System.currentTimeMillis());
-        }
-
-        public UiMessage(String role, String content, long localTime) {
-            this.role = role;
-            this.content = content;
-            this.localTime = localTime;
-        }
-    }
-
     private final MutableLiveData<List<UiMessage>> messages =
             new MutableLiveData<>(new ArrayList<>());
 
@@ -596,5 +580,21 @@ public class ChatViewModel extends ViewModel {
         super.onCleared();
         detachListener();
         ollama.cancelActive();
+    }
+
+    public static class UiMessage {
+        public final String role;
+        public final String content;
+        public final long localTime;
+
+        public UiMessage(String role, String content) {
+            this(role, content, System.currentTimeMillis());
+        }
+
+        public UiMessage(String role, String content, long localTime) {
+            this.role = role;
+            this.content = content;
+            this.localTime = localTime;
+        }
     }
 }

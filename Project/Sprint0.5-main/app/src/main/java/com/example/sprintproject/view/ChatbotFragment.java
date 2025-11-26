@@ -29,8 +29,6 @@ import com.example.sprintproject.ui.chat.ChatAdapter;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 

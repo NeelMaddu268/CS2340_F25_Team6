@@ -74,18 +74,6 @@ public class ChatRepository {
                 .collection("budgets");
     }
 
-    public static class ChatDoc {
-        public final String id;
-        public final String title;
-        public final String summary;
-
-        public ChatDoc(String id, String title, String summary) {
-            this.id = id;
-            this.title = title;
-            this.summary = summary;
-        }
-    }
-
     public Task<String> createNewChat(String isoTimestamp) {
         String uid = getUid();
         if (uid == null) {
@@ -325,4 +313,15 @@ public class ChatRepository {
         }
     }
 
+    public static class ChatDoc {
+        public final String id;
+        public final String title;
+        public final String summary;
+
+        public ChatDoc(String id, String title, String summary) {
+            this.id = id;
+            this.title = title;
+            this.summary = summary;
+        }
+    }
 }
