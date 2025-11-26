@@ -1,13 +1,13 @@
-// This activity handles the users profile info that is pulled from firestore.
-// Provides a back button to return to the previous screen.
-
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import com.example.sprintproject.viewmodel.FriendRequestsViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.widget.LinearLayout;
@@ -15,21 +15,33 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.ArrayList;
+
 public class ProfileActivity extends AppCompatActivity {
-    private static final String USERS = "users";
+    //private static final int IMAGE_REQUEST = 1;
+    //private static final int PERMISSION_REQUEST = 101;
     private int[] animalIcons = {
-        R.drawable.cat, R.drawable.monkey, R.drawable.panda,
-        R.drawable.lion, R.drawable.bear, R.drawable.dog,
-        R.drawable.mouse, R.drawable.bunny
+            R.drawable.cat, R.drawable.monkey, R.drawable.panda,
+            R.drawable.lion, R.drawable.bear, R.drawable.dog,
+            R.drawable.mouse, R.drawable.bunny
     };
-    // needs to be global field as it is updated in onCreate() and iconPicker()
     private ImageView profileImage;
     private int placeholderIcon = R.drawable.baseline_account_circle_24;
+
+    private FriendRequestsViewModel viewModel;
+    private FriendsListAdapter friendsAdapter;
+
+    private RecyclerView friendsRecyclerView;
+    private EditText emailInput;
+    private Button sendRequestButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +54,10 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.profileImage);
         loadIcon(profileImage);
 
+        emailInput = findViewById(R.id.emailInput);
+        sendRequestButton = findViewById(R.id.sendRequestButton);
+        friendsRecyclerView = findViewById(R.id.friendsRecyclerView);
+
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userEmail.setText("Email: " + FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
@@ -52,6 +68,51 @@ public class ProfileActivity extends AppCompatActivity {
 
         ImageButton backBtn = findViewById(R.id.btnBack);
         backBtn.setOnClickListener(v -> finish());
+
+        viewModel = new ViewModelProvider(this).get(FriendRequestsViewModel.class);
+
+        friendsAdapter = new FriendsListAdapter(new ArrayList<>(), viewModel, this, this);
+        friendsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        friendsRecyclerView.setAdapter(friendsAdapter);
+
+        viewModel.getFriends().observe(this, friends -> friendsAdapter.updateFriendsList(friends));
+
+        viewModel.startListeningForFriends();
+
+        sendRequestButton.setOnClickListener(v -> {
+            String email = emailInput.getText().toString().trim();
+            if (!email.isEmpty()) {
+                FirestoreManager.getInstance().searchByEmail(email).get()
+                        .addOnSuccessListener(querySnapshot -> {
+                            if (!querySnapshot.isEmpty()) {
+                                String approverUid = querySnapshot.getDocuments().get(0).getId();
+                                String requesterUid = FirebaseAuth.getInstance().getUid();
+                                String requesterEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+                                FirestoreManager.getInstance().sendFriendRequest(
+                                        requesterUid,
+                                        approverUid,
+                                        requesterEmail,
+                                        email
+                                );
+                                Toast.makeText(this, "Request sent to: " + email, Toast.LENGTH_SHORT).show();
+                                emailInput.setText("");
+                            } else {
+                                Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show()
+                        );
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        viewModel.startListeningForFriends();
+        viewModel.stopListeningForRequests();
     }
 
     private void iconPicker() {
@@ -86,13 +147,11 @@ public class ProfileActivity extends AppCompatActivity {
         String iconName = getResources().getResourceEntryName(iconId);
 
         FirebaseFirestore.getInstance()
-                .collection(USERS)
+                .collection("users")
                 .document(uid)
                 .update("profileIcon", iconName)
-                .addOnSuccessListener(e -> Toast.makeText(this,
-                        "Profile icon updated", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this,
-                        "Failed to update icon", Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(e -> Toast.makeText(this, "Profile icon updated", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update icon", Toast.LENGTH_SHORT).show());
     }
 
     private void loadIcon(ImageView imageView) {
@@ -101,7 +160,7 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
         FirebaseFirestore.getInstance()
-                .collection(USERS)
+                .collection("users")
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
@@ -112,8 +171,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                     String iconName = document.getString("profileIcon");
                     if (iconName != null) {
-                        int iD = getResources().getIdentifier(iconName,
-                                "drawable", getPackageName());
+                        int iD = getResources().getIdentifier(iconName, "drawable", getPackageName());
                         imageView.setImageResource(iD);
                     } else {
                         imageView.setImageResource(placeholderIcon);
@@ -130,7 +188,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         FirestoreManager.getInstance().getDb()
-                .collection(USERS)
+                .collection("users")
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
