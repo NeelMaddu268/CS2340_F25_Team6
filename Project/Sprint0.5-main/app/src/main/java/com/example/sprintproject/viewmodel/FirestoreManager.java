@@ -31,7 +31,9 @@ import java.util.Set;
 public class FirestoreManager {
 
     private final FirebaseFirestore db;
-
+    private static final String APPROVER_UID = "approverUid";
+    private static final String EMAIL = "email";
+    private static final String REQUESTER_UID = "requesterUid";
     // Collection name constants (avoid magic strings)
     private static final String SAVINGS_CIRCLE_STRING = "savingsCircles";
     private static final String USERS_STRING = "users";
@@ -273,30 +275,30 @@ public class FirestoreManager {
     }
 
     public Query friendRequests(String uid) {
-        return friendRequestsReference().whereEqualTo("approverUid", uid);
+        return friendRequestsReference().whereEqualTo(APPROVER_UID, uid);
     }
 
     public Query searchByEmail(String email) {
-        return db.collection(USERS_STRING).whereEqualTo("email", email);
+        return db.collection(USERS_STRING).whereEqualTo(EMAIL, email);
     }
 
     public void sendFriendRequest(String requesterUid, String approverUid, String requesterEmail, String approverEmail) {
         Map<String, Object> request = new HashMap<>();
-        request.put("requesterUid", requesterUid);
-        request.put("approverUid", approverUid);
+        request.put(REQUESTER_UID, requesterUid);
+        request.put(APPROVER_UID, approverUid);
         request.put("requesterEmail", requesterEmail);
         request.put("approverEmail", approverEmail);
         request.put("status", "pending");
 
         FirebaseFirestore.getInstance()
-                .collection("friendRequests")
+                .collection(FRIEND_REQUESTS_STRING)
                 .add(request)
-                .addOnSuccessListener(documentReference -> {
-                    Log.d("Firestore", "Friend request sent: " + documentReference.getId());
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Failed to send friend request", e);
-                });
+                .addOnSuccessListener(documentReference ->
+                    Log.d("Firestore", "Friend request sent: " + documentReference.getId())
+                )
+                .addOnFailureListener(e ->
+                    Log.e("Firestore", "Failed to send friend request", e)
+                );
     }
 
     public void approveFriendRequest(String requestId) {
@@ -309,8 +311,8 @@ public class FirestoreManager {
                 return;
             }
 
-            String requesterUid = snapshot.getString("requesterUid");
-            String approverUid = snapshot.getString("approverUid");
+            String requesterUid = snapshot.getString(REQUESTER_UID);
+            String approverUid = snapshot.getString(APPROVER_UID);
             String requesterEmail = snapshot.getString("requesterEmail");
             String approverEmail = snapshot.getString("approverEmail");
 
@@ -323,11 +325,11 @@ public class FirestoreManager {
 
             Map<String, Object> friend1 = new HashMap<>();
             friend1.put("uid", approverUid);
-            friend1.put("email", approverEmail);
+            friend1.put(EMAIL, approverEmail);
 
             Map<String, Object> friend2 = new HashMap<>();
             friend2.put("uid", requesterUid);
-            friend2.put("email", requesterEmail);
+            friend2.put(EMAIL, requesterEmail);
 
             batch.set(friendsReference(requesterUid).document(approverUid), friend1);
             batch.set(friendsReference(approverUid).document(requesterUid), friend2);
@@ -354,12 +356,12 @@ public class FirestoreManager {
 
         List<Task<QuerySnapshot>> fetches = new ArrayList<>();
         fetches.add(friendRequestsReference()
-                .whereEqualTo("requesterUid", uid1)
-                .whereEqualTo("approverUid", uid2)
+                .whereEqualTo(REQUESTER_UID, uid1)
+                .whereEqualTo(APPROVER_UID, uid2)
                 .get());
         fetches.add(friendRequestsReference()
-                .whereEqualTo("requesterUid", uid2)
-                .whereEqualTo("approverUid", uid1)
+                .whereEqualTo(REQUESTER_UID, uid2)
+                .whereEqualTo(APPROVER_UID, uid1)
                 .get());
 
         Tasks.whenAllSuccess(fetches)
