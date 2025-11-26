@@ -5,6 +5,8 @@
 
 package com.example.sprintproject.logic;
 
+import android.util.Log;
+
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 
@@ -31,6 +33,10 @@ public class FinancialInsightsEngine {
 
         if (userText == null) {
             return new InsightResult(false, null, null);
+        }
+
+        if (budgets == null && goals == null) {
+            System.out.println("Budgets and goals are null");
         }
 
         String t = userText.toLowerCase(Locale.US).trim();
