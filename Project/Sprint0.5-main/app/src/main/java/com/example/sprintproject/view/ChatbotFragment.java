@@ -54,7 +54,8 @@ public class ChatbotFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         chatVM = new ViewModelProvider(requireActivity()).get(ChatViewModel.class);
-        final DateViewModel dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
+        final DateViewModel dateVM =
+                new ViewModelProvider(requireActivity()).get(DateViewModel.class);
 
         final RecyclerView recycler = view.findViewById(R.id.recyclerChat);
         final ProgressBar progress = view.findViewById(R.id.progressChat);
@@ -165,7 +166,7 @@ public class ChatbotFragment extends Fragment {
 
             for (int i = 0; i < docs.size(); i++) {
                 ChatRepository.ChatDoc doc = docs.get(i);
-                titles[i] = doc.title;
+                titles[i] = doc.getTitle();
             }
 
             new AlertDialog.Builder(requireContext())
@@ -178,17 +179,19 @@ public class ChatbotFragment extends Fragment {
 
                         memoryNote.append("Using these previous chats as context:\n");
                         for (int i = 0; i < checked.length; i++) {
-                            if (!checked[i]) continue;
+                            if (!checked[i]) {
+                                continue;
+                            }
 
                             ChatRepository.ChatDoc doc = docs.get(i);
-                            selectedIds.add(doc.id);
+                            selectedIds.add(doc.getId());
 
                             memoryNote.append("- ")
-                                    .append(doc.title);
+                                    .append(doc.getTitle());
 
-                            if (doc.summary != null && !doc.summary.trim().isEmpty()) {
+                            if (doc.getSummary() != null && !doc.getSummary().trim().isEmpty()) {
                                 memoryNote.append(": ")
-                                        .append(doc.summary.trim());
+                                        .append(doc.getSummary().trim());
                             }
                             memoryNote.append("\n");
                         }

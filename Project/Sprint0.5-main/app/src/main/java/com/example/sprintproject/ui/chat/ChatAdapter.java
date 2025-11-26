@@ -37,7 +37,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public int getItemViewType(int position) {
         ChatViewModel.UiMessage msg = items.get(position);
-        if (msg.role != null && msg.role.startsWith("assistant")) {
+        if (msg.getRole() != null && msg.getRole().startsWith("assistant")) {
             return TYPE_BOT;
         }
         return TYPE_USER;
@@ -65,13 +65,13 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             int position
     ) {
         ChatViewModel.UiMessage msg = items.get(position);
-        String timeText = formatTime(msg.localTime);
+        String timeText = formatTime(msg.getLocalTime());
 
         if (holder instanceof UserHolder) {
-            ((UserHolder) holder).bubble.setText(msg.content);
+            ((UserHolder) holder).bubble.setText(msg.getContent());
             ((UserHolder) holder).time.setText(timeText);
         } else if (holder instanceof BotHolder) {
-            ((BotHolder) holder).bubble.setText(msg.content);
+            ((BotHolder) holder).bubble.setText(msg.getContent());
             ((BotHolder) holder).time.setText(timeText);
         }
     }
@@ -89,24 +89,40 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static class UserHolder extends RecyclerView.ViewHolder {
-        final TextView bubble;
-        final TextView time;
+        private final TextView bubble;
+        private final TextView time;
 
         UserHolder(@NonNull View itemView) {
             super(itemView);
             bubble = itemView.findViewById(R.id.txtBubble);
             time = itemView.findViewById(R.id.userMsgTime);
         }
+
+        public TextView getBubble() {
+            return bubble;
+        }
+
+        public TextView getTime() {
+            return time;
+        }
     }
 
     static class BotHolder extends RecyclerView.ViewHolder {
-        final TextView bubble;
-        final TextView time;
+        private final TextView bubble;
+        private final TextView time;
 
         BotHolder(@NonNull View itemView) {
             super(itemView);
             bubble = itemView.findViewById(R.id.txtBubble);
             time = itemView.findViewById(R.id.botMsgTime);
+        }
+
+        public TextView getBubble() {
+            return bubble;
+        }
+
+        public TextView getTime() {
+            return time;
         }
     }
 }

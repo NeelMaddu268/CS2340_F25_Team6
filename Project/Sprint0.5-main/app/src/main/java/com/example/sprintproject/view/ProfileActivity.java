@@ -29,9 +29,9 @@ public class ProfileActivity extends AppCompatActivity {
     //private static final int IMAGE_REQUEST = 1;
     //private static final int PERMISSION_REQUEST = 101;
     private int[] animalIcons = {
-            R.drawable.cat, R.drawable.monkey, R.drawable.panda,
-            R.drawable.lion, R.drawable.bear, R.drawable.dog,
-            R.drawable.mouse, R.drawable.bunny
+        R.drawable.cat, R.drawable.monkey, R.drawable.panda,
+        R.drawable.lion, R.drawable.bear, R.drawable.dog,
+        R.drawable.mouse, R.drawable.bunny
     };
     private ImageView profileImage;
     private int placeholderIcon = R.drawable.baseline_account_circle_24;
@@ -87,7 +87,8 @@ public class ProfileActivity extends AppCompatActivity {
                             if (!querySnapshot.isEmpty()) {
                                 String approverUid = querySnapshot.getDocuments().get(0).getId();
                                 String requesterUid = FirebaseAuth.getInstance().getUid();
-                                String requesterEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                                String requesterEmail
+                                        = FirebaseAuth.getInstance().getCurrentUser().getEmail();
 
                                 FirestoreManager.getInstance().sendFriendRequest(
                                         requesterUid,
@@ -95,15 +96,17 @@ public class ProfileActivity extends AppCompatActivity {
                                         requesterEmail,
                                         email
                                 );
-                                Toast.makeText(this, "Request sent to: " + email, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(this,
+                                        "Request sent to: " + email, Toast.LENGTH_SHORT).show();
                                 emailInput.setText("");
                             } else {
                                 Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
                             }
                         })
                         .addOnFailureListener(e ->
-                                Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show()
-                        );
+                                Toast.makeText(this,
+                                        "Failed to send request", Toast.LENGTH_SHORT).show()
+                );
             }
         });
     }
@@ -150,8 +153,10 @@ public class ProfileActivity extends AppCompatActivity {
                 .collection("users")
                 .document(uid)
                 .update("profileIcon", iconName)
-                .addOnSuccessListener(e -> Toast.makeText(this, "Profile icon updated", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update icon", Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(e ->
+                        Toast.makeText(this, "Profile icon updated", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to update icon", Toast.LENGTH_SHORT).show());
     }
 
     private void loadIcon(ImageView imageView) {
@@ -171,7 +176,9 @@ public class ProfileActivity extends AppCompatActivity {
 
                     String iconName = document.getString("profileIcon");
                     if (iconName != null) {
-                        int iD = getResources().getIdentifier(iconName, "drawable", getPackageName());
+                        int iD =
+                                getResources()
+                                        .getIdentifier(iconName, "drawable", getPackageName());
                         imageView.setImageResource(iD);
                     } else {
                         imageView.setImageResource(placeholderIcon);

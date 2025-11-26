@@ -327,10 +327,10 @@ public class AppUnitTests {
                 engine.tryHandle("Please summarize my spending this week",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.computedText.contains("Spending last 7 days"));
+        assertTrue(result.getHandled());
+        assertNotNull(result.getComputedText());
+        assertNotNull(result.getAiFollowupPrompt());
+        assertTrue(result.getComputedText().contains("Spending last 7 days"));
     }
 
     @Test
@@ -341,9 +341,9 @@ public class AppUnitTests {
                 engine.tryHandle("summarize my spending this week",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertTrue(result.handled);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.aiFollowupPrompt.contains(result.computedText));
+        assertTrue(result.getHandled());
+        assertNotNull(result.getAiFollowupPrompt());
+        assertTrue(result.getAiFollowupPrompt().contains(result.getComputedText()));
     }
 
     @Test
@@ -354,10 +354,10 @@ public class AppUnitTests {
                 engine.tryHandle("Can you suggest where I can cut costs?",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.aiFollowupPrompt.toLowerCase(Locale.US)
+        assertTrue(result.getHandled());
+        assertNotNull(result.getComputedText());
+        assertNotNull(result.getAiFollowupPrompt());
+        assertTrue(result.getAiFollowupPrompt().toLowerCase(Locale.US)
                 .contains("cut costs"));
     }
 
@@ -369,11 +369,11 @@ public class AppUnitTests {
                 engine.tryHandle("How did I perform compared to last month?",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
-        assertTrue(result.computedText.contains("This month: $"));
-        assertTrue(result.computedText.contains("Last month: $"));
+        assertTrue(result.getHandled());
+        assertNotNull(result.getComputedText());
+        assertNotNull(result.getAiFollowupPrompt());
+        assertTrue(result.getComputedText().contains("This month: $"));
+        assertTrue(result.getComputedText().contains("Last month: $"));
     }
 
     @Test
@@ -384,9 +384,9 @@ public class AppUnitTests {
                 engine.tryHandle("What is your favorite color?",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertFalse(result.handled);
-        assertNull(result.computedText);
-        assertNull(result.aiFollowupPrompt);
+        assertFalse(result.getHandled());
+        assertNull(result.getComputedText());
+        assertNull(result.getAiFollowupPrompt());
     }
 
     @Test
@@ -397,9 +397,9 @@ public class AppUnitTests {
                 engine.tryHandle("SuMmArIzE My SpEnDiNg ThIs WeEk",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertTrue(result.computedText.contains("Spending last 7 days"));
+        assertTrue(result.getHandled());
+        assertNotNull(result.getComputedText());
+        assertTrue(result.getComputedText().contains("Spending last 7 days"));
     }
 
     @Test
@@ -410,9 +410,9 @@ public class AppUnitTests {
                 engine.tryHandle("suggest where I can cut costs",
                         null, null);
 
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.getHandled());
+        assertNotNull(result.getComputedText());
+        assertNotNull(result.getAiFollowupPrompt());
     }
 
     @Test
@@ -423,9 +423,9 @@ public class AppUnitTests {
                 engine.tryHandle("suggest where I can cut costs",
                         Collections.emptyList(), Collections.emptyList());
 
-        assertTrue(result.handled);
-        assertNotNull(result.computedText);
-        assertTrue(result.computedText.contains("Biggest categories this month"));
+        assertTrue(result.getHandled());
+        assertNotNull(result.getComputedText());
+        assertTrue(result.getComputedText().contains("Biggest categories this month"));
     }
 
     @Test
@@ -436,9 +436,9 @@ public class AppUnitTests {
                 engine.tryHandle(null,
                         Collections.emptyList(), Collections.emptyList());
 
-        assertFalse(result.handled);
-        assertNull(result.computedText);
-        assertNull(result.aiFollowupPrompt);
+        assertFalse(result.getHandled());
+        assertNull(result.getComputedText());
+        assertNull(result.getAiFollowupPrompt());
     }
 
     public static class BudgetCalculator {

@@ -48,10 +48,6 @@ public class FirestoreManager {
         db = FirebaseFirestore.getInstance();
     }
 
-    private static class Holder {
-        private static final FirestoreManager INSTANCE = new FirestoreManager();
-    }
-
     public static FirestoreManager getInstance() {
         return Holder.INSTANCE;
     }
@@ -280,7 +276,8 @@ public class FirestoreManager {
         return db.collection(USERS_STRING).whereEqualTo("email", email);
     }
 
-    public void sendFriendRequest(String requesterUid, String approverUid, String requesterEmail, String approverEmail) {
+    public void sendFriendRequest(String requesterUid,
+                                  String approverUid, String requesterEmail, String approverEmail) {
         Map<String, Object> request = new HashMap<>();
         request.put("requesterUid", requesterUid);
         request.put("approverUid", approverUid);
@@ -372,6 +369,9 @@ public class FirestoreManager {
                     }
                     batch.commit();
                 });
+    }
 
+    private static class Holder {
+        private static final FirestoreManager INSTANCE = new FirestoreManager();
     }
 }

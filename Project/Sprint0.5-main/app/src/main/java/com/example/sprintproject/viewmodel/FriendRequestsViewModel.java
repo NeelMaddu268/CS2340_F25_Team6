@@ -6,10 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.sprintproject.model.AppDate;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -95,33 +92,13 @@ public class FriendRequestsViewModel extends ViewModel {
         friendsListener = FirebaseFirestore.getInstance().collection("users")
                 .document(userId)
                 .addSnapshotListener((snapshot, e) -> {
-                    List<Map<String, Object>> friends = (List<Map<String, Object>>) snapshot.get("friends");
+                    List<Map<String, Object>> friends =
+                            (List<Map<String, Object>>) snapshot.get("friends");
                     if (friends == null) {
                         friends = new ArrayList<>();
                     }
                     friendsLiveData.postValue(friends);
                 });
-
-//        friendsListener = FirestoreManager.getInstance()
-//                .friendsReference(userId)
-//                .addSnapshotListener((snapshots, e) -> {
-//                    if (e != null || snapshots == null) {
-//                        return;
-//                    }
-
-//                    List<Map<String, Object>> friends = new ArrayList<>();
-//                    for (DocumentSnapshot document : snapshots.getDocuments()) {
-//                        Map<String, Object> data = document.getData();
-//                        if (data != null) {
-//                            data.put("id", document.getId());
-//                            if (!data.containsKey("email")) {
-//                                data.put("email", "Unknown");
-//                            }
-//                            friends.add(data);
-//                        }
-//                    }
-//                    friendsLiveData.postValue(friends);
-//                });
     }
 
     public void stopListeningForFriends() {
@@ -144,14 +121,16 @@ public class FriendRequestsViewModel extends ViewModel {
                                 return;
                             }
 
-                            List<Map<String, Object>> friends = (List<Map<String, Object>>) snapshot.get("friends");
+                            List<Map<String, Object>> friends =
+                                    (List<Map<String, Object>>) snapshot.get("friends");
                             if (friends == null) {
                                 return;
                             }
 
                             for (Map<String, Object> friend : friends) {
                                 if (friendId.equals(friend.get("uid"))) {
-                                    FirebaseFirestore.getInstance().collection("users").document(currentUid)
+                                    FirebaseFirestore.getInstance()
+                                            .collection("users").document(currentUid)
                                             .update("friends", FieldValue.arrayRemove(friend));
                                     break;
                                 }
@@ -165,7 +144,8 @@ public class FriendRequestsViewModel extends ViewModel {
                         return;
                     }
 
-                    List<Map<String, Object>> friends = (List<Map<String, Object>>) snapshot.get("friends");
+                    List<Map<String, Object>> friends
+                            = (List<Map<String, Object>>) snapshot.get("friends");
                     if (friends == null) {
                         return;
                     }
@@ -253,7 +233,7 @@ public class FriendRequestsViewModel extends ViewModel {
                 })
                 .addOnFailureListener(e ->
                         Log.d("Firestore", "Failed to search for user by email", e)
-                );
+        );
     }
 
     @Override
