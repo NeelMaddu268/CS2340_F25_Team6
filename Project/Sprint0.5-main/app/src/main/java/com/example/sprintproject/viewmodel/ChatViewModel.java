@@ -350,6 +350,7 @@ public class ChatViewModel extends ViewModel {
             arr.put(user);
 
         } catch (Exception ignored) {
+            return new JSONArray();
         }
         return arr;
     }
@@ -431,10 +432,12 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
+                    //do nothing on error lol
                 }
             });
 
         } catch (Exception ignored) {
+            return;
         }
     }
 
@@ -469,6 +472,7 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
+                    return;
                 }
             });
 
@@ -565,9 +569,11 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
+                    //do nothing on error lol
                 }
             });
         } catch (Exception ignored) {
+            return;
         }
     }
 
