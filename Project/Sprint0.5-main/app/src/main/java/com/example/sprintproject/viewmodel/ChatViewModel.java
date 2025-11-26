@@ -84,8 +84,6 @@ public class ChatViewModel extends ViewModel {
         );
     }
 
-    // ---------------- AppDate helpers ----------------
-
     public void setCurrentAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
     }
@@ -127,7 +125,6 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    // ---------------- local message helpers ----------------
 
     private List<UiMessage> currentListOrEmpty() {
         List<UiMessage> cur = messages.getValue();
@@ -157,7 +154,6 @@ public class ChatViewModel extends ViewModel {
         messages.postValue(snapshotList);
     }
 
-    // ---------------- chat lifecycle ----------------
 
     public void startNewChat() {
         loading.setValue(true);
@@ -199,7 +195,6 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    // ---------------- Firestore listening ----------------
 
     private void listenToMessagesInternal(String chatId) {
         detachListener();
@@ -263,7 +258,6 @@ public class ChatViewModel extends ViewModel {
         addLocalMessage("user", note);
         String isoTs = isoNow();
         repo.addUserMessage(activeChatId, note, isoTs);
-        // IMPORTANT: no AI call here – it's just a context note.
     }
 
     public void listenToMessages(String chatId) {
@@ -356,7 +350,6 @@ public class ChatViewModel extends ViewModel {
             arr.put(user);
 
         } catch (Exception ignored) {
-            // Intentionally ignored - firestore doesn't like empty arrays.
         }
         return arr;
     }
@@ -417,7 +410,6 @@ public class ChatViewModel extends ViewModel {
         });
     }
 
-    // ---------------- titles & summaries ----------------
 
     private void generateTitle(String firstPrompt) {
         try {
@@ -439,12 +431,10 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Intentionally ignored - no title generated.
                 }
             });
 
         } catch (Exception ignored) {
-            // Intentionally ignored - no need for implementation
         }
     }
 
@@ -479,16 +469,13 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Intentionally ignored - no need for implementation
                 }
             });
 
         } catch (Exception ignored) {
-            // intentionally ignored no need for implementation
         }
     }
 
-    // ---------------- refresh all untitled chat titles ----------------
 
     public void refreshAllUntitledChatTitles() {
         String uid = FirestoreManager.getInstance().getCurrentUserId();
@@ -578,11 +565,9 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Intentionally ignored - no need for implementation
                 }
             });
         } catch (Exception ignored) {
-            // Intentionally ignored - no need for implementation
         }
     }
 
