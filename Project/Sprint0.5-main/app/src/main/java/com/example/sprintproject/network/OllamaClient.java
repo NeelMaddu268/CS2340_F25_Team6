@@ -209,6 +209,7 @@ public class OllamaClient {
                         try {
                             source.close();
                         } catch (Exception ignored) {
+                            // purposefully ignore
                         }
                     }
                 }

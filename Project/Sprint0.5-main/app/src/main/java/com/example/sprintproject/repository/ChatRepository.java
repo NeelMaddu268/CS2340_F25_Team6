@@ -32,6 +32,8 @@ public class ChatRepository {
     private static final String TITLE = "title";
     private static final String SUMMARY = "summary";
     private static final String UPDATED_AT = "updatedAt";
+    private static final String USER_NOT_LOGGED_IN = "User not logged in";
+    private static final String CREATED_AT = "createdAt";
 
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
@@ -44,7 +46,7 @@ public class ChatRepository {
     private String requireUid() {
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) {
-            throw new IllegalStateException("User not logged in");
+            throw new IllegalStateException(USER_NOT_LOGGED_IN);
         }
         return user.getUid();
     }
@@ -88,7 +90,7 @@ public class ChatRepository {
         String uid = getUid();
         if (uid == null) {
             TaskCompletionSource<String> tcs = new TaskCompletionSource<>();
-            tcs.setException(new IllegalStateException("User not logged in"));
+            tcs.setException(new IllegalStateException(USER_NOT_LOGGED_IN));
             return tcs.getTask();
         }
 
@@ -99,9 +101,9 @@ public class ChatRepository {
         String chatId = chatRef.getId();
 
         Map<String, Object> data = new HashMap<>();
-        data.put("title", "New Chat");
-        data.put("createdAt", isoTimestamp);
-        data.put("updatedAt", isoTimestamp);
+        data.put(TITLE, "New Chat");
+        data.put(CREATED_AT, isoTimestamp);
+        data.put(UPDATED_AT, isoTimestamp);
 
         return chatRef.set(data).continueWith(task -> {
             if (!task.isSuccessful()) {
@@ -114,7 +116,7 @@ public class ChatRepository {
     public Task<List<ChatDoc>> loadChatDocs() {
         try {
             return chatsCollection()
-                    .orderBy("createdAt", Query.Direction.DESCENDING)
+                    .orderBy(CREATED_AT, Query.Direction.DESCENDING)
                     .get()
                     .continueWith(t -> {
                         List<ChatDoc> out = new ArrayList<>();
@@ -148,6 +150,7 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
+            // ignore because we're not logged in
         }
     }
 
@@ -182,7 +185,7 @@ public class ChatRepository {
 
         String uid = getUid();
         if (uid == null) {
-            return Tasks.forException(new IllegalStateException("User not logged in"));
+            return Tasks.forException(new IllegalStateException(USER_NOT_LOGGED_IN));
         }
 
         CollectionReference msgRef = FirestoreManager.getInstance()
@@ -194,7 +197,7 @@ public class ChatRepository {
         data.put("role", role);
         data.put("content", content);
         data.put("timestamp", isoTimestamp);
-        data.put("createdAt", System.currentTimeMillis());
+        data.put(CREATED_AT, System.currentTimeMillis());
 
         return msgDoc.set(data);
     }
@@ -210,19 +213,19 @@ public class ChatRepository {
 
         return FirestoreManager.getInstance()
                 .chatMessagesReference(uid, chatId)
-                .orderBy("createdAt", Query.Direction.ASCENDING)
+                .orderBy(CREATED_AT, Query.Direction.ASCENDING)
                 .addSnapshotListener(listener);
     }
 
     public Task<Void> saveChatTitle(String chatId, String title, String isoTimestamp) {
         String uid = getUid();
         if (uid == null) {
-            return Tasks.forException(new IllegalStateException("User not logged in"));
+            return Tasks.forException(new IllegalStateException(USER_NOT_LOGGED_IN));
         }
 
         Map<String, Object> update = new HashMap<>();
         update.put(TITLE, title);
-        update.put("updatedAt", isoTimestamp);
+        update.put(UPDATED_AT, isoTimestamp);
 
         return FirestoreManager.getInstance()
                 .userChatDoc(uid, chatId)
@@ -254,6 +257,7 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
+            // ignore because we're not logged in
         }
     }
 
@@ -262,12 +266,12 @@ public class ChatRepository {
                                       String isoTimestamp) {
         String uid = getUid();
         if (uid == null) {
-            return Tasks.forException(new IllegalStateException("User not logged in"));
+            return Tasks.forException(new IllegalStateException(USER_NOT_LOGGED_IN));
         }
 
         Map<String, Object> update = new HashMap<>();
         update.put(SUMMARY, summary);
-        update.put("updatedAt", isoTimestamp);
+        update.put(UPDATED_AT, isoTimestamp);
 
         return FirestoreManager.getInstance()
                 .userChatDoc(uid, chatId)
@@ -284,7 +288,7 @@ public class ChatRepository {
 
         return FirestoreManager.getInstance()
                 .userChatsReference(uid)
-                .orderBy("updatedAt", Query.Direction.DESCENDING)
+                .orderBy(UPDATED_AT, Query.Direction.DESCENDING)
                 .addSnapshotListener(listener);
     }
 
@@ -292,7 +296,7 @@ public class ChatRepository {
         String uid = getUid();
         if (uid == null) {
             TaskCompletionSource<String> tcs = new TaskCompletionSource<>();
-            tcs.setException(new IllegalStateException("User not logged in"));
+            tcs.setException(new IllegalStateException(USER_NOT_LOGGED_IN));
             return tcs.getTask();
         }
 
@@ -317,6 +321,7 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
+            // ignore because we're not logged in
         }
     }
 
