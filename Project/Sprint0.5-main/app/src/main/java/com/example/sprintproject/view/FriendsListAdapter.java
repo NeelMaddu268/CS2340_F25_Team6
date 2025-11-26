@@ -59,7 +59,7 @@ public class FriendsListAdapter extends RecyclerView.Adapter<FriendsListAdapter.
         holder.friendEmail.setText(friendEmail != null ? friendEmail : "Unknown");
 
         holder.removeBtn.setOnClickListener(v -> {
-            String friendId = (String) friend.get("id");
+            String friendId = (String) friend.get("uid");
             if (friendId != null) {
                 viewModel.removeFriend(friendId);
             }

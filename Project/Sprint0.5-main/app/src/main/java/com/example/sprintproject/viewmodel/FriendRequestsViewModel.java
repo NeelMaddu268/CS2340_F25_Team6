@@ -133,7 +133,7 @@ public class FriendRequestsViewModel extends ViewModel {
 
     public void removeFriend(String friendId) {
         String currentUid =  FirestoreManager.getInstance().getCurrentUserId();
-        if (currentUid == null) {
+        if (currentUid == null || friendId == null) {
             return;
         }
 
