@@ -1,6 +1,3 @@
-// This activity handles the users profile info that is pulled from firestore.
-// Provides a back button to return to the previous screen.
-
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
@@ -45,15 +42,6 @@ public class ProfileActivity extends AppCompatActivity {
     private RecyclerView friendsRecyclerView;
     private EditText emailInput;
     private Button sendRequestButton;
-    private static final String USERS = "users";
-    private int[] animalIcons = {
-        R.drawable.cat, R.drawable.monkey, R.drawable.panda,
-        R.drawable.lion, R.drawable.bear, R.drawable.dog,
-        R.drawable.mouse, R.drawable.bunny
-    };
-    // needs to be global field as it is updated in onCreate() and iconPicker()
-    private ImageView profileImage;
-    private int placeholderIcon = R.drawable.baseline_account_circle_24;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,74 +180,6 @@ public class ProfileActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> imageView.setImageResource(placeholderIcon));
     }
 
-    private void iconPicker() {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setPadding(16, 16, 16, 16);
-
-        for (int icon : animalIcons) {
-            ImageView imageView = new ImageView(this);
-            imageView.setImageResource(icon);
-            imageView.setPadding(8, 8, 8, 8);
-            imageView.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            imageView.setOnClickListener(v -> {
-                profileImage.setImageResource(icon);
-                saveIcon(icon);
-            });
-            layout.addView(imageView);
-        }
-        new AlertDialog.Builder(this)
-                .setTitle("Choose a Profile Icon")
-                .setView(layout)
-                .show();
-    }
-
-    private void saveIcon(int iconId) {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) {
-            return;
-        }
-
-        String iconName = getResources().getResourceEntryName(iconId);
-
-        FirebaseFirestore.getInstance()
-                .collection(USERS)
-                .document(uid)
-                .update("profileIcon", iconName)
-                .addOnSuccessListener(e -> Toast.makeText(this,
-                        "Profile icon updated", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this,
-                        "Failed to update icon", Toast.LENGTH_SHORT).show());
-    }
-
-    private void loadIcon(ImageView imageView) {
-        String uid = FirebaseAuth.getInstance().getUid();
-        if (uid == null) {
-            return;
-        }
-        FirebaseFirestore.getInstance()
-                .collection(USERS)
-                .document(uid)
-                .get()
-                .addOnSuccessListener(document -> {
-                    if (!document.exists()) {
-                        imageView.setImageResource(placeholderIcon);
-                        return;
-                    }
-
-                    String iconName = document.getString("profileIcon");
-                    if (iconName != null) {
-                        int iD = getResources().getIdentifier(iconName,
-                                "drawable", getPackageName());
-                        imageView.setImageResource(iD);
-                    } else {
-                        imageView.setImageResource(placeholderIcon);
-                    }
-                })
-                .addOnFailureListener(e -> imageView.setImageResource(placeholderIcon));
-    }
-
     // Extracted to reduce Cognitive Complexity in onCreate()
     private void loadUserTotals(TextView totalExpenses, TextView totalBudgets) {
         String uid = FirestoreManager.getInstance().getCurrentUserId();
@@ -268,7 +188,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         FirestoreManager.getInstance().getDb()
-                .collection(USERS)
+                .collection("users")
                 .document(uid)
                 .get()
                 .addOnSuccessListener(document -> {
