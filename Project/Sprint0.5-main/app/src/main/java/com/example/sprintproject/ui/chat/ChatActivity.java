@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
+import com.example.sprintproject.repository.ChatRepository;
 import com.example.sprintproject.ui.chat.ChatAdapter;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 
@@ -31,6 +32,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // reuse the chatbot fragment layout as the activity UI
         setContentView(R.layout.fragment_chatbot);
 
         vm = new ViewModelProvider(this).get(ChatViewModel.class);
@@ -41,7 +43,9 @@ public class ChatActivity extends AppCompatActivity {
         Button send = findViewById(R.id.btnSend);
 
         final ChatAdapter adapter = new ChatAdapter();
-        recycler.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager lm = new LinearLayoutManager(this);
+        lm.setStackFromEnd(true);
+        recycler.setLayoutManager(lm);
         recycler.setAdapter(adapter);
 
         vm.getMessages().observe(this, msgs -> {
@@ -61,6 +65,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
+        // start a chat when this activity opens
         vm.startNewChat();
 
         send.setOnClickListener(v -> {
@@ -86,7 +91,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void showChatPicker(String userText) {
-        vm.getChatDocs().addOnSuccessListener(docs -> {
+        vm.getChatDocs().addOnSuccessListener((List<ChatRepository.ChatDoc> docs) -> {
             if (docs == null || docs.isEmpty()) {
                 vm.sendUserMessage(userText);
                 input.setText("");
@@ -97,7 +102,7 @@ public class ChatActivity extends AppCompatActivity {
             boolean[] checked = new boolean[docs.size()];
 
             for (int i = 0; i < docs.size(); i++) {
-                titles[i] = docs.get(i).getTitle();
+                titles[i] = docs.get(i).title; // fields, not getters
             }
 
             new AlertDialog.Builder(this)
@@ -108,7 +113,7 @@ public class ChatActivity extends AppCompatActivity {
                         List<String> selected = new ArrayList<>();
                         for (int i = 0; i < checked.length; i++) {
                             if (checked[i]) {
-                                selected.add(docs.get(i).getId());
+                                selected.add(docs.get(i).id); // fields, not getters
                             }
                         }
                         vm.setReferenceChats(selected);
