@@ -81,7 +81,8 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private String formatTime(long millis) {
         Date d = new Date(millis);
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault());
+        SimpleDateFormat sdf =
+                new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault());
         return sdf.format(d);
     }
 
@@ -104,9 +105,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(itemView);
             bubble = itemView.findViewById(R.id.txtBubble);
             time = itemView.findViewById(R.id.botMsgTime);
-        }
-        public TextView getTxt() {
-            return txt;
         }
     }
 }

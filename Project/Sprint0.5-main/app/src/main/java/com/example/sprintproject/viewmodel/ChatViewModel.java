@@ -96,6 +96,8 @@ public class ChatViewModel extends ViewModel {
         );
     }
 
+    // ---------------- AppDate helpers ----------------
+
     public void setCurrentAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
     }
@@ -137,6 +139,8 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
+    // ---------------- local message helpers ----------------
+
     private List<UiMessage> currentListOrEmpty() {
         List<UiMessage> cur = messages.getValue();
         return cur == null ? new ArrayList<>() : new ArrayList<>(cur);
@@ -164,6 +168,8 @@ public class ChatViewModel extends ViewModel {
         snapshotList.sort(Comparator.comparingLong(m -> m.localTime));
         messages.postValue(snapshotList);
     }
+
+    // ---------------- chat lifecycle ----------------
 
     public void startNewChat() {
         loading.setValue(true);
@@ -205,6 +211,8 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
+    // ---------------- Firestore listening ----------------
+
     private void listenToMessagesInternal(String chatId) {
         detachListener();
         if (chatId == null) {
@@ -237,6 +245,8 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
+    // ---------------- public send API ----------------
+
     public void sendUserMessage(String text) {
         if (text == null || text.trim().isEmpty()) {
             return;
@@ -260,6 +270,7 @@ public class ChatViewModel extends ViewModel {
         sendUserMessage(text);
     }
 
+    /** Used by ChatbotFragment after the user picks memory chats. */
     public void addMemoryNote(String note) {
         if (note == null || note.trim().isEmpty() || activeChatId == null) {
             return;
@@ -267,11 +278,14 @@ public class ChatViewModel extends ViewModel {
         addLocalMessage("user", note);
         String isoTs = isoNow();
         repo.addUserMessage(activeChatId, note, isoTs);
+        // IMPORTANT: no AI call here – it's just a context note.
     }
 
     public void listenToMessages(String chatId) {
         openExistingChat(chatId);
     }
+
+    // ---------------- data-aware AI pipeline ----------------
 
     private void loadDataThenRespond(String userText) {
         Task<QuerySnapshot> expT = repo.loadExpenses();
@@ -291,7 +305,7 @@ public class ChatViewModel extends ViewModel {
                     FinancialInsightsEngine.InsightResult ir =
                             engine.tryHandle(userText, expenses, budgets);
 
-                    String promptToAI = ir.getHandled() ? ir.getAiFollowupPrompt() : userText;
+                    String promptToAI = ir.handled ? ir.aiFollowupPrompt : userText;
 
                     buildFinalPrompt(promptToAI)
                             .addOnSuccessListener(fullPrompt -> {
@@ -363,6 +377,8 @@ public class ChatViewModel extends ViewModel {
         return arr;
     }
 
+    // ---------------- streaming ----------------
+
     private void streamAssistant(JSONArray msgArr, String rawUserText) {
         if (activeChatId == null) {
             loading.postValue(false);
@@ -418,6 +434,8 @@ public class ChatViewModel extends ViewModel {
             }
         });
     }
+
+    // ---------------- titles & summaries ----------------
 
     private void generateTitle(String firstPrompt) {
         try {
