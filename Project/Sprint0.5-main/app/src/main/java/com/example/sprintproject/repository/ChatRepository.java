@@ -138,7 +138,6 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
-            // ignore because we're not logged in
         }
     }
 
@@ -245,7 +244,6 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
-            // ignore because we're not logged in
         }
     }
 
@@ -309,7 +307,6 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
-            // ignore because we're not logged in
         }
     }
 

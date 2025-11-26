@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 public class FriendRequestsViewModel extends ViewModel {
     private final MutableLiveData<List<Map<String, Object>>> friendRequestsLiveData
             = new MutableLiveData<>();
@@ -28,8 +27,6 @@ public class FriendRequestsViewModel extends ViewModel {
     private static final String USERS = "users";
     private static final String FRIENDS = "friends";
     private static final String FIRESTORE = "Firestore";
-
-
 
     public LiveData<List<Map<String, Object>>> getFriendRequests() {
         return friendRequestsLiveData;
@@ -96,6 +93,9 @@ public class FriendRequestsViewModel extends ViewModel {
         friendsListener = FirebaseFirestore.getInstance().collection(USERS)
                 .document(userId)
                 .addSnapshotListener((snapshot, e) -> {
+                    if (e != null || snapshot == null) {
+                        return;
+                    }
                     List<Map<String, Object>> friends = (List<Map<String, Object>>) snapshot.get(FRIENDS);
                     if (friends == null) {
                         friends = new ArrayList<>();
@@ -111,53 +111,69 @@ public class FriendRequestsViewModel extends ViewModel {
         }
     }
 
+    /**
+     * Refactored to reduce cognitive complexity:
+     * now delegates to a reusable helper for each side of the friendship.
+     */
     public void removeFriend(String friendId) {
-        String currentUid =  FirestoreManager.getInstance().getCurrentUserId();
+        String currentUid = FirestoreManager.getInstance().getCurrentUserId();
         if (currentUid == null || friendId == null) {
             return;
         }
 
-        FirebaseFirestore.getInstance().collection(USERS).document(currentUid)
-                        .get()
-                        .addOnSuccessListener(snapshot -> {
-                            if (!snapshot.exists()) {
-                                return;
-                            }
+        // Remove the friend from the current user's friends list
+        removeFriendRelation(currentUid, friendId);
 
-                            List<Map<String, Object>> friends = (List<Map<String, Object>>) snapshot.get(FRIENDS);
-                            if (friends == null) {
-                                return;
-                            }
+        // Remove the current user from the friend's friends list
+        removeFriendRelation(friendId, currentUid);
+    }
 
-                            for (Map<String, Object> friend : friends) {
-                                if (friendId.equals(friend.get("uid"))) {
-                                    FirebaseFirestore.getInstance().collection(USERS).document(currentUid)
-                                            .update(FRIENDS, FieldValue.arrayRemove(friend));
-                                    break;
-                                }
-                            }
-                        });
+    /**
+     * Helper that removes the friend entry with targetUid
+     * from the FRIENDS array of the ownerUid document.
+     */
+    private void removeFriendRelation(String ownerUid, String targetUid) {
+        if (ownerUid == null || targetUid == null) {
+            return;
+        }
 
-        FirebaseFirestore.getInstance().collection(USERS).document(friendId)
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection(USERS).document(ownerUid)
                 .get()
                 .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.exists()) {
+                    if (snapshot == null || !snapshot.exists()) {
                         return;
                     }
 
-                    List<Map<String, Object>> friends = (List<Map<String, Object>>) snapshot.get(FRIENDS);
-                    if (friends == null) {
+                    List<Map<String, Object>> friends =
+                            (List<Map<String, Object>>) snapshot.get(FRIENDS);
+                    if (friends == null || friends.isEmpty()) {
                         return;
                     }
 
-                    for (Map<String, Object> friend : friends) {
-                        if (currentUid.equals(friend.get("uid"))) {
-                            FirebaseFirestore.getInstance().collection(USERS).document(friendId)
-                                    .update(FRIENDS, FieldValue.arrayRemove(friend));
-                            break;
-                        }
+                    Map<String, Object> friendToRemove = findFriendByUid(friends, targetUid);
+                    if (friendToRemove == null) {
+                        return;
                     }
+
+                    db.collection(USERS).document(ownerUid)
+                            .update(FRIENDS, FieldValue.arrayRemove(friendToRemove));
                 });
+    }
+
+    /**
+     * Finds the friend map whose "uid" equals the given uid.
+     */
+    private Map<String, Object> findFriendByUid(List<Map<String, Object>> friends, String uid) {
+        if (friends == null || uid == null) {
+            return null;
+        }
+        for (Map<String, Object> friend : friends) {
+            if (uid.equals(friend.get("uid"))) {
+                return friend;
+            }
+        }
+        return null;
     }
 
     public void acceptFriendRequest(String requestId) {
@@ -167,6 +183,7 @@ public class FriendRequestsViewModel extends ViewModel {
                 .addOnSuccessListener(document -> {
                     if (!document.exists()) {
                         Log.e(FIRESTORE, "Friend request not found: " + requestId);
+                        return;
                     }
 
                     String requesterUid = document.getString("requesterUid");
@@ -199,11 +216,11 @@ public class FriendRequestsViewModel extends ViewModel {
                                         .update(FRIENDS, FieldValue.arrayUnion(approverData));
                             })
                             .addOnFailureListener(e ->
-                                Log.e(FIRESTORE, "Failed to accept friend request", e)
+                                    Log.e(FIRESTORE, "Failed to accept friend request", e)
                             );
                 })
                 .addOnFailureListener(e ->
-                    Log.e(FIRESTORE, "Failed to get friend request", e)
+                        Log.e(FIRESTORE, "Failed to get friend request", e)
                 );
     }
 
@@ -225,10 +242,13 @@ public class FriendRequestsViewModel extends ViewModel {
                     }
                     for (DocumentSnapshot document : snapshot.getDocuments()) {
                         String approverUid = document.getId();
-                        FirestoreManager.getInstance().sendFriendRequest(requesterUid, approverUid,
-                                requesterEmail, approverEmail);
+                        FirestoreManager.getInstance().sendFriendRequest(
+                                requesterUid,
+                                approverUid,
+                                requesterEmail,
+                                approverEmail
+                        );
                         Log.d(FIRESTORE, "Friend request created for: " + approverEmail);
-
                     }
                 })
                 .addOnFailureListener(e ->

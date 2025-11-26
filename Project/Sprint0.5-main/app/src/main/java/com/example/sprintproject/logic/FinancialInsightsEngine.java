@@ -35,7 +35,6 @@ public class FinancialInsightsEngine {
 
         String t = userText.toLowerCase(Locale.US).trim();
 
-        // ---- WEEKLY SPENDING / WEEKLY EXPENSES ----
         if (t.contains("summarize my spending this week")
                 || t.contains("summarize my weekly spending")
                 || t.contains("track my weekly expenses")
@@ -57,7 +56,6 @@ public class FinancialInsightsEngine {
             return new InsightResult(true, computed, aiPrompt);
         }
 
-        // ---- CUT COSTS ----
         if (t.contains("suggest where i can cut costs")
                 || t.contains("cut my costs")
                 || t.contains("reduce my spending")) {
@@ -76,7 +74,6 @@ public class FinancialInsightsEngine {
             return new InsightResult(true, computed, aiPrompt);
         }
 
-        // ---- THIS MONTH VS LAST MONTH ----
         if (t.contains("compared to last month")
                 || t.contains("how did i perform compared")
                 || t.contains("this month vs last month")
@@ -98,7 +95,6 @@ public class FinancialInsightsEngine {
             return new InsightResult(true, computed, aiPrompt);
         }
 
-        // not a special handled query → let the LLM work directly from user text
         return new InsightResult(false, null, null);
     }
 

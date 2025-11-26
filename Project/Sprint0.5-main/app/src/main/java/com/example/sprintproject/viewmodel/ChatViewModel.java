@@ -13,6 +13,7 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.example.sprintproject.network.OllamaClient;
 import com.example.sprintproject.repository.ChatRepository;
+import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -83,8 +84,6 @@ public class ChatViewModel extends ViewModel {
         );
     }
 
-    // ---------------- AppDate helpers ----------------
-
     public void setCurrentAppDate(AppDate appDate) {
         this.currentAppDate = appDate;
     }
@@ -126,7 +125,6 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    // ---------------- local message helpers ----------------
 
     private List<UiMessage> currentListOrEmpty() {
         List<UiMessage> cur = messages.getValue();
@@ -156,7 +154,6 @@ public class ChatViewModel extends ViewModel {
         messages.postValue(snapshotList);
     }
 
-    // ---------------- chat lifecycle ----------------
 
     public void startNewChat() {
         loading.setValue(true);
@@ -198,7 +195,6 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
-    // ---------------- Firestore listening ----------------
 
     private void listenToMessagesInternal(String chatId) {
         detachListener();
@@ -262,7 +258,6 @@ public class ChatViewModel extends ViewModel {
         addLocalMessage("user", note);
         String isoTs = isoNow();
         repo.addUserMessage(activeChatId, note, isoTs);
-        // IMPORTANT: no AI call here – it's just a context note.
     }
 
     public void listenToMessages(String chatId) {
@@ -355,7 +350,6 @@ public class ChatViewModel extends ViewModel {
             arr.put(user);
 
         } catch (Exception ignored) {
-            // Intentionally ignored - firestore doesn't like empty arrays.
         }
         return arr;
     }
@@ -416,7 +410,6 @@ public class ChatViewModel extends ViewModel {
         });
     }
 
-    // ---------------- titles & summaries ----------------
 
     private void generateTitle(String firstPrompt) {
         try {
@@ -438,12 +431,10 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Intentionally ignored - no title generated.
                 }
             });
 
         } catch (Exception ignored) {
-            // Intentioanlly ignored - no need for implementation
         }
     }
 
@@ -478,14 +469,13 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Intentionally ignored - no need for implementation
                 }
             });
 
         } catch (Exception ignored) {
-            // intentionally ignored no need for implementation
         }
     }
+
 
     public void refreshAllUntitledChatTitles() {
         String uid = FirestoreManager.getInstance().getCurrentUserId();
@@ -496,39 +486,47 @@ public class ChatViewModel extends ViewModel {
         FirestoreManager.getInstance()
                 .userChatsReference(uid)
                 .get()
-                .addOnSuccessListener(qs -> {
-                    if (qs == null || qs.isEmpty()) {
-                        return;
-                    }
+                .addOnSuccessListener(qs -> handleUserChatsSnapshot(uid, qs));
+    }
 
-                    for (DocumentSnapshot chatDoc : qs.getDocuments()) {
-                        String chatId = chatDoc.getId();
-                        String title = chatDoc.getString("title");
+    private void handleUserChatsSnapshot(String uid, QuerySnapshot qs) {
+        if (qs == null || qs.isEmpty()) {
+            return;
+        }
 
-                        if (!needsTitle(title)) {
-                            continue;
-                        }
+        for (DocumentSnapshot chatDoc : qs.getDocuments()) {
+            processSingleChatDocForTitle(uid, chatDoc);
+        }
+    }
 
-                        FirestoreManager.getInstance()
-                                .chatMessagesReference(uid, chatId)
-                                .orderBy("timestamp")
-                                .limit(1)
-                                .get()
-                                .addOnSuccessListener(msgSnap -> {
-                                    if (msgSnap == null || msgSnap.isEmpty()) {
-                                        return;
-                                    }
+    private void processSingleChatDocForTitle(String uid, DocumentSnapshot chatDoc) {
+        String chatId = chatDoc.getId();
+        String title = chatDoc.getString("title");
 
-                                    DocumentSnapshot first = msgSnap.getDocuments().get(0);
-                                    String content = first.getString(CONTENT);
-                                    if (content == null || content.trim().isEmpty()) {
-                                        return;
-                                    }
+        if (!needsTitle(title)) {
+            return;
+        }
 
-                                    generateTitleForSpecificChat(chatId, content);
-                                });
-                    }
-                });
+        FirestoreManager.getInstance()
+                .chatMessagesReference(uid, chatId)
+                .orderBy("timestamp")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(msgSnap -> handleFirstMessageSnapshot(chatId, msgSnap));
+    }
+
+    private void handleFirstMessageSnapshot(String chatId, QuerySnapshot msgSnap) {
+        if (msgSnap == null || msgSnap.isEmpty()) {
+            return;
+        }
+
+        DocumentSnapshot first = msgSnap.getDocuments().get(0);
+        String content = first.getString(CONTENT);
+        if (content == null || content.trim().isEmpty()) {
+            return;
+        }
+
+        generateTitleForSpecificChat(chatId, content);
     }
 
     private boolean needsTitle(String title) {
@@ -567,11 +565,9 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    // Intentionally ignored - no need for implementation
                 }
             });
         } catch (Exception ignored) {
-            // Intentionally ignored - no need for implementation
         }
     }
 

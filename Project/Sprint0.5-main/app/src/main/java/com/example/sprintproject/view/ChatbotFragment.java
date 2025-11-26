@@ -36,6 +36,7 @@ public class ChatbotFragment extends Fragment {
 
     private ChatViewModel chatVM;
     private static final String TODAY = "today";
+
     @Nullable
     @Override
     public View onCreateView(
@@ -70,11 +71,33 @@ public class ChatbotFragment extends Fragment {
         Button btnCmdHousing = view.findViewById(R.id.btnCmdHousing);
         Button btnCmdEssentials = view.findViewById(R.id.btnCmdEssentials);
 
-        final ChatAdapter adapter = new ChatAdapter();
+        final ChatAdapter adapter = setupRecycler(recycler);
+
+        observeViewModels(dateVM, adapter, recycler, commandRow, progress, txtError);
+
+        setupSendAndNewChatButtons(editInput, btnSend, btnNewChat);
+
+        setupCommandButtons(dateVM, editInput,
+                btnCmdWeekly, btnCmdHousing, btnCmdEssentials);
+    }
+
+    // ----------------- helpers to reduce cognitive complexity -----------------
+
+    private ChatAdapter setupRecycler(RecyclerView recycler) {
+        ChatAdapter adapter = new ChatAdapter();
         LinearLayoutManager lm = new LinearLayoutManager(requireContext());
         lm.setStackFromEnd(true);
         recycler.setLayoutManager(lm);
         recycler.setAdapter(adapter);
+        return adapter;
+    }
+
+    private void observeViewModels(DateViewModel dateVM,
+                                   ChatAdapter adapter,
+                                   RecyclerView recycler,
+                                   View commandRow,
+                                   ProgressBar progress,
+                                   TextView txtError) {
 
         dateVM.getCurrentDate().observe(getViewLifecycleOwner(), chatVM::setCurrentAppDate);
 
@@ -92,7 +115,7 @@ public class ChatbotFragment extends Fragment {
         });
 
         chatVM.getLoading().observe(getViewLifecycleOwner(), isLoading ->
-            progress.setVisibility(Boolean.TRUE.equals(isLoading) ? View.VISIBLE : View.GONE)
+                progress.setVisibility(Boolean.TRUE.equals(isLoading) ? View.VISIBLE : View.GONE)
         );
 
         chatVM.getError().observe(getViewLifecycleOwner(), err -> {
@@ -103,6 +126,11 @@ public class ChatbotFragment extends Fragment {
                 txtError.setText(err);
             }
         });
+    }
+
+    private void setupSendAndNewChatButtons(EditText editInput,
+                                            Button btnSend,
+                                            Button btnNewChat) {
 
         btnSend.setOnClickListener(v -> {
             String text = editInput.getText().toString().trim();
@@ -118,94 +146,121 @@ public class ChatbotFragment extends Fragment {
             editInput.setText("");
             showMemoryPopup();
         });
+    }
+
+    private void setupCommandButtons(DateViewModel dateVM,
+                                     EditText editInput,
+                                     Button btnCmdWeekly,
+                                     Button btnCmdHousing,
+                                     Button btnCmdEssentials) {
 
         btnCmdWeekly.setOnClickListener(v -> {
             AppDate appDate = dateVM.getCurrentDate().getValue();
-            String prompt =
-                    "Summarize my spending this week and track my weekly expenses using ONLY my "
-                            + "real SpendWise data. Focus on the app date "
-                            + (appDate != null ? appDate.toIso() : TODAY)
-                            + " and do NOT invent any sample numbers.";
-            editInput.setText("");
-            chatVM.sendUserMessage(prompt);
+            String prompt = buildWeeklyPrompt(appDate);
+            sendPredefinedPrompt(editInput, prompt);
         });
 
         btnCmdHousing.setOnClickListener(v -> {
             AppDate appDate = dateVM.getCurrentDate().getValue();
-            String prompt =
-                    "Using my current income and real expense history in SpendWise, "
-                            + "help me create a sustainable housing budget for the app date "
-                            + (appDate != null ? appDate.toIso() : TODAY)
-                            + ". Do NOT invent any new dollar amounts; base everything on my "
-                            + "existing data and realistic housing guidelines.";
-            editInput.setText("");
-            chatVM.sendUserMessage(prompt);
+            String prompt = buildHousingPrompt(appDate);
+            sendPredefinedPrompt(editInput, prompt);
         });
 
         btnCmdEssentials.setOnClickListener(v -> {
             AppDate appDate = dateVM.getCurrentDate().getValue();
-            String prompt =
-                    "Plan my daily essentials (food, transport, basic needs) using only my "
-                            + "actual SpendWise budgets and expenses for "
-                            + (appDate != null ? appDate.toIso() : TODAY)
-                            + ". No sample numbers—only what you can infer from my real data.";
-            editInput.setText("");
-            chatVM.sendUserMessage(prompt);
+            String prompt = buildEssentialsPrompt(appDate);
+            sendPredefinedPrompt(editInput, prompt);
         });
     }
 
+    private void sendPredefinedPrompt(EditText editInput, String prompt) {
+        editInput.setText("");
+        chatVM.sendUserMessage(prompt);
+    }
+
+    private String buildWeeklyPrompt(AppDate appDate) {
+        return "Summarize my spending this week and track my weekly expenses using ONLY my "
+                + "real SpendWise data. Focus on the app date "
+                + (appDate != null ? appDate.toIso() : TODAY)
+                + " and do NOT invent any sample numbers.";
+    }
+
+    private String buildHousingPrompt(AppDate appDate) {
+        return "Using my current income and real expense history in SpendWise, "
+                + "help me create a sustainable housing budget for the app date "
+                + (appDate != null ? appDate.toIso() : TODAY)
+                + ". Do NOT invent any new dollar amounts; base everything on my "
+                + "existing data and realistic housing guidelines.";
+    }
+
+    private String buildEssentialsPrompt(AppDate appDate) {
+        return "Plan my daily essentials (food, transport, basic needs) using only my "
+                + "actual SpendWise budgets and expenses for "
+                + (appDate != null ? appDate.toIso() : TODAY)
+                + ". No sample numbers—only what you can infer from my real data.";
+    }
+
     private void showMemoryPopup() {
-        chatVM.getChatDocs().addOnSuccessListener(docs -> {
-            if (docs == null || docs.isEmpty()) {
-                chatVM.setReferenceChats(new ArrayList<>());
-                return;
+        chatVM.getChatDocs().addOnSuccessListener(this::handleChatDocsSuccess);
+    }
+
+    private void handleChatDocsSuccess(List<ChatRepository.ChatDoc> docs) {
+        if (docs == null || docs.isEmpty()) {
+            chatVM.setReferenceChats(new ArrayList<>());
+            return;
+        }
+
+        String[] titles = buildTitlesArray(docs);
+        boolean[] checked = new boolean[docs.size()];
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Include previous chats?")
+                .setMultiChoiceItems(titles, checked,
+                        (dlg, idx, isChecked) -> checked[idx] = isChecked)
+                .setPositiveButton("Use Selected", (dlg, w) ->
+                        onMemorySelectionConfirmed(docs, checked))
+                .setNegativeButton("Skip", (dlg, w) ->
+                        chatVM.setReferenceChats(new ArrayList<>()))
+                .show();
+    }
+
+    private String[] buildTitlesArray(List<ChatRepository.ChatDoc> docs) {
+        String[] titles = new String[docs.size()];
+        for (int i = 0; i < docs.size(); i++) {
+            titles[i] = docs.get(i).getTitle();
+        }
+        return titles;
+    }
+
+    private void onMemorySelectionConfirmed(List<ChatRepository.ChatDoc> docs,
+                                            boolean[] checked) {
+        List<String> selectedIds = new ArrayList<>();
+        StringBuilder memoryNote =
+                new StringBuilder("Using these previous chats as context:\n");
+
+        for (int i = 0; i < checked.length; i++) {
+            if (!checked[i]) {
+                continue;
             }
 
-            String[] titles = new String[docs.size()];
-            boolean[] checked = new boolean[docs.size()];
+            ChatRepository.ChatDoc doc = docs.get(i);
+            selectedIds.add(doc.getId());
 
-            for (int i = 0; i < docs.size(); i++) {
-                ChatRepository.ChatDoc doc = docs.get(i);
-                titles[i] = doc.getTitle();
+            memoryNote.append("- ")
+                    .append(doc.getTitle());
+
+            String summary = doc.getSummary();
+            if (summary != null && !summary.trim().isEmpty()) {
+                memoryNote.append(": ")
+                        .append(summary.trim());
             }
+            memoryNote.append("\n");
+        }
 
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("Include previous chats?")
-                    .setMultiChoiceItems(titles, checked,
-                            (dlg, idx, isChecked) -> checked[idx] = isChecked)
-                    .setPositiveButton("Use Selected", (dlg, w) -> {
-                        List<String> selectedIds = new ArrayList<>();
-                        StringBuilder memoryNote = new StringBuilder();
+        chatVM.setReferenceChats(selectedIds);
 
-                        memoryNote.append("Using these previous chats as context:\n");
-                        for (int i = 0; i < checked.length; i++) {
-                            if (!checked[i]) {
-                                continue;
-                            }
-
-                            ChatRepository.ChatDoc doc = docs.get(i);
-                            selectedIds.add(doc.getId());
-
-                            memoryNote.append("- ")
-                                    .append(doc.getTitle());
-
-                            if (doc.getSummary() != null && !doc.getSummary().trim().isEmpty()) {
-                                memoryNote.append(": ")
-                                        .append(doc.getSummary().trim());
-                            }
-                            memoryNote.append("\n");
-                        }
-
-                        chatVM.setReferenceChats(selectedIds);
-
-                        if (!selectedIds.isEmpty()) {
-                            chatVM.addMemoryNote(memoryNote.toString().trim());
-                        }
-                    })
-                    .setNegativeButton("Skip", (dlg, w) ->
-                        chatVM.setReferenceChats(new ArrayList<>())
-                    )
-                    .show();
-        });
+        if (!selectedIds.isEmpty()) {
+            chatVM.addMemoryNote(memoryNote.toString().trim());
+        }
     }
 }
