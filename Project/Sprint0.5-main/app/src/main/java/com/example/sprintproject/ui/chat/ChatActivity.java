@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.repository.ChatRepository;
-import com.example.sprintproject.ui.chat.ChatAdapter;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 
 import java.util.ArrayList;
@@ -102,7 +101,7 @@ public class ChatActivity extends AppCompatActivity {
             boolean[] checked = new boolean[docs.size()];
 
             for (int i = 0; i < docs.size(); i++) {
-                titles[i] = docs.get(i).title; // fields, not getters
+                titles[i] = docs.get(i).getTitle(); // fields, not getters
             }
 
             new AlertDialog.Builder(this)
@@ -113,7 +112,7 @@ public class ChatActivity extends AppCompatActivity {
                         List<String> selected = new ArrayList<>();
                         for (int i = 0; i < checked.length; i++) {
                             if (checked[i]) {
-                                selected.add(docs.get(i).id); // fields, not getters
+                                selected.add(docs.get(i).getId()); // fields, not getters
                             }
                         }
                         vm.setReferenceChats(selected);

@@ -1,11 +1,7 @@
 package com.example.sprintproject.view;
 
-import static android.app.ProgressDialog.show;
-
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -88,7 +84,8 @@ public class InvitationsFragment extends Fragment {
                 || friendRequestsViewModel.getFriendRequests().getValue().isEmpty();
         boolean noCircleInvites = invitationsViewModel.getInvites().getValue() == null
                 || invitationsViewModel.getInvites().getValue().isEmpty();
-        noInvitesText.setVisibility((noFriendRequests && noCircleInvites) ? View.VISIBLE : View.GONE);
+        noInvitesText.setVisibility((noFriendRequests && noCircleInvites)
+                ? View.VISIBLE : View.GONE);
     }
 
     @Override

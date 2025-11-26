@@ -4,17 +4,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
-import com.example.sprintproject.viewmodel.DateViewModel;
 import com.example.sprintproject.viewmodel.FriendRequestsViewModel;
-import com.example.sprintproject.viewmodel.InvitationsViewModel;
 
 import java.util.ArrayList;
 
@@ -47,7 +43,8 @@ public class FriendRequestsFragment extends Fragment {
 
         friendRequestsViewModel.getFriendRequests().observe(getViewLifecycleOwner(), requests -> {
             adapter.updateRequests(requests);
-            noInvites.setVisibility((requests == null || requests.isEmpty()) ? View.VISIBLE : View.GONE);
+            noInvites.setVisibility((requests == null
+                    || requests.isEmpty()) ? View.VISIBLE : View.GONE);
         });
 
         friendRequestsViewModel.startListeningForRequests();

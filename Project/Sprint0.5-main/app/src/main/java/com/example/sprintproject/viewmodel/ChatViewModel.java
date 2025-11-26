@@ -38,22 +38,6 @@ public class ChatViewModel extends ViewModel {
     public static final String CONTENT = "content";
     public static final String ASSISTANT = "assistant";
 
-    public static class UiMessage {
-        public final String role;
-        public final String content;
-        public final long localTime;
-
-        public UiMessage(String role, String content) {
-            this(role, content, System.currentTimeMillis());
-        }
-
-        public UiMessage(String role, String content, long localTime) {
-            this.role = role;
-            this.content = content;
-            this.localTime = localTime;
-        }
-    }
-
     private final MutableLiveData<List<UiMessage>> messages =
             new MutableLiveData<>(new ArrayList<>());
 
@@ -271,7 +255,6 @@ public class ChatViewModel extends ViewModel {
         sendUserMessage(text);
     }
 
-    /** Used by ChatbotFragment after the user picks memory chats. */
     public void addMemoryNote(String note) {
         if (note == null || note.trim().isEmpty() || activeChatId == null) {
             return;
@@ -304,7 +287,7 @@ public class ChatViewModel extends ViewModel {
                     FinancialInsightsEngine.InsightResult ir =
                             engine.tryHandle(userText, expenses, budgets);
 
-                    String promptToAI = ir.handled ? ir.aiFollowupPrompt : userText;
+                    String promptToAI = ir.getHandled() ? ir.getAiFollowupPrompt() : userText;
 
                     buildFinalPrompt(promptToAI)
                             .addOnSuccessListener(fullPrompt -> {
@@ -566,7 +549,8 @@ public class ChatViewModel extends ViewModel {
                     .put("role", "user")
                     .put(CONTENT,
                             "Create a short 2-5 word title for this financial conversation. "
-                                    + "Do NOT include quotes, just the raw title:\n" + firstMessage));
+                                    + "Do NOT include quotes, just the raw title:\n"
+                                    + firstMessage));
 
             ollama.chat(arr, new OllamaClient.ChatCallback() {
                 @Override
@@ -596,5 +580,33 @@ public class ChatViewModel extends ViewModel {
         super.onCleared();
         detachListener();
         ollama.cancelActive();
+    }
+
+    public static class UiMessage {
+        private final String role;
+        private final String content;
+        private final long localTime;
+
+        public UiMessage(String role, String content) {
+            this(role, content, System.currentTimeMillis());
+        }
+
+        public UiMessage(String role, String content, long localTime) {
+            this.role = role;
+            this.content = content;
+            this.localTime = localTime;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public long getLocalTime() {
+            return localTime;
+        }
     }
 }
