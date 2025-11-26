@@ -35,8 +35,6 @@ public class InvitationsFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        //InvitationsAdapter adapter;
-        //TextView noInvitesText;
         super.onViewCreated(view, savedInstanceState);
         RecyclerView recyclerView = view.findViewById(R.id.invitationsRecyclerView);
         TextView noInvitesText = view.findViewById(R.id.noInvitesText);
