@@ -2,9 +2,12 @@ package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import com.example.sprintproject.viewmodel.FriendRequestsViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.widget.LinearLayout;
@@ -12,10 +15,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sprintproject.R;
 import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.ArrayList;
 
 public class ProfileActivity extends AppCompatActivity {
     //private static final int IMAGE_REQUEST = 1;
@@ -28,6 +36,13 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageView profileImage;
     private int placeholderIcon = R.drawable.baseline_account_circle_24;
 
+    private FriendRequestsViewModel viewModel;
+    private FriendsListAdapter friendsAdapter;
+
+    private RecyclerView friendsRecyclerView;
+    private EditText emailInput;
+    private Button sendRequestButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +54,10 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.profileImage);
         loadIcon(profileImage);
 
+        emailInput = findViewById(R.id.emailInput);
+        sendRequestButton = findViewById(R.id.sendRequestButton);
+        friendsRecyclerView = findViewById(R.id.friendsRecyclerView);
+
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             userEmail.setText("Email: " + FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
@@ -49,6 +68,51 @@ public class ProfileActivity extends AppCompatActivity {
 
         ImageButton backBtn = findViewById(R.id.btnBack);
         backBtn.setOnClickListener(v -> finish());
+
+        viewModel = new ViewModelProvider(this).get(FriendRequestsViewModel.class);
+
+        friendsAdapter = new FriendsListAdapter(new ArrayList<>(), viewModel, this, this);
+        friendsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        friendsRecyclerView.setAdapter(friendsAdapter);
+
+        viewModel.getFriends().observe(this, friends -> friendsAdapter.updateFriendsList(friends));
+
+        viewModel.startListeningForFriends();
+
+        sendRequestButton.setOnClickListener(v -> {
+            String email = emailInput.getText().toString().trim();
+            if (!email.isEmpty()) {
+                FirestoreManager.getInstance().searchByEmail(email).get()
+                        .addOnSuccessListener(querySnapshot -> {
+                            if (!querySnapshot.isEmpty()) {
+                                String approverUid = querySnapshot.getDocuments().get(0).getId();
+                                String requesterUid = FirebaseAuth.getInstance().getUid();
+                                String requesterEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+                                FirestoreManager.getInstance().sendFriendRequest(
+                                        requesterUid,
+                                        approverUid,
+                                        requesterEmail,
+                                        email
+                                );
+                                Toast.makeText(this, "Request sent to: " + email, Toast.LENGTH_SHORT).show();
+                                emailInput.setText("");
+                            } else {
+                                Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show()
+                        );
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        viewModel.startListeningForFriends();
+        viewModel.stopListeningForRequests();
     }
 
     private void iconPicker() {

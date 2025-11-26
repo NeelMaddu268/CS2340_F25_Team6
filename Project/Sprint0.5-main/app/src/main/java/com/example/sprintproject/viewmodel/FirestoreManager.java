@@ -1,5 +1,7 @@
 package com.example.sprintproject.viewmodel;
 
+import android.util.Log;
+
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.google.android.gms.tasks.Task;
@@ -17,8 +19,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +37,8 @@ public class FirestoreManager {
     private static final String CATEGORIES_STRING = "categories";
     private static final String POINTERS_STRING = "savingsCirclePointers";
     private static final String INVITATIONS_STRING = "invitations";
+    private static final String FRIENDS_STRING = "friends";
+    private static final String FRIEND_REQUESTS_STRING = "friendRequests";
 
     private FirestoreManager() {
         db = FirebaseFirestore.getInstance();
@@ -53,7 +57,6 @@ public class FirestoreManager {
         return db;
     }
 
-    /** ---------------- References ---------------- */
 
     public CollectionReference savingsCircleReference(String uid) {
         return db.collection(USERS_STRING).document(uid).collection(SAVINGS_CIRCLE_STRING);
@@ -87,7 +90,13 @@ public class FirestoreManager {
         return db.collection(INVITATIONS_STRING);
     }
 
-    /** ---------------- Basic ops ---------------- */
+    public CollectionReference friendRequestsReference() {
+        return db.collection(FRIEND_REQUESTS_STRING);
+    }
+
+    public CollectionReference friendsReference(String uid) {
+        return db.collection(USERS_STRING).document(uid).collection(FRIENDS_STRING);
+    }
 
     public void addUser(String uid, Map<String, Object> userData) {
         db.collection(USERS_STRING).document(uid).set(userData);
@@ -104,8 +113,10 @@ public class FirestoreManager {
 
     public String getCurrentUserEmail() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) return user.getEmail();
-        throw new IllegalStateException("User not logged in");
+        if (user != null) {
+            return user.getEmail();
+        }
+        return null;
     }
 
     /**
@@ -138,8 +149,6 @@ public class FirestoreManager {
         return tcs.getTask();
     }
 
-    /** ---------------- deleteSavingsCircle helpers ---------------- */
-
     private boolean validateCircleAndPermission(
             DocumentSnapshot snapshot,
             String requesterUid,
@@ -159,7 +168,6 @@ public class FirestoreManager {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     private Set<String> collectAllUids(DocumentSnapshot snapshot, String creatorId) {
         Set<String> allUids = new HashSet<>();
         allUids.add(creatorId);
@@ -229,8 +237,6 @@ public class FirestoreManager {
         }
     }
 
-    /** ---------------- Budget/Expense ops ---------------- */
-
     public void addBudget(String uid, Budget budget) {
         budgetsReference(uid).add(budget);
     }
@@ -243,5 +249,107 @@ public class FirestoreManager {
         db.collection(USERS_STRING)
                 .document(uid)
                 .update(fieldName, FieldValue.increment(1));
+    }
+
+   public Query friendRequests(String uid) {
+       return friendRequestsReference().whereEqualTo("approverUid", uid);
+   }
+
+    public Query searchByEmail(String email) {
+        return db.collection(USERS_STRING).whereEqualTo("email", email);
+    }
+
+    public void sendFriendRequest(String requesterUid, String approverUid, String requesterEmail, String approverEmail) {
+        Map<String, Object> request = new HashMap<>();
+        request.put("requesterUid", requesterUid);
+        request.put("approverUid", approverUid);
+        request.put("requesterEmail", requesterEmail);
+        request.put("approverEmail", approverEmail);
+        request.put("status", "pending");
+
+        FirebaseFirestore.getInstance()
+                .collection("friendRequests")
+                .add(request)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("Firestore", "Friend request sent: " + documentReference.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Failed to send friend request", e);
+                });
+    }
+
+    public void approveFriendRequest(String requestId) {
+       DocumentReference request = friendRequestsReference().document(requestId);
+       TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
+
+       request.get().addOnSuccessListener(snapshot -> {
+           if (snapshot == null || !snapshot.exists()) {
+               tcs.setException(new IllegalStateException("Request not found"));
+               return;
+           }
+
+           String requesterUid = snapshot.getString("requesterUid");
+           String approverUid = snapshot.getString("approverUid");
+           String requesterEmail = snapshot.getString("requesterEmail");
+           String approverEmail = snapshot.getString("approverEmail");
+
+           if (requesterUid == null || approverUid == null) {
+               tcs.setException(new IllegalStateException("Invalid request"));
+               return;
+           }
+
+           WriteBatch batch = db.batch();
+
+           Map<String, Object> friend1 = new HashMap<>();
+           friend1.put("uid", approverUid);
+           friend1.put("email", approverEmail);
+
+           Map<String, Object> friend2 = new HashMap<>();
+           friend2.put("uid", requesterUid);
+           friend2.put("email", requesterEmail);
+
+           batch.set(friendsReference(requesterUid).document(approverUid), friend1);
+           batch.set(friendsReference(approverUid).document(requesterUid), friend2);
+
+           batch.delete(request);
+
+           batch.commit()
+                   .addOnSuccessListener(v -> tcs.setResult(null))
+                   .addOnFailureListener(tcs::setException);
+       }).addOnFailureListener(tcs::setException);
+    }
+
+    public void declineFriendRequest(String requestId) {
+        DocumentReference request = friendRequestsReference().document(requestId);
+        WriteBatch batch = db.batch();
+        batch.delete(request);
+        batch.commit();
+    }
+
+    public void removeFriend(String uid1, String uid2) {
+        WriteBatch batch = db.batch();
+        batch.delete(friendsReference(uid1).document(uid2));
+        batch.delete(friendsReference(uid2).document(uid1));
+
+        List<Task<QuerySnapshot>> fetches = new ArrayList<>();
+        fetches.add(friendRequestsReference()
+                .whereEqualTo("requesterUid", uid1)
+                .whereEqualTo("approverUid", uid2)
+                .get());
+        fetches.add(friendRequestsReference()
+                .whereEqualTo("requesterUid", uid2)
+                .whereEqualTo("approverUid", uid1)
+                .get());
+
+        Tasks.whenAllSuccess(fetches)
+                .addOnSuccessListener(results -> {
+                    for (Object object : results) {
+                        QuerySnapshot snap = (QuerySnapshot) object;
+                        for (DocumentSnapshot ds : snap.getDocuments()) {
+                            batch.delete(ds.getReference());
+                        }
+                    }
+                    batch.commit();
+                });
     }
 }
