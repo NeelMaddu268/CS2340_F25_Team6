@@ -230,7 +230,7 @@ public class ChatViewModel extends ViewModel {
             List<UiMessage> ui = new ArrayList<>();
             for (DocumentSnapshot d : snapshot.getDocuments()) {
                 String role = d.getString("role");
-                String content = d.getString("content");
+                String content = d.getString(CONTENT);
                 String tsIso = d.getString("timestamp");
                 if (role != null && content != null) {
                     long ts = isoToMillis(tsIso);
@@ -247,8 +247,6 @@ public class ChatViewModel extends ViewModel {
             msgListener = null;
         }
     }
-
-    // ---------------- public send API ----------------
 
     public void sendUserMessage(String text) {
         if (text == null || text.trim().isEmpty()) {
@@ -287,8 +285,6 @@ public class ChatViewModel extends ViewModel {
     public void listenToMessages(String chatId) {
         openExistingChat(chatId);
     }
-
-    // ---------------- data-aware AI pipeline ----------------
 
     private void loadDataThenRespond(String userText) {
         Task<QuerySnapshot> expT = repo.loadExpenses();
@@ -376,11 +372,10 @@ public class ChatViewModel extends ViewModel {
             arr.put(user);
 
         } catch (Exception ignored) {
+            // Intentionally ignored - firestore doesn't like empty arrays.
         }
         return arr;
     }
-
-    // ---------------- streaming ----------------
 
     private void streamAssistant(JSONArray msgArr, String rawUserText) {
         if (activeChatId == null) {
@@ -460,10 +455,12 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
+                    // Intentionally ignored - no title generated.
                 }
             });
 
         } catch (Exception ignored) {
+            // Intentioanlly ignored - no need for implementation
         }
     }
 
@@ -498,10 +495,12 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
+                    // Intentionally ignored - no need for implementation
                 }
             });
 
         } catch (Exception ignored) {
+            // intentionally ignored no need for implementation
         }
     }
 
@@ -584,9 +583,11 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
+                    // Intentionally ignored - no need for implementation
                 }
             });
         } catch (Exception ignored) {
+            // Intentionally ignored - no need for implementation
         }
     }
 
