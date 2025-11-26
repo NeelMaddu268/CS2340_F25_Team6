@@ -203,15 +203,15 @@ public class OllamaClient {
                             @NonNull StreamCallback cb) throws IOException {
         while (!source.exhausted()) {
             String line = source.readUtf8Line();
-            if (line == null || line.trim().isEmpty()) {
-                continue;
-            }
 
-            Log.d(TAG, "chatStream chunk: " + line);
+            boolean continuee = (line == null || line.trim().isEmpty());
 
-            boolean done = processStreamLine(line, full, cb);
-            if (done) {
-                break;
+            if (!continuee) {
+                Log.d(TAG, "chatStream chunk: " + line);
+                boolean done = processStreamLine(line, full, cb);
+                if (done) {
+                    break;
+                }
             }
         }
     }
@@ -269,11 +269,13 @@ public class OllamaClient {
         try {
             response.close();
         } catch (Exception ignored) {
+            // purposefully ignore - catch and ignore
         }
         if (source != null) {
             try {
                 source.close();
             } catch (Exception ignored) {
+                // purposefully ignore - catch and ignore
             }
         }
     }
