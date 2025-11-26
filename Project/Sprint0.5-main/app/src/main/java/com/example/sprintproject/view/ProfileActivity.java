@@ -1,6 +1,7 @@
 package com.example.sprintproject.view;
 
 import android.app.AlertDialog;
+import android.media.Image;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,7 +33,6 @@ public class ProfileActivity extends AppCompatActivity {
         R.drawable.lion, R.drawable.bear, R.drawable.dog,
         R.drawable.mouse, R.drawable.bunny
     };
-    private ImageView profileImage;
     private int placeholderIcon = R.drawable.baseline_account_circle_24;
 
     private FriendRequestsViewModel viewModel;
@@ -45,7 +45,7 @@ public class ProfileActivity extends AppCompatActivity {
         TextView userEmail = findViewById(R.id.userEmail);
         TextView totalExpenses = findViewById(R.id.totalExpenses);
         TextView totalBudgets = findViewById(R.id.totalBudgets);
-        profileImage = findViewById(R.id.profileImage);
+        ImageView profileImage = findViewById(R.id.profileImage);
         loadIcon(profileImage);
 
         final EditText emailInput = findViewById(R.id.emailInput);
@@ -58,14 +58,14 @@ public class ProfileActivity extends AppCompatActivity {
             loadUserTotals(totalExpenses, totalBudgets);
         }
 
-        profileImage.setOnClickListener(v -> iconPicker());
+        profileImage.setOnClickListener(v -> iconPicker(profileImage));
 
         ImageButton backBtn = findViewById(R.id.btnBack);
         backBtn.setOnClickListener(v -> finish());
 
         viewModel = new ViewModelProvider(this).get(FriendRequestsViewModel.class);
 
-        final FriendsListAdapter friendsAdapter = new FriendsListAdapter(new ArrayList<>(), viewModel, this, this);
+        final FriendsListAdapter friendsAdapter = new FriendsListAdapter(new ArrayList<>(), viewModel);
         friendsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         friendsRecyclerView.setAdapter(friendsAdapter);
 
@@ -112,7 +112,7 @@ public class ProfileActivity extends AppCompatActivity {
         viewModel.stopListeningForRequests();
     }
 
-    private void iconPicker() {
+    private void iconPicker(ImageView profileImage) {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
         layout.setPadding(16, 16, 16, 16);

@@ -20,19 +20,13 @@ import java.util.Map;
 public class FriendsListAdapter extends RecyclerView.Adapter<FriendsListAdapter.FriendViewHolder> {
     private List<Map<String, Object>> friends;
     private final FriendRequestsViewModel viewModel;
-    private final Context context;
-    private final LifecycleOwner lifecycleOwner;
 
     public FriendsListAdapter(
             List<Map<String, Object>> friends,
-            FriendRequestsViewModel viewModel,
-            Context context,
-            LifecycleOwner lifecycleOwner
+            FriendRequestsViewModel viewModel
     ) {
         this.friends = friends;
         this.viewModel = viewModel;
-        this.context = context;
-        this.lifecycleOwner = lifecycleOwner;
     }
 
     public void updateFriendsList(List<Map<String, Object>> newFriends) {

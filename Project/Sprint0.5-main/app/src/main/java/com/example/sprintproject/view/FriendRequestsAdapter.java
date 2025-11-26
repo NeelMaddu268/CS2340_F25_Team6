@@ -23,18 +23,15 @@ public class FriendRequestsAdapter
     private List<Map<String, Object>> requests;
     private final FriendRequestsViewModel viewModel;
     private final Context context;
-    private final LifecycleOwner lifecycleOwner;
 
     public FriendRequestsAdapter(
             List<Map<String, Object>> requests,
             FriendRequestsViewModel viewModel,
-            Context context,
-            LifecycleOwner lifecycleOwner
+            Context context
     ) {
         this.requests = requests;
         this.viewModel = viewModel;
         this.context = context;
-        this.lifecycleOwner = lifecycleOwner;
     }
 
     public void updateRequests(List<Map<String, Object>> newRequests) {
