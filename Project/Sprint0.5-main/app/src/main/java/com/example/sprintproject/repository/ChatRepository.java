@@ -138,6 +138,7 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
+            return;
         }
     }
 
@@ -244,6 +245,7 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
+            return;
         }
     }
 
@@ -307,6 +309,7 @@ public class ChatRepository {
             update.put(UPDATED_AT, System.currentTimeMillis());
             chatsCollection().document(chatId).update(update);
         } catch (IllegalStateException ignored) {
+            return;
         }
     }
 

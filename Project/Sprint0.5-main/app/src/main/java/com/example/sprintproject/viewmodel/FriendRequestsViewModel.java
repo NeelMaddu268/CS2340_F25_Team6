@@ -166,14 +166,14 @@ public class FriendRequestsViewModel extends ViewModel {
      */
     private Map<String, Object> findFriendByUid(List<Map<String, Object>> friends, String uid) {
         if (friends == null || uid == null) {
-            return null;
+            return new HashMap<>();
         }
         for (Map<String, Object> friend : friends) {
             if (uid.equals(friend.get("uid"))) {
                 return friend;
             }
         }
-        return null;
+        return new HashMap<>();
     }
 
     public void acceptFriendRequest(String requestId) {
