@@ -1,3 +1,6 @@
+// This singleton class handles all the firestore read and write
+// operations for the app. Supports the deletion of circles.
+
 package com.example.sprintproject.viewmodel;
 
 import android.util.Log;
@@ -39,14 +42,10 @@ public class FirestoreManager {
     private static final String INVITATIONS_STRING = "invitations";
     private static final String FRIENDS_STRING = "friends";
     private static final String FRIEND_REQUESTS_STRING = "friendRequests";
+    private static final String CHATS_STRING = "chats";
 
     private FirestoreManager() {
         db = FirebaseFirestore.getInstance();
-    }
-
-    /** Singleton pattern with lazy initialization */
-    private static class Holder {
-        private static final FirestoreManager INSTANCE = new FirestoreManager();
     }
 
     public static FirestoreManager getInstance() {
@@ -57,6 +56,29 @@ public class FirestoreManager {
         return db;
     }
 
+    // Chatbot related stuff
+
+    // users/{uid}/chats
+    public CollectionReference userChatsReference(String uid) {
+        return db.collection(USERS_STRING)
+                .document(uid)
+                .collection(CHATS_STRING);
+    }
+
+    public DocumentReference userChatDoc(String uid, String chatId) {
+        return userChatsReference(uid).document(chatId);
+    }
+
+    public CollectionReference chatMessagesReference(String uid, String chatId) {
+        return userChatDoc(uid, chatId).collection("messages");
+    }
+
+    // goals (if not already present)
+    public CollectionReference goalsReference(String uid) {
+        return db.collection(USERS_STRING)
+                .document(uid)
+                .collection("goals");
+    }
 
     public CollectionReference savingsCircleReference(String uid) {
         return db.collection(USERS_STRING).document(uid).collection(SAVINGS_CIRCLE_STRING);
@@ -119,21 +141,15 @@ public class FirestoreManager {
         return null;
     }
 
-    /**
-     * Deletes a savings circle and related data:
-     * - circle doc
-     * - all invitations for the circle
-     * - all users' pointer docs referencing the circle
-     *
-     * Only creator can delete.
-     */
     public Task<Void> deleteSavingsCircle(String circleId, String requesterUid) {
         DocumentReference circleRef = savingsCircleDoc(circleId);
         TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
 
         circleRef.get()
                 .addOnSuccessListener(snapshot -> {
-                    if (!validateCircleAndPermission(snapshot, requesterUid, tcs)) return;
+                    if (!validateCircleAndPermission(snapshot, requesterUid, tcs)) {
+                        return;
+                    }
 
                     String creatorId = snapshot.getString("creatorId");
                     Set<String> allUids = collectAllUids(snapshot, creatorId);
@@ -141,7 +157,8 @@ public class FirestoreManager {
                     List<Task<QuerySnapshot>> fetches = buildFetchTasks(circleId, allUids);
 
                     Tasks.whenAllSuccess(fetches)
-                            .addOnSuccessListener(results -> commitDeleteBatch(circleRef, results, tcs))
+                            .addOnSuccessListener(results -> commitDeleteBatch(circleRef,
+                                    results, tcs))
                             .addOnFailureListener(tcs::setException);
                 })
                 .addOnFailureListener(tcs::setException);
@@ -351,5 +368,7 @@ public class FirestoreManager {
                     }
                     batch.commit();
                 });
+    private static class Holder {
+        private static final FirestoreManager INSTANCE = new FirestoreManager();
     }
 }

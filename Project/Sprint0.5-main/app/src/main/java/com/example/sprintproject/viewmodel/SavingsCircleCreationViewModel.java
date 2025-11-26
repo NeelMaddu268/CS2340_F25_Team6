@@ -1,3 +1,8 @@
+// This ViewModel creates a new savings circle for the
+// user and updates the respective data and pointer docs to firestore.
+// Stores data such as user join data, email and initializes
+// default fields for a new circle.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

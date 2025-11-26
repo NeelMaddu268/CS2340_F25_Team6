@@ -1,3 +1,6 @@
+// The viewmodel holds a placeholder test that is exposed from the
+// LiveData for basic UI binding.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;
@@ -9,7 +12,6 @@ public class ChatbotFragmentViewModel extends ViewModel {
     private final MutableLiveData<String> text = new MutableLiveData<>();
 
     public ChatbotFragmentViewModel() {
-        // Just sets a sample value (not used for logic)
         text.setValue("Hello from ViewModel (placeholder)");
     }
 

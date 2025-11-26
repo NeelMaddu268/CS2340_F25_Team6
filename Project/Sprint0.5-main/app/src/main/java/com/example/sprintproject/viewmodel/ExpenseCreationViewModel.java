@@ -1,3 +1,8 @@
+// The ViewModel manages the creation of expenses and updating the related
+// budgets and categories.
+// Also loads the categories and circles and creates
+// sample expense data for testing.
+
 package com.example.sprintproject.viewmodel;
 
 import android.util.Log;
@@ -63,13 +68,13 @@ public class ExpenseCreationViewModel extends ViewModel {
         return circleNameToId.get(name);
     }
 
-    /** ---------------- Categories ---------------- */
-
     public void loadCategories() {
         String uid = getUidOrFinish(() ->
                 categoriesLiveData.setValue(new ArrayList<>())
         );
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         FirestoreManager.getInstance()
                 .categoriesReference(uid)
@@ -84,16 +89,14 @@ public class ExpenseCreationViewModel extends ViewModel {
                     }
                     categoriesLiveData.setValue(categoryNames);
                 })
-                .addOnFailureListener(e ->
-                        categoriesLiveData.setValue(new ArrayList<>())
-                );
+                .addOnFailureListener(e -> categoriesLiveData.setValue(new ArrayList<>()));
     }
-
-    /** ---------------- Circles (refactored to reduce cognitive complexity) ---------------- */
 
     public void loadUserCircles() {
         String uid = getUidOrClearCircles();
-        if (uid == null) return;
+        if (uid == null) {
+            return;
+        }
 
         FirestoreManager.getInstance()
                 .userSavingsCirclePointers(uid)
@@ -137,7 +140,9 @@ public class ExpenseCreationViewModel extends ViewModel {
             PendingCounter pending
     ) {
         String circleId = safeTrim(doc.getString("circleId"));
-        if (circleId.isEmpty()) return;
+        if (circleId.isEmpty()) {
+            return;
+        }
 
         String pointerName = safeTrim(doc.getString("name"));
         if (!pointerName.isEmpty()) {
@@ -145,11 +150,9 @@ public class ExpenseCreationViewModel extends ViewModel {
             return;
         }
 
-        // uid removed because it was unused (Sonar smell)
         fetchAndAddCircleName(circleId, names, pending);
     }
 
-    // ✅ uid parameter removed (unused)
     private void fetchAndAddCircleName(
             String circleId,
             List<String> names,
@@ -178,29 +181,6 @@ public class ExpenseCreationViewModel extends ViewModel {
         circleNamesLive.setValue(new ArrayList<>());
     }
 
-    /** Small utility to track async fallbacks. */
-    private static class PendingCounter {
-        private int count = 0;
-        private final Runnable onZero;
-
-        PendingCounter(Runnable onZero) {
-            this.onZero = onZero;
-        }
-
-        void increment() { count++; }
-
-        void decrement() {
-            count--;
-            if (count == 0) onZero.run();
-        }
-
-        void maybePublishNow() {
-            if (count == 0) onZero.run();
-        }
-    }
-
-    /** ---------------- Expense creation ---------------- */
-
     public void createExpense(
             String name, String date, String amountString,
             String category, String notes, Runnable onBudgetUpdated
@@ -222,7 +202,9 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         String normalizedCategory = normalizeCategory(data.getCategory());
         Double amount = parseAmount(data.getAmountString());
-        if (amount == null) return;
+        if (amount == null) {
+            return;
+        }
 
         long timestamp = parseDateToMillis(data.getDate());
 
@@ -234,18 +216,18 @@ public class ExpenseCreationViewModel extends ViewModel {
         expense.setContributesToGroupSavings(data.getContributesToGroupSavings());
 
         FirestoreManager.getInstance()
-                .expensesReference(uid)
-                .add(expense)
-                .addOnSuccessListener(docRef -> {
-                    FirestoreManager.getInstance().incrementField(uid, "totalExpenses");
-                    handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
-                    handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
+            .expensesReference(uid)
+            .add(expense)
+            .addOnSuccessListener(docRef -> {
+                FirestoreManager.getInstance().incrementField(uid, "totalExpenses");
+                handleCategoryUpdate(uid, normalizedCategory, docRef.getId());
+                handleBudgetUpdate(uid, normalizedCategory, onBudgetUpdated);
 
-                    maybeUpdateGroupSavings(data, uid, amount);
-                })
-                .addOnFailureListener(e ->
-                        text.setValue("Failed to create expense")
-                );
+                maybeUpdateGroupSavings(data, uid, amount);
+            })
+            .addOnFailureListener(e ->
+                text.setValue("Failed to create expense")
+            );
     }
 
     private void maybeUpdateGroupSavings(ExpenseData data, String uid, double amount) {
@@ -266,25 +248,24 @@ public class ExpenseCreationViewModel extends ViewModel {
                 .update("contributions." + uid, FieldValue.increment(amount));
     }
 
-    /** ---------------- Category / Budget updates ---------------- */
 
     private void handleCategoryUpdate(String uid, String category, String expenseId) {
         FirestoreManager.getInstance()
-                .categoriesReference(uid)
-                .whereEqualTo("name", category)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(query -> {
-                    if (!query.isEmpty()) {
-                        query.getDocuments().get(0).getReference()
-                                .update("expenses", FieldValue.arrayUnion(expenseId));
-                    } else {
-                        createNewCategory(uid, category, expenseId);
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Log.w(TAG, "Failed to update category", e)
-                );
+            .categoriesReference(uid)
+            .whereEqualTo("name", category)
+            .limit(1)
+            .get()
+            .addOnSuccessListener(query -> {
+                if (!query.isEmpty()) {
+                    query.getDocuments().get(0).getReference()
+                         .update("expenses", FieldValue.arrayUnion(expenseId));
+                } else {
+                    createNewCategory(uid, category, expenseId);
+                }
+            })
+            .addOnFailureListener(e ->
+                Log.w(TAG, "Failed to update category", e)
+            );
     }
 
     private void createNewCategory(String uid, String category, String expenseId) {
@@ -294,47 +275,51 @@ public class ExpenseCreationViewModel extends ViewModel {
         newCategory.put("expenses", Collections.singletonList(expenseId));
 
         FirestoreManager.getInstance()
-                .categoriesReference(uid)
-                .add(newCategory)
-                .addOnFailureListener(e ->
-                        Log.w(TAG, "Failed to create new category", e)
-                );
+            .categoriesReference(uid)
+            .add(newCategory)
+            .addOnFailureListener(e ->
+                Log.w(TAG, "Failed to create new category", e)
+            );
     }
 
     private void handleBudgetUpdate(String uid, String category, Runnable onBudgetUpdated) {
         FirestoreManager.getInstance()
-                .budgetsReference(uid)
-                .whereEqualTo("category", category)
-                .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(query -> {
-                    if (query.isEmpty()) return;
+            .budgetsReference(uid)
+            .whereEqualTo("category", category)
+            .orderBy("startDateTimestamp", Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener(query -> {
+                if (query.isEmpty()) {
+                    return;
+                }
 
-                    DocumentSnapshot budgetDoc = query.getDocuments().get(0);
-                    Budget budget = budgetDoc.toObject(Budget.class);
-                    if (budget == null) return;
+                DocumentSnapshot budgetDoc = query.getDocuments().get(0);
+                Budget budget = budgetDoc.toObject(Budget.class);
+                if (budget == null) {
+                    return;
+                }
 
-                    long budgetStart = budget.getStartDateTimestamp();
-                    long budgetEnd = calcBudgetEnd(budgetStart, budget.getFrequency());
+                long budgetStart = budget.getStartDateTimestamp();
+                long budgetEnd = calcBudgetEnd(budgetStart, budget.getFrequency());
 
-                    FirestoreManager.getInstance()
-                            .expensesReference(uid)
-                            .whereEqualTo("category", category)
-                            .get()
-                            .addOnSuccessListener(expenseQuery -> {
-                                double spent = calculateSpentToDate(
-                                        expenseQuery, budgetStart, budgetEnd
-                                );
-                                updateBudgetDoc(uid, budgetDoc, budget, spent, onBudgetUpdated);
-                            })
-                            .addOnFailureListener(e ->
-                                    Log.w(TAG, "Failed to recalc budget spend", e)
-                            );
-                })
-                .addOnFailureListener(e ->
-                        Log.w(TAG, "Failed to fetch budget", e)
-                );
+                FirestoreManager.getInstance()
+                    .expensesReference(uid)
+                    .whereEqualTo("category", category)
+                    .get()
+                    .addOnSuccessListener(expenseQuery -> {
+                        double spent = calculateSpentToDate(
+                            expenseQuery, budgetStart, budgetEnd
+                        );
+                        updateBudgetDoc(uid, budgetDoc, budget, spent, onBudgetUpdated);
+                    })
+                    .addOnFailureListener(e ->
+                        Log.w(TAG, "Failed to recalc budget spend", e)
+                    );
+            })
+            .addOnFailureListener(e ->
+                Log.w(TAG, "Failed to fetch budget", e)
+            );
     }
 
     private long calcBudgetEnd(long start, String freq) {
@@ -355,7 +340,9 @@ public class ExpenseCreationViewModel extends ViewModel {
 
         for (DocumentSnapshot doc : expenseQuery.getDocuments()) {
             Expense e = doc.toObject(Expense.class);
-            if (e == null) continue;
+            if (e == null) {
+                continue;
+            }
 
             long t = e.getTimestamp();
             if (t >= startWindow && t <= effectiveEnd) {
@@ -376,20 +363,19 @@ public class ExpenseCreationViewModel extends ViewModel {
         boolean overBudget = remaining < 0;
 
         FirestoreManager.getInstance()
-                .budgetsReference(uid)
-                .document(doc.getId())
-                .update(
-                        "spentToDate", spent,
-                        "moneyRemaining", remaining,
-                        "overBudget", overBudget
-                )
-                .addOnSuccessListener(a -> runOnComplete(onBudgetUpdated))
-                .addOnFailureListener(e ->
-                        Log.w(TAG, "Failed to update budget doc", e)
-                );
+            .budgetsReference(uid)
+            .document(doc.getId())
+            .update(
+                "spentToDate", spent,
+                "moneyRemaining", remaining,
+                "overBudget", overBudget
+            )
+            .addOnSuccessListener(a -> runOnComplete(onBudgetUpdated))
+            .addOnFailureListener(e ->
+                Log.w(TAG, "Failed to update budget doc", e)
+            );
     }
 
-    /** ---------------- Utilities ---------------- */
 
     private String normalizeCategory(String category) {
         return category == null ? "" : category.trim().toLowerCase(Locale.US);
@@ -423,21 +409,24 @@ public class ExpenseCreationViewModel extends ViewModel {
     }
 
     private void runOnComplete(Runnable onComplete) {
-        if (onComplete != null) onComplete.run();
+        if (onComplete != null) {
+            onComplete.run();
+        }
     }
 
     private long parseDateToMillis(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
         try {
             Date date = sdf.parse(dateString);
-            if (date != null) return date.getTime();
+            if (date != null) {
+                return date.getTime();
+            }
         } catch (Exception e) {
             Log.w(TAG, "Bad date: " + dateString, e);
         }
         return System.currentTimeMillis();
     }
 
-    /** ---------------- Sample data ---------------- */
 
     public void createSampleExpenses() {
         createExpense("Tin Drum", "Oct 15, 2025", "20.00", EATING, null, null);
@@ -468,6 +457,32 @@ public class ExpenseCreationViewModel extends ViewModel {
         // This is only used to seed sample data in a non-production path.
         BudgetCreationViewModel budgetCreationViewModel = new BudgetCreationViewModel();
         budgetCreationViewModel.createSampleBudgets(() -> runOnComplete(onComplete));
+    }
+
+    private static class PendingCounter {
+        private int count = 0;
+        private final Runnable onZero;
+
+        PendingCounter(Runnable onZero) {
+            this.onZero = onZero;
+        }
+
+        void increment() {
+            count++;
+        }
+
+        void decrement() {
+            count--;
+            if (count == 0) {
+                onZero.run();
+            }
+        }
+
+        void maybePublishNow() {
+            if (count == 0) {
+                onZero.run();
+            }
+        }
     }
 }
 

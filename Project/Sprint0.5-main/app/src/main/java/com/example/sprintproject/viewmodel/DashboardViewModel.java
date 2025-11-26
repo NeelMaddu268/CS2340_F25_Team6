@@ -1,3 +1,8 @@
+// This ViewModel uses the BudgetsFragmentViewModel
+// to provide data such as dashboard totals and budget lists.
+// Its role is to be a simple wrapper that loads budgets for the
+// specific date period or all time.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;
@@ -32,5 +37,4 @@ public class DashboardViewModel extends ViewModel {
     public void loadDataFor(AppDate date) {
         budgetsVM.loadBudgetsFor(date);
     }
-
 }

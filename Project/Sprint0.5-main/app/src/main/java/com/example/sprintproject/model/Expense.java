@@ -1,3 +1,7 @@
+// This class shows a single expense and stores all of its details.
+// It also includes helpers that check wether the expense
+// contributes to group savings.
+
 package com.example.sprintproject.model;
 
 import java.text.SimpleDateFormat;

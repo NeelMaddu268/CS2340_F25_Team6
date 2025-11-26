@@ -254,13 +254,19 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             }
 
             Map<String, String> dates = lastDatesRef.get();
-            if (dates == null) return;
+            if (dates == null) {
+                return;
+            }
 
             AppDate appDate = dateViewModel.getCurrentDate().getValue();
-            if (appDate == null) return;
+            if (appDate == null) {
+                return;
+            }
 
             String creatorJoinIso = dates.get(circleCreatorId);
-            if (creatorJoinIso == null) return;
+            if (creatorJoinIso == null) {
+                return;
+            }
 
             String creatorEndIso = WEEKLY_TEXT.equals(freq)
                     ? AppDate.addDays(creatorJoinIso, 7, 0)
@@ -285,7 +291,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
             }
 
             observeCurrentAppDateOnce(appDate -> {
-                if (appDate == null) return;
+                if (appDate == null) {
+                    return;
+                }
                 getDetailsVM().sendInvite(circleId, groupName, inviteEmail, appDate.toIso());
             });
         });
@@ -325,7 +333,9 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         detailsViewModel.getMemberJoinDates().observe(this, dates -> {
             lastDatesRef.set(dates);
             updateMaxEndDateFromJoinDates(dates);
-            if (reevaluateInviteGate != null) reevaluateInviteGate.run();
+            if (reevaluateInviteGate != null) {
+                reevaluateInviteGate.run();
+            }
         });
 
         dateViewModel.getCurrentDate().observe(this, appDate -> {
@@ -335,11 +345,15 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
     }
 
     private void updateMaxEndDateFromJoinDates(Map<String, String> dates) {
-        if (dates == null || dates.isEmpty()) return;
+        if (dates == null || dates.isEmpty()) {
+            return;
+        }
 
         String maxEndIso = null;
         for (String joinIso : dates.values()) {
-            if (joinIso == null || joinIso.isEmpty()) continue;
+            if (joinIso == null || joinIso.isEmpty()) {
+                continue;
+            }
 
             String endIso = WEEKLY_TEXT.equals(groupFrequency)
                     ? AppDate.addDays(joinIso, 7, 0)
@@ -491,17 +505,3 @@ public class SavingsCircleDetailsActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,3 +1,9 @@
+// This ViewModel handles the loading and
+// updating of all the user budgets, keeping the relevant totals
+// and remaining amounts up to date.
+// Automatically pushes the budgets into new cycles
+// when they expire for their initial weekly/monthly cycles.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.annotation.NonNull;

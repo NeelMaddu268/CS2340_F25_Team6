@@ -1,3 +1,8 @@
+// This class is a helper class that connects the chart views
+// to their controller class
+// This class creates and returns a chart
+// object that can be updated with new data by the app.
+
 package com.example.sprintproject.charts;
 
 import android.view.View;

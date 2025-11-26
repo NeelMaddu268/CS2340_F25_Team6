@@ -1,3 +1,8 @@
+// The ViewModel handles the real-time tracking of the user's incoming invites
+// and updates the UI accordingly.
+// Also handles the acceptance or decline of the invites and updates the saving
+// circle membership accordingly.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

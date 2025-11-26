@@ -1,3 +1,6 @@
+// The following ViewModel holds the sample text for the
+// MainActivity which is exposed through LiveData.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

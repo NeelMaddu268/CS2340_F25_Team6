@@ -3,26 +3,31 @@ package com.example.sprintproject;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class AppUnitTests {
+import java.util.*;
 
+import com.example.sprintproject.model.ExpenseData;
+import com.example.sprintproject.model.NotificationData;
+import com.example.sprintproject.viewmodel.ExpenseCreationViewModel;
+import com.example.sprintproject.viewmodel.ExpenseRepository;
+import com.example.sprintproject.viewmodel.NotificationQueueManager;
+import com.example.sprintproject.logic.FinancialInsightsEngine;
+
+
+public class AppUnitTests {
     private static final String PASSWORD = "password";
-    private static final String PASSWORD_TWO = "password123";
+    private static final String PASSWORD123 = "password123";
     private static final String ALICE = "Alice";
-    private static final String TITLE = "Challenge Title";
-    private static final String GROUP_NAME = "Group Name";
+    private static final String CHALLENGETITLE = "Challenge Title";
+    private static final String GROUPNAME = "Group Name";
     private static final String MONTHLY = "monthly";
 
-    // Shared constant for all utility classes to avoid duplicated literals
-    private static final String UTILITY_CLASS_ERROR = "Utility class";
 
     @Test
     public void testComputeSurplusPositive() {
@@ -92,7 +97,7 @@ public class AppUnitTests {
 
     @Test
     public void testAcceptValidCredentials() {
-        assertTrue(AuthValidator.isValidInput("user@email.com", PASSWORD_TWO));
+        assertTrue(AuthValidator.isValidInput("user@email.com", PASSWORD123));
     }
 
     @Test
@@ -171,19 +176,15 @@ public class AppUnitTests {
         Map<String, Object> b1 = new HashMap<>();
         b1.put("total", 100);
         budgets.add(b1);
-
         Map<String, Object> b2 = new HashMap<>();
         b2.put("amount", "150.5");
         budgets.add(b2);
-
         Map<String, Object> b3 = new HashMap<>();
         b3.put("limit", 25L);
         budgets.add(b3);
-
         Map<String, Object> b4 = new HashMap<>();
         b4.put("value", 10.25f);
         budgets.add(b4);
-
         Map<String, Object> b5 = new HashMap<>();
         b5.put("budget", "bad");
         budgets.add(b5);
@@ -201,7 +202,6 @@ public class AppUnitTests {
                 budgetSum += t;
             }
         }
-
         assertEquals(285.75, budgetSum, 1e-6);
         assertTrue(budgetSum > spent);
     }
@@ -223,19 +223,23 @@ public class AppUnitTests {
 
     @Test
     public void testAcceptValidSavingsCircleInputs() {
-        assertTrue(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 500, MONTHLY));
+        assertTrue(SavingsCircleValidator.isValidInput(GROUPNAME, CHALLENGETITLE,
+                500, MONTHLY));
     }
 
     @Test
     public void testRejectInvalidSavingsCircleInputs() {
-        assertFalse(SavingsCircleValidator.isValidInput("", TITLE, 100, MONTHLY));
-        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, -50, "weekly"));
-        assertFalse(SavingsCircleValidator.isValidInput(GROUP_NAME, TITLE, 100, "daily"));
+        assertFalse(SavingsCircleValidator.isValidInput("", CHALLENGETITLE,
+                100, MONTHLY));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUPNAME, CHALLENGETITLE,
+                -50, "weekly"));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUPNAME,  CHALLENGETITLE,
+                100, "daily"));
     }
 
     @Test
     public void testAddAndRemoveBudget() {
-        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
+        User user = new User("john@example.com", "John Doe", PASSWORD123,
                 new ArrayList<>(), new ArrayList<>());
         Budget budget1 = new Budget("Food Budget");
         Budget budget2 = new Budget("Travel Budget");
@@ -253,7 +257,7 @@ public class AppUnitTests {
 
     @Test
     public void testAddAndRemoveExpense() {
-        User user = new User("john@example.com", "John Doe", PASSWORD_TWO,
+        User user = new User("john@example.com", "John Doe", PASSWORD123,
                 new ArrayList<>(), new ArrayList<>());
         Expense expense1 = new Expense("Dinner");
         user.addExpense(expense1);
@@ -263,13 +267,10 @@ public class AppUnitTests {
         assertTrue(user.getExpenses().isEmpty());
     }
 
-    // ===== Utility / Validator Classes (Sonar-compliant) =====
-
     public static class BudgetCalculator {
         private BudgetCalculator() {
-            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
+            // Prevent instantiation
         }
-
         public static double computeSurplus(double total, double spent) {
             return total - spent;
         }
@@ -281,60 +282,6 @@ public class AppUnitTests {
             return (int) ((spent / total) * 100);
         }
     }
-
-    public static class AuthValidator {
-        private AuthValidator() {
-            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
-        }
-
-        public static boolean isValidInput(String email, String password) {
-            if (email == null || password == null) {
-                return false;
-            }
-            if (email.trim().isEmpty() || password.trim().isEmpty()) {
-                return false;
-            }
-            if (!email.contains("@") || !email.contains(".")) {
-                return false;
-            }
-            return password.length() >= 3;
-        }
-    }
-
-    public static class ExpenseValidator {
-        private ExpenseValidator() {
-            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
-        }
-
-        public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
-            if (expenseDate == null || currentDate == null) {
-                return false;
-            }
-            return !expenseDate.after(currentDate);
-        }
-    }
-
-    public static class SavingsCircleValidator {
-        private SavingsCircleValidator() {
-            throw new UnsupportedOperationException(UTILITY_CLASS_ERROR);
-        }
-
-        public static boolean isValidInput(String groupName, String challengeTitle,
-                                           double goalAmount, String frequency) {
-            if (groupName == null || groupName.trim().isEmpty()) {
-                return false;
-            }
-            if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
-                return false;
-            }
-            if (goalAmount < 0) {
-                return false;
-            }
-            return frequency != null && (frequency.equals("weekly") || frequency.equals(MONTHLY));
-        }
-    }
-
-    // ===== Simple model classes used for tests =====
 
     public class User {
         private String email;
@@ -451,10 +398,231 @@ public class AppUnitTests {
         }
 
         public double totalContributions() {
-            return contributions.values().stream()
-                    .mapToDouble(Double::doubleValue)
-                    .sum();
+            return contributions.values().stream().mapToDouble(Double::doubleValue).sum();
         }
     }
-}
 
+    public static class AuthValidator {
+        private AuthValidator() {
+            // Prevent instantiation
+        }
+        public static boolean isValidInput(String email, String password) {
+            if (email == null || password == null) {
+                return false;
+            }
+            if (email.trim().isEmpty() || password.trim().isEmpty()) {
+                return false;
+            }
+            if (!email.contains("@") || !email.contains(".")) {
+                return false;
+            }
+            return password.length() >= 3;
+        }
+    }
+
+    public static class ExpenseValidator {
+        private ExpenseValidator() {
+            // Prevent instantiation
+        }
+        public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
+            if (expenseDate == null || currentDate == null) {
+                return false;
+            }
+            return !expenseDate.after(currentDate);
+        }
+    }
+
+    public static class SavingsCircleValidator {
+        private SavingsCircleValidator() {
+            // Prevent instantiation
+        }
+        public static boolean isValidInput(String groupName, String challengeTitle,
+                                           double goalAmount, String frequency) {
+            if (groupName == null || groupName.trim().isEmpty()) {
+                return false;
+            }
+            if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
+                return false;
+            }
+
+            return goalAmount >= 0 && frequency != null && (frequency.equals("weekly") || frequency.equals(MONTHLY));
+        }
+    }
+
+    @Test
+    public void testExpenseContributionToSavingsCircle() {
+        SavingsCircle testCircle = new SavingsCircle("Test Circle");
+        testCircle.addContribution(ALICE, 100);
+        assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
+        testCircle.addContribution(ALICE, 50);
+        assertEquals(150, testCircle.getContributions().get(ALICE), 0.001);
+    }
+
+    @Test
+    public void testExpenseTowardsGroupContribution() {
+        ExpenseData data = new ExpenseData(
+                "Toys", "11/25/2025", "15.00",
+                "eating", "NA", true, "testCircle"
+        );
+
+        assertTrue(data.getContributesToGroupSavings());
+        assertEquals("testCircle", data.getCircleId());
+    }
+
+    @Test
+    public void testExpenseTowardsNoGroupContribution() {
+        ExpenseData data = new ExpenseData(
+                "Toys", "11/25/2025", "15.00",
+                "eating", "NA", false, null
+        );
+
+        assertFalse(data.getContributesToGroupSavings());
+        assertNull(data.getCircleId());
+    }
+
+    @Test
+    public void testBudgetReminder() {
+        NotificationData warning = NotificationData.createAlmostBudgetFullReminder("Test", 99);
+        assertEquals(NotificationData.Type.BUDGET_WARNING, warning.getType());
+        assertEquals("Budget Almost Full Warning", warning.getTitle());
+        assertTrue(warning.getPriority() >= 80);
+        assertTrue(warning.getMessage().contains("99"));
+    }
+
+    @Test
+    public void testCalcDaysSinceLastLogZero() {
+        long zero = System.currentTimeMillis();
+        assertEquals(0, ExpenseRepository.calculateDaysSince(zero, zero));
+
+    }
+
+    @Test
+    public void testCalcDaysIfNoLogs() {
+        long none = System.currentTimeMillis();
+        int result = ExpenseRepository.calculateDaysSince(0, none);
+        assertEquals(-1, result);
+    }
+
+    @Test
+    public void testChatbotWeeklySummaryHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("Please summarize my spending this week",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.computedText.contains("Spending last 7 days"));
+    }
+
+    @Test
+    public void testChatbotWeeklySummaryPromptContainsComputedText() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("summarize my spending this week",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.aiFollowupPrompt.contains(result.computedText));
+    }
+
+    @Test
+    public void testChatbotCutCostsHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("Can you suggest where I can cut costs?",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.aiFollowupPrompt.toLowerCase(Locale.US)
+                .contains("cut costs"));
+    }
+
+    @Test
+    public void testChatbotComparedToLastMonthHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("How did I perform compared to last month?",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+        assertTrue(result.computedText.contains("This month: $"));
+        assertTrue(result.computedText.contains("Last month: $"));
+    }
+
+    @Test
+    public void testChatbotUnrelatedQuestionNotHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("What is your favorite color?",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertFalse(result.handled);
+        assertNull(result.computedText);
+        assertNull(result.aiFollowupPrompt);
+    }
+
+    @Test
+    public void testChatbotWeeklySummaryIsCaseInsensitive() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("SuMmArIzE My SpEnDiNg ThIs WeEk",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertTrue(result.computedText.contains("Spending last 7 days"));
+    }
+
+    @Test
+    public void testChatbotCutCostsWorksWithNullExpensesAndBudgets() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("suggest where I can cut costs",
+                        null, null);
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertNotNull(result.aiFollowupPrompt);
+    }
+
+    @Test
+    public void testChatbotCutCostsComputedTextHasBiggestCategories() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle("suggest where I can cut costs",
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertTrue(result.handled);
+        assertNotNull(result.computedText);
+        assertTrue(result.computedText.contains("Biggest categories this month"));
+    }
+
+    @Test
+    public void testChatbotNullUserTextIsNotHandled() {
+        FinancialInsightsEngine engine = new FinancialInsightsEngine();
+
+        FinancialInsightsEngine.InsightResult result =
+                engine.tryHandle(null,
+                        Collections.emptyList(), Collections.emptyList());
+
+        assertFalse(result.handled);
+        assertNull(result.computedText);
+        assertNull(result.aiFollowupPrompt);
+    }
+
+}

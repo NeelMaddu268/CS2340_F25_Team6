@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The  budget list screen which contains the budgets that the user has created and savings circle gorups the user belongs in. -->
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,7 +11,7 @@
     tools:context=".view.BudgetsFragment"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#357DED">
+    android:background="?attr/colorPrimary">
 
     <TextView
         android:id="@+id/budgetsTitle"
@@ -63,7 +65,7 @@
         android:text="@string/add_budget"
         android:backgroundTint="?attr/colorOnPrimary"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="#357DED"
+        android:textColor="?attr/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/budgetsTitle" />
 
 </LinearLayout>

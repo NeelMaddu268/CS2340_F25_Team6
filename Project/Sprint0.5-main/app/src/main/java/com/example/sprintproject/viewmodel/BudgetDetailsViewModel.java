@@ -1,3 +1,7 @@
+// The ViewModel handles the saving and retreiving of the budget calculation data for each budget.
+// Manages proper authentication and delivers the stored values of
+// the budgets back to the UI for proper display.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.ViewModel;

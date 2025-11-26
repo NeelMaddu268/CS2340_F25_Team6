@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The dashboard screen which contains the pie and bar charts that represent expense and budget breakdowns. -->
+
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/dashboard_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#357DED"
+    android:background="?attr/colorPrimary"
     android:fillViewport="true"
     tools:context=".view.DashboardFragment">
 

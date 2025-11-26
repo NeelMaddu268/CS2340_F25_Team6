@@ -1,3 +1,8 @@
+// ViewModel that handles the firebase login, registration
+// with email and password and displays errors through LiveData.
+// On successful registrations it instanciates the user profile in firestore
+// and triggers creation of sample budgets and expenses.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;
@@ -23,11 +28,15 @@ public class AuthenticationViewModel extends ViewModel {
     private final FirebaseAuth mAuth;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    public static final String DARK_MODE = "darkMode";
+    public static final String USERS = "users";
+
     public AuthenticationViewModel() {
         userLiveData = new MutableLiveData<>();
         errorMessage = new MutableLiveData<>();
         mAuth = FirebaseAuth.getInstance();
     }
+
 
     public LiveData<FirebaseUser> getUserLiveData() {
         return userLiveData;
@@ -62,19 +71,7 @@ public class AuthenticationViewModel extends ViewModel {
                     FirebaseUser firebaseUser = task.getResult().getUser();
                     userLiveData.setValue(mAuth.getCurrentUser());
                     errorMessage.setValue(null);
-
-                    if (firebaseUser != null) {
-                        String uid = firebaseUser.getUid();
-                        db.collection("users").document(uid).get()
-                                .addOnSuccessListener(doc -> {
-                                    if (doc.exists() && doc.contains("darkMode")) {
-
-                                        boolean darkMode = doc.getBoolean("darkMode");
-
-                                        ThemeManager.applyTheme(darkMode, context.getApplicationContext());
-                                    }
-                                });
-                    }
+                    savedDarkMode(firebaseUser, context.getApplicationContext());
                 } else {
                     Exception e = task.getException();
                     if (e != null) {
@@ -83,6 +80,20 @@ public class AuthenticationViewModel extends ViewModel {
                     }
                 }
             });
+    }
+
+    private void savedDarkMode(FirebaseUser firebaseUser, Context context) {
+        if (firebaseUser == null) {
+            return;
+        }
+        String uid = firebaseUser.getUid();
+        db.collection(USERS).document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists() && doc.contains(DARK_MODE)) {
+                        boolean darkMode = doc.getBoolean(DARK_MODE);
+                        ThemeManager.applyTheme(darkMode, context.getApplicationContext());
+                    }
+                });
     }
 
     public void register(String email, String password, Context context) {
@@ -106,10 +117,11 @@ public class AuthenticationViewModel extends ViewModel {
 
                         ThemeManager.applyTheme(false, context.getApplicationContext());
 
-                        db.collection("users").document(firebaseUser.getUid())
-                                .update("darkMode", false)
+                        db.collection(USERS).document(firebaseUser.getUid())
+                                .update(DARK_MODE, false)
                                 .addOnSuccessListener(aVoid -> Log.d("AuthVM", "Default theme set"))
-                                .addOnFailureListener(e -> Log.w("AuthVM", "Failed to set default theme", e));
+                                .addOnFailureListener(e -> Log.w("AuthVM",
+                                        "Failed to set default theme", e));
                     }
                     BudgetCreationViewModel budgetCreationViewModel =
                             new BudgetCreationViewModel();
@@ -137,7 +149,6 @@ public class AuthenticationViewModel extends ViewModel {
         mAuth.signOut();
         userLiveData.setValue(null);
         ThemeManager.clearTheme(context.getApplicationContext());
-        ThemeManager.applyTheme(false, context.getApplicationContext());
     }
 
     public void createUserInFirestore(FirebaseUser firebaseUser) {
@@ -148,5 +159,14 @@ public class AuthenticationViewModel extends ViewModel {
         userData.put("name", "User");
 
         FirestoreManager.getInstance().addUser(uid, userData);
+    }
+    public void toggleTheme(boolean darkMode, Context context) {
+        ThemeManager.applyTheme(darkMode, context.getApplicationContext());
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            db.collection(USERS).document(user.getUid())
+                    .update(DARK_MODE, darkMode);
+        }
     }
 }

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- A pop-up that allows the user to create a new budget. -->
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -38,7 +40,7 @@
         android:id="@+id/BudgetNameEntry"
         android:textSize="25sp"
         android:fontFamily="@font/montserrat_regular"
-        android:textColor="#357DED"
+        android:textColor="?attr/colorPrimary"
         android:background="?attr/colorOnPrimary"
         android:layout_marginTop="12dp"
         android:layout_marginLeft="24dp"
