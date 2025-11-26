@@ -116,7 +116,35 @@
 <section id="design">
     <h2>Design & Architecture</h2>
     <!-- Add architecture explanation here -->
-    <!-- Add UML diagrams/screenshots later -->
+     <p>
+        The Spendwise Finance App project follows the Model-View-ViewModel (MVVM) architecture style. This ensured seperation of concerns between the data being stored in our app and the UI elements of the app, using ViewModels as a point of 
+        communication between the two. This allows for easier expansion of features if necessary. In addition to using the MVVM architecture, we also implemented several design patterns to ensure better readability and easier expansion for
+        future features. We implemented the Singleton, Strategy, Factory, and Observer patterns.
+     </p>
+     <p>
+        Singleton: To handle the storage of each user's budgets and expenses and update that live data on our app, we used Firebase Firestore. Therefore, to ensure we were following MVVM architecture we needed a middleman between this database
+        and our UI. To do this, we made a Singleton class called FirestoreManager. This was in charge of handling adding/removing budgets, expenses, and users through various methods that could be called through the Activity classes. The Singleton
+        pattern ensured that only one instance of the class was created so that there wouldn't be several FirestoreManagers interfering with the same data.
+     </p>
+     <p>
+        Strategy: Originally, when we first added the functionality of the Bar and Pie Chart visualization on the Dashboard UI, we had the Dashboard Fragment in charge of Firebase queries, calculations, and timeframe decisions, resulting in high
+        coupling of code. Therefore, through the Strategy Design Pattern we were able to seperate these different responsibilities to a different class and ensure that the Dashboard Fragment now only has to call one method to do all of these operations
+        without having access to the logic.
+     </p>
+     <p>
+        Factory: When we first implemented the Bar and Pie Chart on our Dashboard screen, we had implemented so that the Dashboard Fragment was in charge of instantiating both charts and applying styling. However, by using the Design Pattern, we were
+        able to seperate the chart creation and styling from the rest of the Dashboard Fragment trhough a ChartFactory class. This increased readability, adhered to the Single-Responsibility Principle, and gave us a way to add more charts in the future
+        should we need to without disturbing the rest of the Dashboard UI.
+     <p>
+     <p>
+        Observer: In order to implement our notification system, we implemented the Observer Pattern. We made a class called the NotificationQueueManager which is the subject for our listeners and stores the current reminder state in a LiveData field.
+        When a change occurs that requires a notification, the class is able to notify all listeners. In this case, we only had one listener which was our App Activity which then displays a notification accordingly. 
+     </p>
+    <!-- Add UML diagrams/screenshots here -->
+     <img src="DM.png" alt="Domain Model">
+     <img src="UCD.png" alt="Use Case Diagram">
+     <img src="SD.png" alt="Sequence Diagram">
+     <img src="DCD.png" alt="Design Class Diagram">
 </section>
 
 <!-- SECTION 3: User Interface (UI) -->
