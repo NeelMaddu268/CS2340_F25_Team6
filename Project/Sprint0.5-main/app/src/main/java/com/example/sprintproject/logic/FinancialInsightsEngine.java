@@ -36,7 +36,7 @@ public class FinancialInsightsEngine {
         }
 
         if (budgets == null && goals == null) {
-            System.out.println("Budgets and goals are null");
+            Log.println(Log.INFO, "Budgets and goals are null", "Message title");
         }
 
         String t = userText.toLowerCase(Locale.US).trim();
