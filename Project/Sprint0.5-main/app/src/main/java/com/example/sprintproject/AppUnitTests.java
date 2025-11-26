@@ -268,6 +268,9 @@ public class AppUnitTests {
     }
 
     public static class BudgetCalculator {
+        private BudgetCalculator() {
+            // Prevent instantiation
+        }
         public static double computeSurplus(double total, double spent) {
             return total - spent;
         }

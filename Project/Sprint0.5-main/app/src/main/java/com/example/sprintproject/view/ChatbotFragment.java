@@ -29,21 +29,15 @@ import com.example.sprintproject.ui.chat.ChatAdapter;
 import com.example.sprintproject.viewmodel.ChatViewModel;
 import com.example.sprintproject.viewmodel.DateViewModel;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChatbotFragment extends Fragment {
 
     private ChatViewModel chatVM;
-    private DateViewModel dateVM;
-
-    private ChatAdapter adapter;
-    private RecyclerView recycler;
-    private ProgressBar progress;
-    private TextView txtError;
-    private EditText editInput;
-    private View commandRow;
-
+    private static final String TODAY = "today";
     @Nullable
     @Override
     public View onCreateView(
@@ -62,14 +56,14 @@ public class ChatbotFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         chatVM = new ViewModelProvider(requireActivity()).get(ChatViewModel.class);
-        dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
+        final DateViewModel dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
 
-        recycler = view.findViewById(R.id.recyclerChat);
-        progress = view.findViewById(R.id.progressChat);
-        txtError = view.findViewById(R.id.txtChatError);
-        editInput = view.findViewById(R.id.editChatInput);
+        final RecyclerView recycler = view.findViewById(R.id.recyclerChat);
+        final ProgressBar progress = view.findViewById(R.id.progressChat);
+        final TextView txtError = view.findViewById(R.id.txtChatError);
+        final EditText editInput = view.findViewById(R.id.editChatInput);
 
-        commandRow = view.findViewById(R.id.layoutCommandRow);
+        final View commandRow = view.findViewById(R.id.layoutCommandRow);
 
         Button btnSend = view.findViewById(R.id.btnSend);
         Button btnNewChat = view.findViewById(R.id.btnNewChat);
@@ -77,7 +71,7 @@ public class ChatbotFragment extends Fragment {
         Button btnCmdHousing = view.findViewById(R.id.btnCmdHousing);
         Button btnCmdEssentials = view.findViewById(R.id.btnCmdEssentials);
 
-        adapter = new ChatAdapter();
+        final ChatAdapter adapter = new ChatAdapter();
         LinearLayoutManager lm = new LinearLayoutManager(requireContext());
         lm.setStackFromEnd(true);
         recycler.setLayoutManager(lm);
@@ -98,9 +92,9 @@ public class ChatbotFragment extends Fragment {
             }
         });
 
-        chatVM.getLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            progress.setVisibility(Boolean.TRUE.equals(isLoading) ? View.VISIBLE : View.GONE);
-        });
+        chatVM.getLoading().observe(getViewLifecycleOwner(), isLoading ->
+            progress.setVisibility(Boolean.TRUE.equals(isLoading) ? View.VISIBLE : View.GONE)
+        );
 
         chatVM.getError().observe(getViewLifecycleOwner(), err -> {
             if (TextUtils.isEmpty(err)) {
@@ -131,7 +125,7 @@ public class ChatbotFragment extends Fragment {
             String prompt =
                     "Summarize my spending this week and track my weekly expenses using ONLY my "
                             + "real SpendWise data. Focus on the app date "
-                            + (appDate != null ? appDate.toIso() : "today")
+                            + (appDate != null ? appDate.toIso() : TODAY)
                             + " and do NOT invent any sample numbers.";
             editInput.setText("");
             chatVM.sendUserMessage(prompt);
@@ -142,7 +136,7 @@ public class ChatbotFragment extends Fragment {
             String prompt =
                     "Using my current income and real expense history in SpendWise, "
                             + "help me create a sustainable housing budget for the app date "
-                            + (appDate != null ? appDate.toIso() : "today")
+                            + (appDate != null ? appDate.toIso() : TODAY)
                             + ". Do NOT invent any new dollar amounts; base everything on my "
                             + "existing data and realistic housing guidelines.";
             editInput.setText("");
@@ -154,7 +148,7 @@ public class ChatbotFragment extends Fragment {
             String prompt =
                     "Plan my daily essentials (food, transport, basic needs) using only my "
                             + "actual SpendWise budgets and expenses for "
-                            + (appDate != null ? appDate.toIso() : "today")
+                            + (appDate != null ? appDate.toIso() : TODAY)
                             + ". No sample numbers—only what you can infer from my real data.";
             editInput.setText("");
             chatVM.sendUserMessage(prompt);
@@ -207,9 +201,9 @@ public class ChatbotFragment extends Fragment {
                             chatVM.addMemoryNote(memoryNote.toString().trim());
                         }
                     })
-                    .setNegativeButton("Skip", (dlg, w) -> {
-                        chatVM.setReferenceChats(new ArrayList<>());
-                    })
+                    .setNegativeButton("Skip", (dlg, w) ->
+                        chatVM.setReferenceChats(new ArrayList<>())
+                    )
                     .show();
         });
     }
