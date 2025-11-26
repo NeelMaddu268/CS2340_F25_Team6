@@ -19,6 +19,13 @@ import com.example.sprintproject.viewmodel.ExpenseRepository;
 import com.example.sprintproject.viewmodel.NotificationQueueManager;
 
 public class AppUnitTests {
+    private static final String PASSWORD = "password";
+    private static final String PASSWORD123 = "password123";
+    private static final String ALICE = "Alice";
+    private static final String CHALLENGETITLE = "Challenge Title";
+    private static final String GROUPNAME = "Group Name";
+    private static final String MONTHLY = "monthly";
+
 
     @Test
     public void testComputeSurplusPositive() {
@@ -83,12 +90,12 @@ public class AppUnitTests {
     public void testRejectEmptyCredentials() {
         assertFalse(AuthValidator.isValidInput("", "pass"));
         assertFalse(AuthValidator.isValidInput(" ", " "));
-        assertFalse(AuthValidator.isValidInput(null, "password"));
+        assertFalse(AuthValidator.isValidInput(null, PASSWORD));
     }
 
     @Test
     public void testAcceptValidCredentials() {
-        assertTrue(AuthValidator.isValidInput("user@email.com", "password123"));
+        assertTrue(AuthValidator.isValidInput("user@email.com", PASSWORD123));
     }
 
     @Test
@@ -98,8 +105,8 @@ public class AppUnitTests {
 
     @Test
     public void testRejectInvalidEmailFormat() {
-        assertFalse(AuthValidator.isValidInput("useremail.com", "password"));
-        assertFalse(AuthValidator.isValidInput("user@", "password"));
+        assertFalse(AuthValidator.isValidInput("useremail.com", PASSWORD));
+        assertFalse(AuthValidator.isValidInput("user@", PASSWORD));
     }
 
     // Mirrors your DashboardFragment.readDouble() behavior without Firebase.
@@ -200,37 +207,37 @@ public class AppUnitTests {
     @Test
     public void testAddContribution() {
         SavingsCircle circle = new SavingsCircle("My Circle");
-        circle.addContribution("Alice", 100);
-        assertEquals(100, circle.getContributions().get("Alice"), 0.001);
+        circle.addContribution(ALICE, 100);
+        assertEquals(100, circle.getContributions().get(ALICE), 0.001);
     }
 
     @Test
     public void testTotalContributions() {
         SavingsCircle circle = new SavingsCircle("My Circle");
-        circle.addContribution("Alice", 100);
+        circle.addContribution(ALICE, 100);
         circle.addContribution("Bob", 50);
         assertEquals(150, circle.totalContributions(), 0.001);
     }
 
     @Test
     public void testAcceptValidSavingsCircleInputs() {
-        assertTrue(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
-                500, "monthly"));
+        assertTrue(SavingsCircleValidator.isValidInput(GROUPNAME, CHALLENGETITLE,
+                500, MONTHLY));
     }
 
     @Test
     public void testRejectInvalidSavingsCircleInputs() {
-        assertFalse(SavingsCircleValidator.isValidInput("", "Challenge Title",
-                100, "monthly"));
-        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+        assertFalse(SavingsCircleValidator.isValidInput("", CHALLENGETITLE,
+                100, MONTHLY));
+        assertFalse(SavingsCircleValidator.isValidInput(GROUPNAME, CHALLENGETITLE,
                 -50, "weekly"));
-        assertFalse(SavingsCircleValidator.isValidInput("Group Name", "Challenge Title",
+        assertFalse(SavingsCircleValidator.isValidInput(GROUPNAME,  CHALLENGETITLE,
                 100, "daily"));
     }
 
     @Test
     public void testAddAndRemoveBudget() {
-        User user = new User("john@example.com", "John Doe", "password123",
+        User user = new User("john@example.com", "John Doe", PASSWORD123,
                 new ArrayList<>(), new ArrayList<>());
         Budget budget1 = new Budget("Food Budget");
         Budget budget2 = new Budget("Travel Budget");
@@ -248,7 +255,7 @@ public class AppUnitTests {
 
     @Test
     public void testAddAndRemoveExpense() {
-        User user = new User("john@example.com", "John Doe", "password123",
+        User user = new User("john@example.com", "John Doe", PASSWORD123,
                 new ArrayList<>(), new ArrayList<>());
         Expense expense1 = new Expense("Dinner");
         user.addExpense(expense1);
@@ -391,6 +398,9 @@ public class AppUnitTests {
     }
 
     public static class AuthValidator {
+        private AuthValidator() {
+            // Prevent instantiation
+        }
         public static boolean isValidInput(String email, String password) {
             if (email == null || password == null) {
                 return false;
@@ -406,6 +416,9 @@ public class AppUnitTests {
     }
 
     public static class ExpenseValidator {
+        private ExpenseValidator() {
+            // Prevent instantiation
+        }
         public static boolean isValidExpenseDate(Date expenseDate, Date currentDate) {
             if (expenseDate == null || currentDate == null) {
                 return false;
@@ -415,6 +428,9 @@ public class AppUnitTests {
     }
 
     public static class SavingsCircleValidator {
+        private SavingsCircleValidator() {
+            // Prevent instantiation
+        }
         public static boolean isValidInput(String groupName, String challengeTitle,
                                            double goalAmount, String frequency) {
             if (groupName == null || groupName.trim().isEmpty()) {
@@ -423,23 +439,18 @@ public class AppUnitTests {
             if (challengeTitle == null || challengeTitle.trim().isEmpty()) {
                 return false;
             }
-            if (goalAmount < 0) {
-                return false;
-            }
-            if (frequency == null || !frequency.equals("weekly") && !frequency.equals("monthly")) {
-                return false;
-            }
-            return true;
+
+            return goalAmount >= 0 && frequency != null && (frequency.equals("weekly") || frequency.equals(MONTHLY));
         }
     }
 
     @Test
     public void testExpenseContributionToSavingsCircle() {
         SavingsCircle testCircle = new SavingsCircle("Test Circle");
-        testCircle.addContribution("Alice", 100);
-        assertEquals(100, testCircle.getContributions().get("Alice"), 0.001);
-        testCircle.addContribution("Alice", 50);
-        assertEquals(150, testCircle.getContributions().get("Alice"), 0.001);
+        testCircle.addContribution(ALICE, 100);
+        assertEquals(100, testCircle.getContributions().get(ALICE), 0.001);
+        testCircle.addContribution(ALICE, 50);
+        assertEquals(150, testCircle.getContributions().get(ALICE), 0.001);
     }
 
     @Test
