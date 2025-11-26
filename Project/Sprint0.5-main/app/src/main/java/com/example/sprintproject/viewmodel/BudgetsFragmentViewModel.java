@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.sprintproject.model.AppDate;
 import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
+import com.example.sprintproject.model.FinanceVisitor;   // ⬅️ NEW IMPORT
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -85,8 +86,8 @@ public class BudgetsFragmentViewModel extends ViewModel {
                     totalSpentAllTimeLiveData.postValue(total);
                 })
                 .addOnFailureListener(e ->
-                    totalSpentAllTimeLiveData.postValue(0.0)
-        );
+                        totalSpentAllTimeLiveData.postValue(0.0)
+                );
     }
 
     @Override
@@ -148,7 +149,6 @@ public class BudgetsFragmentViewModel extends ViewModel {
                         return;
                     }
 
-
                     List<Budget> list = new ArrayList<>();
                     Date today = new Date();
 
@@ -170,21 +170,17 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
                     budgetsLiveData.postValue(list);
 
-                    double totalRemaining = 0;
+                    // Use Visitor instead of manual summation
+                    TotalRemainingVisitor visitor = new TotalRemainingVisitor();
                     for (Budget b : list) {
-                        totalRemaining += b.getMoneyRemaining();
+                        b.accept(visitor);
                     }
-                    totalRemainingLiveData.postValue(totalRemaining);
+                    totalRemainingLiveData.postValue(visitor.getTotal());
 
                     computeAllTimeSpent();
                 });
     }
 
-    /**
-     * Loads budgets for a specific date.
-     *
-     * @param appDate The selected date used to filter budgets.
-     */
     /**
      * Loads budgets for a specific date.
      *
@@ -236,11 +232,12 @@ public class BudgetsFragmentViewModel extends ViewModel {
 
                     budgetsLiveData.postValue(list);
 
-                    double totalRemaining = 0;
+                    // Use Visitor here too
+                    TotalRemainingVisitor visitor = new TotalRemainingVisitor();
                     for (Budget b : list) {
-                        totalRemaining += b.getMoneyRemaining();
+                        b.accept(visitor);
                     }
-                    totalRemainingLiveData.postValue(totalRemaining);
+                    totalRemainingLiveData.postValue(visitor.getTotal());
 
                     computeAllTimeSpent();
                 });
@@ -250,7 +247,7 @@ public class BudgetsFragmentViewModel extends ViewModel {
      * Applies a rollover to a budget if its period has expired.
      *
      * @param budget      The budget object to roll over to a new period.
-     * @param targetDate The current date used to determine expiration and new start date.
+     * @param targetDate  The current date used to determine expiration and new start date.
      */
     public void applyRollover(Budget budget, Date targetDate) {
         try {
@@ -383,5 +380,25 @@ public class BudgetsFragmentViewModel extends ViewModel {
         b.setId(doc.getId());
         return b;
     }
-}
 
+    // ===== Visitor implementation for total remaining =====
+    private static final class TotalRemainingVisitor implements FinanceVisitor {
+        private double total = 0.0;
+
+        @Override
+        public void visit(Budget budget) {
+            if (budget != null) {
+                total += budget.getMoneyRemaining();
+            }
+        }
+
+        @Override
+        public void visit(Expense expense) {
+            // Not used for this visitor
+        }
+
+        double getTotal() {
+            return total;
+        }
+    }
+}
