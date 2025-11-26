@@ -116,106 +116,168 @@ public class OllamaClient {
     }
 
     public void chatStream(@NonNull JSONArray messages, @NonNull StreamCallback cb) {
-        JSONObject payload = buildPayload(messages, true);
-
-        Log.d(TAG, "chatStream payload: " + payload);
-
-        RequestBody body = RequestBody.create(payload.toString(), JSON);
-        Request request = new Request.Builder()
-                .url(baseUrl)
-                .post(body)
-                .build();
+        Request request = buildRequest(messages, true, "chatStream");
 
         activeCall = client.newCall(request);
-
         activeCall.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(TAG, "chatStream onFailure", e);
-                cb.onError("Network error: " + e.getMessage());
+                handleStreamFailure(e, cb);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
-                BufferedSource source = null;
-                StringBuilder full = new StringBuilder();
-
-                try {
-                    if (!response.isSuccessful()) {
-                        String errBody = response.body() != null
-                                ? response.body().string() : "";
-                        Log.e(TAG, "chatStream HTTP " + response.code()
-                                + " from Ollama: " + errBody);
-                        cb.onError("HTTP " + response.code());
-                        return;
-                    }
-
-                    if (response.body() == null) {
-                        cb.onError("Empty stream body.");
-                        return;
-                    }
-
-                    source = response.body().source();
-
-                    while (!source.exhausted()) {
-                        String line = source.readUtf8Line();
-                        if (line == null || line.trim().isEmpty()) {
-                            continue;
-                        }
-                        Log.d(TAG, "chatStream chunk: " + line);
-
-                        JSONObject chunk = checkChunk(line);
-                        if (chunk == null) {
-                            continue;
-                        }
-                        boolean done = chunk.optBoolean("done", false);
-                        if (done) {
-                            break;
-                        }
-
-                        JSONObject msgObj = chunk.optJSONObject("message");
-                        if (msgObj == null) {
-                            continue;
-                        }
-
-                        String token = msgObj.optString("content", "");
-                        if (!token.isEmpty()) {
-                            full.append(token);
-                            cb.onToken(token);
-                        }
-                    }
-
-                    String finalText = full.toString().trim();
-                    if (finalText.isEmpty()) {
-                        cb.onError("Stream ended with empty reply.");
-                        return;
-                    }
-
-                    cb.onComplete(finalText);
-
-                } catch (IOException ioe) {
-                    Log.e(TAG, "chatStream IOException", ioe);
-                    if (call.isCanceled()) {
-                        cb.onError("Canceled");
-                    } else {
-                        cb.onError("Stream error: " + ioe.getMessage());
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "chatStream parse error", e);
-                    cb.onError("Stream parse error: " + e.getMessage());
-                } finally {
-                    response.close();
-                    if (source != null) {
-                        try {
-                            source.close();
-                        } catch (Exception ignored) {
-                            // purposefully ignore
-                        }
-                    }
-                }
+                handleStreamResponse(call, response, cb);
             }
         });
     }
+
+    // Builds a request for both chat and chatStream, with logging.
+    private Request buildRequest(@NonNull JSONArray messages,
+                                 boolean stream,
+                                 @NonNull String logPrefix) {
+        JSONObject payload = buildPayload(messages, stream);
+        Log.d(TAG, logPrefix + " payload: " + payload);
+
+        RequestBody body = RequestBody.create(payload.toString(), JSON);
+        return new Request.Builder()
+                .url(baseUrl)
+                .post(body)
+                .build();
+    }
+
+    private void handleStreamFailure(@NonNull IOException e,
+                                     @NonNull StreamCallback cb) {
+        Log.e(TAG, "chatStream onFailure", e);
+        cb.onError("Network error: " + e.getMessage());
+    }
+
+    private void handleStreamResponse(@NonNull Call call,
+                                      @NonNull Response response,
+                                      @NonNull StreamCallback cb) {
+        BufferedSource source = null;
+        StringBuilder full = new StringBuilder();
+
+        try {
+            if (!validateStreamResponse(response, cb)) {
+                return;
+            }
+
+            // at this point body is guaranteed non-null by validateStreamResponse
+            source = response.body().source();
+            readStream(call, source, full, cb);
+            finishStream(full, cb);
+
+        } catch (IOException ioe) {
+            handleStreamIOException(call, ioe, cb);
+        } catch (Exception e) {
+            Log.e(TAG, "chatStream parse error", e);
+            cb.onError("Stream parse error: " + e.getMessage());
+        } finally {
+            closeQuietly(response, source);
+        }
+    }
+
+    private boolean validateStreamResponse(@NonNull Response response,
+                                           @NonNull StreamCallback cb) throws IOException {
+        if (!response.isSuccessful()) {
+            String errBody = response.body() != null
+                    ? response.body().string() : "";
+            Log.e(TAG, "chatStream HTTP " + response.code()
+                    + " from Ollama: " + errBody);
+            cb.onError("HTTP " + response.code());
+            return false;
+        }
+
+        if (response.body() == null) {
+            cb.onError("Empty stream body.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void readStream(@NonNull Call call,
+                            @NonNull BufferedSource source,
+                            @NonNull StringBuilder full,
+                            @NonNull StreamCallback cb) throws IOException {
+        while (!source.exhausted()) {
+            String line = source.readUtf8Line();
+            if (line == null || line.trim().isEmpty()) {
+                continue;
+            }
+
+            Log.d(TAG, "chatStream chunk: " + line);
+
+            boolean done = processStreamLine(line, full, cb);
+            if (done) {
+                break;
+            }
+        }
+    }
+
+    private boolean processStreamLine(@NonNull String line,
+                                      @NonNull StringBuilder full,
+                                      @NonNull StreamCallback cb) {
+        JSONObject chunk = checkChunk(line);
+        if (chunk == null) {
+            return false;
+        }
+
+        boolean done = chunk.optBoolean("done", false);
+        if (done) {
+            return true;
+        }
+
+        JSONObject msgObj = chunk.optJSONObject("message");
+        if (msgObj == null) {
+            return false;
+        }
+
+        String token = msgObj.optString("content", "");
+        if (!token.isEmpty()) {
+            full.append(token);
+            cb.onToken(token);
+        }
+
+        return false;
+    }
+
+    private void finishStream(@NonNull StringBuilder full,
+                              @NonNull StreamCallback cb) {
+        String finalText = full.toString().trim();
+        if (finalText.isEmpty()) {
+            cb.onError("Stream ended with empty reply.");
+        } else {
+            cb.onComplete(finalText);
+        }
+    }
+
+    private void handleStreamIOException(@NonNull Call call,
+                                         @NonNull IOException ioe,
+                                         @NonNull StreamCallback cb) {
+        Log.e(TAG, "chatStream IOException", ioe);
+        if (call.isCanceled()) {
+            cb.onError("Canceled");
+        } else {
+            cb.onError("Stream error: " + ioe.getMessage());
+        }
+    }
+
+    private void closeQuietly(@NonNull Response response,
+                              BufferedSource source) {
+        try {
+            response.close();
+        } catch (Exception ignored) {
+        }
+        if (source != null) {
+            try {
+                source.close();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
 
     private JSONObject checkChunk(String line) {
         try {
