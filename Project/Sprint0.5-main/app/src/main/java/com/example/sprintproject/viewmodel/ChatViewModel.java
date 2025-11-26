@@ -437,7 +437,7 @@ public class ChatViewModel extends ViewModel {
             });
 
         } catch (Exception ignored) {
-            return;
+            // purposefully left blank - meant to ignore
         }
     }
 
@@ -472,11 +472,12 @@ public class ChatViewModel extends ViewModel {
 
                 @Override
                 public void onError(String errorMsg) {
-                    return;
+                    //do nothing on error
                 }
             });
 
         } catch (Exception ignored) {
+            // intentionally left blank - meant to ignore
         }
     }
 
@@ -573,7 +574,7 @@ public class ChatViewModel extends ViewModel {
                 }
             });
         } catch (Exception ignored) {
-            return;
+            // intentionally left blank - meant to ignore
         }
     }
 
