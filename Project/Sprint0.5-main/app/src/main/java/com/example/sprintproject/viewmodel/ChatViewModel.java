@@ -13,6 +13,7 @@ import com.example.sprintproject.model.Budget;
 import com.example.sprintproject.model.Expense;
 import com.example.sprintproject.network.OllamaClient;
 import com.example.sprintproject.repository.ChatRepository;
+import com.example.sprintproject.viewmodel.FirestoreManager;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -443,7 +444,7 @@ public class ChatViewModel extends ViewModel {
             });
 
         } catch (Exception ignored) {
-            // Intentioanlly ignored - no need for implementation
+            // Intentionally ignored - no need for implementation
         }
     }
 
@@ -487,6 +488,8 @@ public class ChatViewModel extends ViewModel {
         }
     }
 
+    // ---------------- refresh all untitled chat titles ----------------
+
     public void refreshAllUntitledChatTitles() {
         String uid = FirestoreManager.getInstance().getCurrentUserId();
         if (uid == null) {
@@ -496,39 +499,47 @@ public class ChatViewModel extends ViewModel {
         FirestoreManager.getInstance()
                 .userChatsReference(uid)
                 .get()
-                .addOnSuccessListener(qs -> {
-                    if (qs == null || qs.isEmpty()) {
-                        return;
-                    }
+                .addOnSuccessListener(qs -> handleUserChatsSnapshot(uid, qs));
+    }
 
-                    for (DocumentSnapshot chatDoc : qs.getDocuments()) {
-                        String chatId = chatDoc.getId();
-                        String title = chatDoc.getString("title");
+    private void handleUserChatsSnapshot(String uid, QuerySnapshot qs) {
+        if (qs == null || qs.isEmpty()) {
+            return;
+        }
 
-                        if (!needsTitle(title)) {
-                            continue;
-                        }
+        for (DocumentSnapshot chatDoc : qs.getDocuments()) {
+            processSingleChatDocForTitle(uid, chatDoc);
+        }
+    }
 
-                        FirestoreManager.getInstance()
-                                .chatMessagesReference(uid, chatId)
-                                .orderBy("timestamp")
-                                .limit(1)
-                                .get()
-                                .addOnSuccessListener(msgSnap -> {
-                                    if (msgSnap == null || msgSnap.isEmpty()) {
-                                        return;
-                                    }
+    private void processSingleChatDocForTitle(String uid, DocumentSnapshot chatDoc) {
+        String chatId = chatDoc.getId();
+        String title = chatDoc.getString("title");
 
-                                    DocumentSnapshot first = msgSnap.getDocuments().get(0);
-                                    String content = first.getString(CONTENT);
-                                    if (content == null || content.trim().isEmpty()) {
-                                        return;
-                                    }
+        if (!needsTitle(title)) {
+            return;
+        }
 
-                                    generateTitleForSpecificChat(chatId, content);
-                                });
-                    }
-                });
+        FirestoreManager.getInstance()
+                .chatMessagesReference(uid, chatId)
+                .orderBy("timestamp")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(msgSnap -> handleFirstMessageSnapshot(chatId, msgSnap));
+    }
+
+    private void handleFirstMessageSnapshot(String chatId, QuerySnapshot msgSnap) {
+        if (msgSnap == null || msgSnap.isEmpty()) {
+            return;
+        }
+
+        DocumentSnapshot first = msgSnap.getDocuments().get(0);
+        String content = first.getString(CONTENT);
+        if (content == null || content.trim().isEmpty()) {
+            return;
+        }
+
+        generateTitleForSpecificChat(chatId, content);
     }
 
     private boolean needsTitle(String title) {
