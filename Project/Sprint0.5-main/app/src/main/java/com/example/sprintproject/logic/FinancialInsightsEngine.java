@@ -18,19 +18,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class FinancialInsightsEngine {
-
-    public static class InsightResult {
-        public final boolean handled;
-        public final String computedText;
-        public final String aiFollowupPrompt;
-
-        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
-            this.handled = handled;
-            this.computedText = computedText;
-            this.aiFollowupPrompt = aiFollowupPrompt;
-        }
-    }
-
     public InsightResult tryHandle(String userText,
                                    List<Expense> expenses,
                                    List<Budget> budgets) {
@@ -80,7 +67,8 @@ public class FinancialInsightsEngine {
             String computed = "Biggest categories this month: " + topCats(byCat)
                     + ". Focus on reducing the top 1-2.";
 
-            String aiPrompt = "Based ONLY on these facts about the user's last 30 days of spending:\n"
+            String aiPrompt =
+                    "Based ONLY on these facts about the user's last 30 days of spending:\n"
                     + computed + "\n\n"
                     + "Give 3 specific, realistic suggestions for how they can cut costs. "
                     + "Don't make up any new dollar amounts.";
@@ -242,5 +230,29 @@ public class FinancialInsightsEngine {
 
     private double r2(double x) {
         return Math.round(x * 100.0) / 100.0;
+    }
+
+    public static class InsightResult {
+        private final boolean handled;
+        private final String computedText;
+        private final String aiFollowupPrompt;
+
+        public InsightResult(boolean handled, String computedText, String aiFollowupPrompt) {
+            this.handled = handled;
+            this.computedText = computedText;
+            this.aiFollowupPrompt = aiFollowupPrompt;
+        }
+
+        public String getAiFollowupPrompt() {
+            return aiFollowupPrompt;
+        }
+
+        public String getComputedText() {
+            return computedText;
+        }
+
+        public Boolean getHandled() {
+            return handled;
+        }
     }
 }
