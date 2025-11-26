@@ -48,6 +48,10 @@ public class FirestoreManager {
         db = FirebaseFirestore.getInstance();
     }
 
+    private static class Holder {
+        private static final FirestoreManager INSTANCE = new FirestoreManager();
+    }
+
     public static FirestoreManager getInstance() {
         return Holder.INSTANCE;
     }
@@ -268,9 +272,9 @@ public class FirestoreManager {
                 .update(fieldName, FieldValue.increment(1));
     }
 
-   public Query friendRequests(String uid) {
-       return friendRequestsReference().whereEqualTo("approverUid", uid);
-   }
+    public Query friendRequests(String uid) {
+        return friendRequestsReference().whereEqualTo("approverUid", uid);
+    }
 
     public Query searchByEmail(String email) {
         return db.collection(USERS_STRING).whereEqualTo("email", email);
@@ -296,44 +300,44 @@ public class FirestoreManager {
     }
 
     public void approveFriendRequest(String requestId) {
-       DocumentReference request = friendRequestsReference().document(requestId);
-       TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
+        DocumentReference request = friendRequestsReference().document(requestId);
+        TaskCompletionSource<Void> tcs = new TaskCompletionSource<>();
 
-       request.get().addOnSuccessListener(snapshot -> {
-           if (snapshot == null || !snapshot.exists()) {
-               tcs.setException(new IllegalStateException("Request not found"));
-               return;
-           }
+        request.get().addOnSuccessListener(snapshot -> {
+            if (snapshot == null || !snapshot.exists()) {
+                tcs.setException(new IllegalStateException("Request not found"));
+                return;
+            }
 
-           String requesterUid = snapshot.getString("requesterUid");
-           String approverUid = snapshot.getString("approverUid");
-           String requesterEmail = snapshot.getString("requesterEmail");
-           String approverEmail = snapshot.getString("approverEmail");
+            String requesterUid = snapshot.getString("requesterUid");
+            String approverUid = snapshot.getString("approverUid");
+            String requesterEmail = snapshot.getString("requesterEmail");
+            String approverEmail = snapshot.getString("approverEmail");
 
-           if (requesterUid == null || approverUid == null) {
-               tcs.setException(new IllegalStateException("Invalid request"));
-               return;
-           }
+            if (requesterUid == null || approverUid == null) {
+                tcs.setException(new IllegalStateException("Invalid request"));
+                return;
+            }
 
-           WriteBatch batch = db.batch();
+            WriteBatch batch = db.batch();
 
-           Map<String, Object> friend1 = new HashMap<>();
-           friend1.put("uid", approverUid);
-           friend1.put("email", approverEmail);
+            Map<String, Object> friend1 = new HashMap<>();
+            friend1.put("uid", approverUid);
+            friend1.put("email", approverEmail);
 
-           Map<String, Object> friend2 = new HashMap<>();
-           friend2.put("uid", requesterUid);
-           friend2.put("email", requesterEmail);
+            Map<String, Object> friend2 = new HashMap<>();
+            friend2.put("uid", requesterUid);
+            friend2.put("email", requesterEmail);
 
-           batch.set(friendsReference(requesterUid).document(approverUid), friend1);
-           batch.set(friendsReference(approverUid).document(requesterUid), friend2);
+            batch.set(friendsReference(requesterUid).document(approverUid), friend1);
+            batch.set(friendsReference(approverUid).document(requesterUid), friend2);
 
-           batch.delete(request);
+            batch.delete(request);
 
-           batch.commit()
-                   .addOnSuccessListener(v -> tcs.setResult(null))
-                   .addOnFailureListener(tcs::setException);
-       }).addOnFailureListener(tcs::setException);
+            batch.commit()
+                    .addOnSuccessListener(v -> tcs.setResult(null))
+                    .addOnFailureListener(tcs::setException);
+        }).addOnFailureListener(tcs::setException);
     }
 
     public void declineFriendRequest(String requestId) {
@@ -368,7 +372,6 @@ public class FirestoreManager {
                     }
                     batch.commit();
                 });
-    private static class Holder {
-        private static final FirestoreManager INSTANCE = new FirestoreManager();
+
     }
 }
