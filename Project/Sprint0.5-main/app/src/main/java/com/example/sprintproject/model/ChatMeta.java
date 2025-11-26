@@ -1,3 +1,6 @@
+// This model stores all the relevant data for a user and chatbot interaction
+// This class helps track and organize past conversations.
+
 package com.example.sprintproject.model;
 
 import com.google.firebase.Timestamp;

@@ -1,6 +1,6 @@
 // This ViewModel loads all the expenses and
-// filters them by a selected AppDate, using FireStore operations to stay updated.
-// Includes flexible date-parsing logic so that
+// filters them by a selected AppDate, using FireStore operations
+// to stay updated. Includes flexible date-parsing logic so that
 // expenses are handled correctly even if stored in different formats.
 
 package com.example.sprintproject.viewmodel;

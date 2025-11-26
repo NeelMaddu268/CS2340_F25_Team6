@@ -1,3 +1,8 @@
+// This class is a single chat message with a user and handles message
+// content and firebase timestamps.
+// This class provides basic getter and setters so that the
+// messages can be stored and retrieved easily.
+
 package com.example.sprintproject.model;
 
 import com.google.firebase.Timestamp;

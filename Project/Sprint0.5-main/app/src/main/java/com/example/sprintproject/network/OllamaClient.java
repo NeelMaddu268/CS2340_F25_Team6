@@ -1,3 +1,6 @@
+// This class handles all of the communication between the app and
+// the local Ollama server using OkHttp.
+
 package com.example.sprintproject.network;
 
 import android.util.Log;
@@ -159,17 +162,12 @@ public class OllamaClient {
                         if (line == null || line.trim().isEmpty()) {
                             continue;
                         }
-
                         Log.d(TAG, "chatStream chunk: " + line);
 
-                        JSONObject chunk;
-                        try {
-                            chunk = new JSONObject(line);
-                        } catch (JSONException je) {
-                            Log.w(TAG, "Skipping bad JSON chunk: " + line, je);
+                        JSONObject chunk = checkChunk(line);
+                        if (chunk == null) {
                             continue;
                         }
-
                         boolean done = chunk.optBoolean("done", false);
                         if (done) {
                             break;
@@ -216,6 +214,15 @@ public class OllamaClient {
                 }
             }
         });
+    }
+
+    private JSONObject checkChunk(String line) {
+        try {
+            return new JSONObject(line);
+        } catch (JSONException e) {
+            Log.e(TAG, "chunk JSON error", e);
+            return null;
+        }
     }
 
     private JSONObject buildPayload(JSONArray messages, boolean stream) {

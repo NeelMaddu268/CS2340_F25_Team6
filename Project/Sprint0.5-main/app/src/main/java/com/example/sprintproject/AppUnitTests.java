@@ -116,7 +116,7 @@ public class AppUnitTests {
         if (o instanceof Integer) {
             return ((Integer) o).doubleValue();
         }
-        if (o instanceof Float)   {
+        if (o instanceof Float) {
             return ((Float) o).doubleValue();
         }
         if (o instanceof String) {
@@ -142,11 +142,11 @@ public class AppUnitTests {
     @Test
     public void testReadDoubleLikeHelperparsesNumericsAndStrings() {
         assertEquals(12.5, readDoubleLikeHelper(12.5d), 1e-9);
-        assertEquals(12.0, readDoubleLikeHelper(12L),   1e-9);
-        assertEquals(7.0,  readDoubleLikeHelper(7),     1e-9);
-        assertEquals(2.5,  readDoubleLikeHelper(2.5f),  1e-6);
+        assertEquals(12.0, readDoubleLikeHelper(12L), 1e-9);
+        assertEquals(7.0, readDoubleLikeHelper(7), 1e-9);
+        assertEquals(2.5, readDoubleLikeHelper(2.5f), 1e-6);
         assertEquals(99.75, readDoubleLikeHelper("99.75"), 1e-9);
-        assertEquals(42.0,  readDoubleLikeHelper("42"),    1e-9);
+        assertEquals(42.0, readDoubleLikeHelper("42"), 1e-9);
         assertNull(readDoubleLikeHelper("hello"));
         assertNull(readDoubleLikeHelper(null));
     }
@@ -262,6 +262,7 @@ public class AppUnitTests {
         public static double computeSurplus(double total, double spent) {
             return total - spent;
         }
+
         public static int computePercentUsed(double total, double spent) {
             if (total <= 0) {
                 return 0;
@@ -285,9 +286,11 @@ public class AppUnitTests {
             this.budgets = budgets;
             this.expenses = expenses;
         }
+
         public String getEmail() {
             return email;
         }
+
         public void setEmail(String email) {
             this.email = email;
         }
@@ -295,6 +298,7 @@ public class AppUnitTests {
         public String getName() {
             return name;
         }
+
         public void setName(String name) {
             this.name = name;
         }
@@ -338,6 +342,7 @@ public class AppUnitTests {
 
     public class Budget {
         private String name;
+
         public Budget(String name) {
             this.name = name;
         }
@@ -349,6 +354,7 @@ public class AppUnitTests {
 
     public class Expense {
         private String name;
+
         public Expense(String name) {
             this.name = name;
         }
@@ -426,6 +432,7 @@ public class AppUnitTests {
             return true;
         }
     }
+
     @Test
     public void testExpenseContributionToSavingsCircle() {
         SavingsCircle testCircle = new SavingsCircle("Test Circle");

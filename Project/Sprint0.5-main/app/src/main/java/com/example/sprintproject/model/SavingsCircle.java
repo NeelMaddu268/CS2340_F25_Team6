@@ -1,5 +1,6 @@
-// This class shows a savings circle and keeps track of all its shared group infomration.
-// This class also tracks the savings circle's status regarding completion.
+// This class shows a savings circle and keeps track of all its shared
+// group infomration. This class also tracks the savings circle's
+// status regarding completion.
 
 package com.example.sprintproject.model;
 import java.util.List;

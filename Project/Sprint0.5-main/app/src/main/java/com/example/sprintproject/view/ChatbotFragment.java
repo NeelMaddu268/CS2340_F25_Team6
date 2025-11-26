@@ -1,3 +1,7 @@
+// This fragment file implements the chatbot UI, connecting the
+// viewModel, recyclerView and etc together. Also allows
+// users to include context from previous chats.
+
 package com.example.sprintproject.view;
 
 import android.os.Bundle;

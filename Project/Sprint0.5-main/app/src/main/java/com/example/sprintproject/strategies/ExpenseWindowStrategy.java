@@ -3,7 +3,6 @@
 // accordingly. It helps build database queries and allows other subclasses
 // to choose which expenses are included in the result.
 
-
 package com.example.sprintproject.strategies;
 
 import com.example.sprintproject.charts.BarChartController;

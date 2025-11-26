@@ -1,7 +1,8 @@
 // The fragment hosts the main dashboard
 // screen which shos the total spending, remaining budget, and charts.
 // The fragment observes date and data changes
-// and updates the charts accordingly. It also provides calendar and other navigation.
+// and updates the charts accordingly. It also provides calendar
+// and other navigation.
 
 package com.example.sprintproject.view;
 

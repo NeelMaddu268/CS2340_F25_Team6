@@ -3,6 +3,7 @@
 // It observes the current date when responding to
 // the invites and updates the firestore data accordingly, while displaying confirmation messages.
 
+
 package com.example.sprintproject.view;
 
 import android.content.Context;

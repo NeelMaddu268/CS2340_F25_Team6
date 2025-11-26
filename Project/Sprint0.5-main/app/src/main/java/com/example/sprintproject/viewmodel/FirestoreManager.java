@@ -1,5 +1,5 @@
-// This singleton class handles all the firestore read and write operations for the app.
-// Supports the deletion of circles.
+// This singleton class handles all the firestore read and write
+// operations for the app. Supports the deletion of circles.
 
 package com.example.sprintproject.viewmodel;
 

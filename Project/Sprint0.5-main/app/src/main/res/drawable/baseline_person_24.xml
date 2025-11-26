@@ -1,3 +1,5 @@
+<!-- Drawable icon for person symbol for profile tab. -->
+
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:height="24dp"
     android:tint="?attr/colorControlNormal"

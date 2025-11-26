@@ -1,3 +1,6 @@
+// The viewmodel holds a placeholder test that is exposed from the
+// LiveData for basic UI binding.
+
 package com.example.sprintproject.viewmodel;
 
 import androidx.lifecycle.LiveData;

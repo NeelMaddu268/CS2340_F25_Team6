@@ -1,3 +1,8 @@
+// This class keeps track of the user queries about spending patterns
+// and generates financial insights about weekly summaries and etc.
+// Returns AI ready prompts that the app converts into personalized messages
+// back to the user.
+
 package com.example.sprintproject.logic;
 
 import com.example.sprintproject.model.Budget;

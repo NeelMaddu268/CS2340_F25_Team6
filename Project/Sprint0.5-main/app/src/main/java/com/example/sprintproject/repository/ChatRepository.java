@@ -1,3 +1,7 @@
+// This repo manages the chat-related firestore operations such as
+// updating any meta data and listening to any real time messages changes.
+// Also provides chat logs with the users specific budgets and expenses.
+
 package com.example.sprintproject.repository;
 
 import androidx.annotation.Nullable;
