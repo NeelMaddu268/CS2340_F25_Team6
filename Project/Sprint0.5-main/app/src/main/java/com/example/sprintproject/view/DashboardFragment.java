@@ -53,8 +53,6 @@ public class DashboardFragment extends Fragment {
 
     private DateViewModel dateVM;
     private DashboardViewModel dashboardVM;
-    private AuthenticationViewModel authenticationViewModel;
-
 
     private Charts charts;
 
@@ -75,7 +73,7 @@ public class DashboardFragment extends Fragment {
             return null;
         }
 
-        authenticationViewModel = new AuthenticationViewModel();
+        AuthenticationViewModel authenticationViewModel = new AuthenticationViewModel();
         dateVM = new ViewModelProvider(requireActivity()).get(DateViewModel.class);
         dashboardVM = new ViewModelProvider(requireActivity()).get(DashboardViewModel.class);
 
@@ -92,7 +90,7 @@ public class DashboardFragment extends Fragment {
         btnCalendar = view.findViewById(R.id.btnCalendar);
         btnProfile = view.findViewById(R.id.btnProfile);
         themeSwitch = view.findViewById(R.id.themeSwitch);
-        syncThemeSwitchWithFirestore(themeSwitch);
+        syncThemeSwitchWithFirestore(themeSwitch, authenticationViewModel);
         headerText = view.findViewById(R.id.dashboardTitle);
         logoutButton = view.findViewById(R.id.logout);
         totalSpentText = view.findViewById(R.id.textTotalSpent);
@@ -173,7 +171,7 @@ public class DashboardFragment extends Fragment {
         loadChartsWithStrategy();
     }
 
-    private void syncThemeSwitchWithFirestore(SwitchCompat themeSwitch) {
+    private void syncThemeSwitchWithFirestore(SwitchCompat themeSwitch, AuthenticationViewModel authenticationViewModel) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             return;
