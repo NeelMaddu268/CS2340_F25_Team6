@@ -1,11 +1,14 @@
-# CS 2340 Fall 2025 Repository
-> Please read these instructions then replace this `README.md` file with your own repository documentation as you see fit.
+# Spendwise
 
-This repository is meant to be used throughout the semester to help you organize your work. This will be the repository you send out to your teammates as you work on your various group assignments throught the semester.
+SpendWise is a native Android application designed to bring financial wellness by combining expense tracking with social accountability. Unlike traditional budgeting tools—which can often feel isolating or overly complex—SpendWise integrates personal finance management with “Savings Circles,” a collaborative feature where users can work together with friends to achieve shared financial goals.
 
-**Please note the current directory structure, which should be maintained as you use this repository in the future.**
-- `Project` This directory currently contains an Android Studio Project called `Sprint0.5-main`. This is a template project you should feel free to use in order to set up your group's project for the semester. If you decide to start your own Android Studio Project from scratch, we recommend that you save it inside the `Project` folder as well.
-> *Note that `Sprint0.5-main` is a Project folder, which means Android Studio will recognize it as a project if and only if it is opened at this level.* If you attempt to open the project by selecting any other parent or child directory, you will run into issues as the program will not know which *gradle* configurations to use.
-- `SOLID_GRASP` This directory will be used later in the semester for your group assignments related to SOLID/GRASP.
-- `Code Smell` This directory will be used later in the semester for your group assignments related to Code Smells.
+Built using the MVVM architecture, the application leverages Firebase Firestore for real-time cloud synchronization and authentication. Some of our key features include:
+
+- Smart Expense Logging: A simple interface for tracking daily spending with category-based organization.
+- Interactive Dashboards: Real-time data visualizations powered by MPAndroidChart, including dynamic pie and bar charts.
+- Social Savings: A unique “Savings Circle” system that provides collaborative saving challenges and progress tracking.
+- AI-Powered Guidance: An integrated AI chatbot that offers personalized budgeting tips, answers FAQs, and provides motivation.
+
+SpendWise transforms the tedious task of budgeting into an engaging and social experience, helping users develop healthier money habits while staying accountable through collaboration.
+
 
